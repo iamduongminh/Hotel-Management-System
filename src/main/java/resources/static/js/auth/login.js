@@ -26,7 +26,7 @@ async function handleLogin(e) {
         if (user.role === 'ADMIN' || user.role === 'BRANCH_MANAGER') {
             window.location.href = "/pages/admin/dashboard.html";
         } else {
-            window.location.href = "/pages/staff/booking-list.html";
+            window.location.href = "/pages/staff/booking_list.html";
         }
 
     } catch (error) {

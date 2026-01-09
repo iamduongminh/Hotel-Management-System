@@ -34,7 +34,7 @@ async function processCheckout() {
         alert(message);
         
         // Quay lại danh sách
-        window.location.href = "booking-list.html";
+        window.location.href = "booking_list.html";
     } catch (error) {
         console.error(error);
         alert("❌ Lỗi thanh toán: " + error.message);

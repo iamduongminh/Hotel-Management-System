@@ -38,7 +38,7 @@ async function handleCreateBooking(e) {
         alert("✅ Đặt phòng thành công! Mã đơn: #" + result.id);
         
         // 5. Quay về trang danh sách
-        window.location.href = "booking-list.html"; 
+        window.location.href = "booking_list.html"; 
     } catch (error) {
         alert("❌ Lỗi đặt phòng: " + error.message);
     }
