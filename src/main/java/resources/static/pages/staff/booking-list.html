@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách đặt phòng</title>
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+    <div class="header">
+        <h2>Quản Lý Đặt Phòng</h2>
+        <button onclick="window.location.href='booking-form.html'">+ Tạo Booking Mới</button>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã Đơn</th>
+                <th>Khách Hàng</th>
+                <th>Phòng</th>
+                <th>Ngày Đến</th>
+                <th>Trạng Thái</th>
+            </tr>
+        </thead>
+        <tbody id="booking-table-body">
+            </tbody>
+    </table>
+
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/staff/booking.js"></script>
+</body>
+</html>
