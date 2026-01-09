@@ -11,6 +11,12 @@ public class ApproveDiscountCmd implements ICommand {
 
     @Override
     public void execute() {
+        // Logic thực tế: Gọi BookingService để cập nhật giá tiền (Hiện tại chỉ in ra console)
         System.out.println("Approved " + discountPercent + "% discount for booking " + bookingId);
+    }
+
+    @Override
+    public String toString() {
+        return "Approved " + discountPercent + "% discount for booking #" + bookingId;
     }
 }
