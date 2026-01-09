@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh Toán & Trả Phòng</title>
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+    <div class="login-container" style="width: 400px;">
+        <h2>Check-out & Thanh Toán</h2>
+        <div class="form-group">
+            <label>Mã Đặt Phòng (Booking ID):</label>
+            <input type="number" id="bookingId" placeholder="Nhập ID...">
+        </div>
+        
+        <div class="form-group">
+            <label>Phương thức thanh toán:</label>
+            <select id="paymentType">
+                <option value="CASH">Tiền mặt</option>
+                <option value="CREDIT_CARD">Thẻ tín dụng</option>
+                <option value="BANK_TRANSFER">Chuyển khoản</option>
+            </select>
+        </div>
+
+        <button onclick="processCheckout()" class="btn-primary">Thanh Toán Ngay</button>
+    </div>
+
+    <script src="../../js/common/config.js"></script>
+    <script>
+        async function processCheckout() {
+            const bookingId = document.getElementById('bookingId').value;
+            const paymentType = document.getElementById('paymentType').value;
+
+            if (!bookingId) {
+                alert("Vui lòng nhập mã đặt phòng!");
+                return;
+            }
+
+            const req = {
+                bookingId: parseInt(bookingId),
+                paymentType: paymentType
+            };
+
+            try {
+                // Gọi CheckOutController -> CheckOutFacade -> PaymentStrategy
+                const invoice = await callAPI('/checkout', 'POST', req);
+                
+                alert(`Thanh toán thành công!\nTổng tiền: ${invoice.totalAmount} VND\nHóa đơn số: #${invoice.id}`);
+                window.location.href = "booking-list.html";
+            } catch (e) {
+                alert("Lỗi thanh toán: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>

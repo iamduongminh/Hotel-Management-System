@@ -94,18 +94,26 @@ hotel_management_sytem_web
    │           │  ├─ auth
    │           │  │  └─ login.js
    │           │  ├─ common
-   │           │  │  └─ config.js
+   │           │  │  ├─ config.js
+   │           │  │  └─ utils.js
    │           │  ├─ manager
    │           │  │  └─ dashboard.js
    │           │  └─ staff
    │           │     └─ booking.js
    │           └─ pages
    │              ├─ admin
-   │              │  └─ dashboard.html
+   │              │  ├─ approvals.html
+   │              │  ├─ comparison.html
+   │              │  ├─ dashboard.html
+   │              │  └─ reports.html
    │              ├─ auth
    │              │  └─ login.html
    │              └─ staff
-   │                 └─ booking-list.html
+   │                 ├─ booking_form.html
+   │                 ├─ booking_list.html
+   │                 ├─ checkout.html
+   │                 ├─ housekeeping.html
+   │                 └─ shift.html
    └─ test
 
 ```

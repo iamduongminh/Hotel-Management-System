@@ -1,0 +1,1 @@
+src/main/java/resources/static/js/staff/checkout.js

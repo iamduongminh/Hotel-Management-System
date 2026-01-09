@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Xuất Báo Cáo</title>
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+    <div class="main-content">
+        <h1>Báo Cáo Hoạt Động</h1>
+        <div class="card">
+            <div class="form-group">
+                <label>Loại báo cáo:</label>
+                <select id="reportType">
+                    <option value="REVENUE">Báo cáo Doanh thu (Revenue)</option>
+                    <option value="OCCUPANCY">Tỷ lệ lấp đầy (Occupancy)</option>
+                </select>
+            </div>
+            <button onclick="exportReport()" class="btn-primary">Xuất Báo Cáo</button>
+        </div>
+        <div id="reportResult" style="margin-top: 20px; padding: 10px; background: white;"></div>
+    </div>
+
+    <script src="../../js/common/config.js"></script>
+    <script>
+        async function exportReport() {
+            const type = document.getElementById('reportType').value;
+            // Lấy ngày hiện tại làm demo
+            const req = {
+                type: type,
+                start: new Date().toISOString(),
+                end: new Date().toISOString()
+            };
+
+            try {
+                // Gọi API ReportQueryController
+                const result = await callAPI('/reports/export', 'POST', req);
+                document.getElementById('reportResult').innerText = result;
+            } catch (e) {
+                alert("Lỗi: " + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
