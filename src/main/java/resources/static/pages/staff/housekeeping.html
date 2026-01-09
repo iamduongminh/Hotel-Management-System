@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Buồng Phòng</title>
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+    <div class="header">
+        <h2>Danh Sách Cần Dọn Dẹp</h2>
+        <button onclick="window.location.href='booking-list.html'" style="background: #6c757d;">&larr; Về trang Lễ tân</button>
+    </div>
+
+    <div class="main-content" style="margin-left: 0;"> <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Phòng</th>
+                    <th>Trạng Thái Hiện Tại</th>
+                    <th>Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="room-list">
+                <tr>
+                    <td>101</td>
+                    <td><span class="status DIRTY">DIRTY</span></td>
+                    <td>
+                        <button onclick="markClean(101)" class="btn-primary" style="width:auto; background:green;">Báo Đã Dọn</button>
+                        <button onclick="markMaintenance(101)" class="btn-primary" style="width:auto; background:orange;">Bảo Trì</button>
+                    </td>
+                </tr>
+                 <tr>
+                    <td>102</td>
+                    <td><span class="status AVAILABLE">AVAILABLE</span></td>
+                    <td>-</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/staff/housekeeping.js"></script>
+</body>
+</html>
