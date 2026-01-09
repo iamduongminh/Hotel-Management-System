@@ -2,30 +2,41 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Danh sách đặt phòng</title>
+    <title>Danh Sách Đặt Phòng</title>
     <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
-    <div class="header">
-        <h2>Quản Lý Đặt Phòng</h2>
-        <button onclick="window.location.href='booking-form.html'">+ Tạo Booking Mới</button>
+    <div class="sidebar">
+        <h3>Lễ Tân</h3>
+        <a href="booking-list.html" class="active">Đặt Phòng</a>
+        <a href="checkout.html">Thanh Toán</a>
+        <a href="housekeeping.html">Trạng Thái Phòng</a>
+        <a href="shift.html">Ca Làm Việc</a>
+        <a href="#" onclick="localStorage.clear(); window.location.href='/pages/auth/login.html'">Đăng Xuất</a>
     </div>
 
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Mã Đơn</th>
-                <th>Khách Hàng</th>
-                <th>Phòng</th>
-                <th>Ngày Đến</th>
-                <th>Trạng Thái</th>
-            </tr>
-        </thead>
-        <tbody id="booking-table-body">
-            </tbody>
-    </table>
+    <div class="main-content">
+        <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Quản Lý Đặt Phòng</h2>
+            <a href="booking-form.html" class="btn-primary" style="text-decoration: none;">+ Tạo Booking Mới</a>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Mã Đơn (#ID)</th>
+                    <th>Khách Hàng</th>
+                    <th>Phòng</th>
+                    <th>Ngày Đến (Check-in)</th>
+                    <th>Trạng Thái</th>
+                    <th>Hành Động</th> </tr>
+            </thead>
+            <tbody id="booking-table-body">
+                </tbody>
+        </table>
+    </div>
 
     <script src="../../js/common/config.js"></script>
-    <script src="../../js/staff/booking.js"></script>
+    <script src="../../js/common/utils.js"></script> <script src="../../js/staff/booking.js"></script>
 </body>
 </html>

@@ -2,19 +2,45 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>403 - Không có quyền truy cập</title>
+    <title>403 - Không Có Quyền Truy Cập</title>
     <link rel="stylesheet" href="../../css/style.css">
     <style>
-        .error-box { text-align: center; margin-top: 100px; }
-        h1 { font-size: 80px; color: #dc3545; margin: 0; }
+        .error-container {
+            text-align: center;
+            padding: 50px;
+            margin-top: 50px;
+        }
+        .error-code {
+            font-size: 100px;
+            font-weight: bold;
+            color: #dc3545;
+            margin: 0;
+        }
+        .error-msg {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
     </style>
 </head>
 <body>
-    <div class="error-box">
-        <h1>403</h1>
-        <h3>Truy cập bị từ chối</h3>
-        <p>Bạn không có quyền truy cập vào trang này.</p>
-        <a href="/pages/auth/login.html" class="btn-primary" style="text-decoration: none; padding: 10px 20px;">Quay về Đăng nhập</a>
+    <div class="error-container">
+        <h1 class="error-code">403</h1>
+        <p class="error-msg">Xin lỗi, bạn không có quyền truy cập vào trang này!</p>
+        
+        <p>Vui lòng liên hệ Quản lý hoặc quay lại trang chủ.</p>
+        
+        <button onclick="goBack()" class="btn-primary" style="padding: 10px 20px; font-size: 16px;">Quay Lại</button>
     </div>
+
+    <script>
+        function goBack() {
+            // Quay lại trang trước đó
+            window.history.back();
+            // Hoặc nếu lịch sử trống thì về trang đăng nhập
+            setTimeout(() => {
+                window.location.href = "/pages/auth/login.html";
+            }, 500);
+        }
+    </script>
 </body>
 </html>

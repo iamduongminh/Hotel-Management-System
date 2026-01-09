@@ -1,21 +1,34 @@
-document.addEventListener("DOMContentLoaded", function() {
-    loadDashboardStats();
-});
+async function exportReport() {
+    const type = document.getElementById('reportType').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
 
-async function loadDashboardStats() {
+    if (!startDate || !endDate) {
+        alert("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
+        return;
+    }
+
+    // Body request khớp với ReportRequest.java
+    const requestBody = {
+        type: type, // "REVENUE" hoặc "OCCUPANCY"
+        start: new Date(startDate).toISOString(), 
+        end: new Date(endDate).toISOString()
+    };
+
     try {
-        // Gọi API lấy số liệu (Giả sử ManagerDashboardController có endpoint này)
-        // Bạn cần viết thêm hàm getStats() trong Controller trả về JSON
-        const data = await callAPI('/manager/dashboard/stats');
+        // Gọi API ReportQueryController
+        const result = await callAPI('/reports/export', 'POST', requestBody);
         
-        // Hiển thị lên giao diện
-        document.getElementById('daily-revenue').innerText = 
-            new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.revenue);
-            
-        document.getElementById('occupied-rooms').innerText = data.occupiedRooms + " phòng";
+        // Hiển thị kết quả
+        const resultDiv = document.getElementById('reportResult');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <h3>Kết Quả Báo Cáo:</h3>
+            <div style="background:#f8f9fa; padding:15px; border-radius:5px; border:1px solid #ddd;">
+                ${result}
+            </div>
+        `;
     } catch (error) {
-        console.log("Chưa lấy được dữ liệu dashboard (có thể do chưa viết API này)");
-        document.getElementById('daily-revenue').innerText = "0 đ";
-        document.getElementById('occupied-rooms').innerText = "0";
+        alert("Lỗi xuất báo cáo: " + error.message);
     }
 }

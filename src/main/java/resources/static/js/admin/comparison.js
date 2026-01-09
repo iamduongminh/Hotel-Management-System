@@ -1,21 +1,21 @@
-document.addEventListener("DOMContentLoaded", function() {
-    loadDashboardStats();
-});
+async function compareBranches() {
+    const inputIds = document.getElementById('branchIds').value; // VD: "1, 2"
+    
+    if (!inputIds) {
+        alert("Vui lòng nhập ID các chi nhánh!");
+        return;
+    }
 
-async function loadDashboardStats() {
     try {
-        // Gọi API lấy số liệu (Giả sử ManagerDashboardController có endpoint này)
-        // Bạn cần viết thêm hàm getStats() trong Controller trả về JSON
-        const data = await callAPI('/manager/dashboard/stats');
+        // Gọi API ComparisonController (GET)
+        const result = await callAPI(`/comparison/branches?branchIds=${inputIds}`, 'GET');
         
-        // Hiển thị lên giao diện
-        document.getElementById('daily-revenue').innerText = 
-            new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.revenue);
-            
-        document.getElementById('occupied-rooms').innerText = data.occupiedRooms + " phòng";
+        document.getElementById('comparisonResult').innerHTML = `
+            <div style="background:#e3f2fd; padding:10px; color:#0d47a1;">
+                <strong>Kết quả:</strong> ${result}
+            </div>
+        `;
     } catch (error) {
-        console.log("Chưa lấy được dữ liệu dashboard (có thể do chưa viết API này)");
-        document.getElementById('daily-revenue').innerText = "0 đ";
-        document.getElementById('occupied-rooms').innerText = "0";
+        alert("Lỗi so sánh: " + error.message);
     }
 }

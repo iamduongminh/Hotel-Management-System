@@ -4,18 +4,24 @@ document.addEventListener("DOMContentLoaded", function() {
 
 async function loadDashboardStats() {
     try {
-        // Gọi API lấy số liệu (Giả sử ManagerDashboardController có endpoint này)
-        // Bạn cần viết thêm hàm getStats() trong Controller trả về JSON
-        const data = await callAPI('/manager/dashboard/stats');
+        // Gọi API ManagerDashboardController
+        const data = await callAPI('/manager/dashboard');
         
-        // Hiển thị lên giao diện
-        document.getElementById('daily-revenue').innerText = 
-            new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.revenue);
-            
-        document.getElementById('occupied-rooms').innerText = data.occupiedRooms + " phòng";
+        // Xử lý dữ liệu trả về (Hiện tại backend trả về String demo)
+        if (typeof data === 'string') {
+             // Mockup hiển thị khi backend chưa có số liệu thực
+             console.log("Dashboard Data:", data);
+             document.getElementById('daily-revenue').innerText = "15.000.000 đ (Demo)";
+             document.getElementById('occupied-rooms').innerText = "8/20 Phòng"; 
+        } else {
+             // Khi backend trả về JSON thực tế
+             document.getElementById('daily-revenue').innerText = 
+                new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.revenue);
+             document.getElementById('occupied-rooms').innerText = data.occupiedRooms;
+        }
+
     } catch (error) {
-        console.log("Chưa lấy được dữ liệu dashboard (có thể do chưa viết API này)");
-        document.getElementById('daily-revenue').innerText = "0 đ";
-        document.getElementById('occupied-rooms').innerText = "0";
+        console.error("Lỗi tải dashboard:", error);
+        document.getElementById('daily-revenue').innerText = "N/A";
     }
 }
