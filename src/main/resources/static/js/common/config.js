@@ -3,8 +3,12 @@
  * File này chứa cấu hình chung và hàm gọi API cho toàn bộ hệ thống.
  */
 
-// 1. Cấu hình đường dẫn gốc API
-const API_BASE_URL = "/api";
+// 1. Cấu hình đường dẫn gốc API (Đóng gói trong biến CONFIG để tránh lỗi "not defined")
+const CONFIG = {
+    // Dùng đường dẫn đầy đủ để tránh lỗi CORS hoặc sai path khi ở trang con
+    API_BASE_URL: "http://localhost:8080/api",
+    STORAGE_USER_KEY: "hotel_user"
+};
 
 // 2. Hàm gọi API chuẩn (Đã tối ưu hóa cho Spring Boot Session)
 async function callAPI(endpoint, method = 'GET', body = null) {
@@ -16,12 +20,12 @@ async function callAPI(endpoint, method = 'GET', body = null) {
     const config = {
         method: method,
         headers: headers,
-        
+
         // --- QUAN TRỌNG NHẤT ---
         // credentials: 'include' bắt buộc phải có để trình duyệt gửi kèm
         // Cookie 'JSESSIONID' trong mỗi request. Nếu thiếu dòng này,
         // Backend sẽ không nhận ra user đang đăng nhập (User = null).
-        credentials: 'include' 
+        credentials: 'include'
     };
 
     if (body) {
@@ -29,21 +33,33 @@ async function callAPI(endpoint, method = 'GET', body = null) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+        // SỬA: Dùng CONFIG.API_BASE_URL thay vì biến rời
+        const url = `${CONFIG.API_BASE_URL}${endpoint}`;
+        const response = await fetch(url, config);
 
         // --- XỬ LÝ LỖI PHÂN QUYỀN (Auth) ---
-        
-        // Lỗi 401: Hết phiên đăng nhập hoặc chưa đăng nhập
+
+        // Lỗi 401: Hết phiên đăng nhập hoặc sai thông tin đăng nhập
         if (response.status === 401) {
+            // Đọc lỗi từ backend trước
+            const errorData = await response.json().catch(() => ({ message: null }));
+
+            // TRƯỜNG HỢP 1: Đang gọi API login -> Sai mật khẩu
+            if (endpoint.includes("/auth/login")) {
+                throw new Error(errorData.message || "Sai tên đăng nhập hoặc mật khẩu!");
+            }
+
+            // TRƯỜNG HỢP 2: Đang ở trang khác (không phải login) -> Phiên hết hạn
             alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
             window.location.href = "/pages/auth/login.html";
-            return; // Dừng hàm tại đây
+            throw new Error("Session expired"); // Throw để không return undefined
         }
 
         // Lỗi 403: Đã đăng nhập nhưng không có quyền (VD: Staff vào trang Admin)
         if (response.status === 403) {
-            // Chuyển hướng sang trang báo lỗi 403 (bạn nên tạo file này như hướng dẫn trước)
-            window.location.href = "/pages/auth/403_error.html"; 
+            alert("Bạn không có quyền thực hiện thao tác này!");
+            // Nếu có trang 403 thì chuyển, không thì thôi
+            // window.location.href = "/pages/auth/403_error.html"; 
             throw new Error("Forbidden: Bạn không có quyền truy cập!");
         }
 
@@ -65,11 +81,12 @@ async function callAPI(endpoint, method = 'GET', body = null) {
 
     } catch (error) {
         console.error("System Error calling API:", error);
-        
+
         // Chỉ hiển thị alert nếu đó không phải là lỗi chuyển trang (như 403 ở trên)
         if (error.message.indexOf("Forbidden") === -1) {
-             // Hiển thị lỗi ra màn hình để người dùng biết
-             alert("❌ Có lỗi xảy ra: " + error.message);
+            // Hiển thị lỗi ra màn hình để người dùng biết
+            // Dùng alert hoặc thay bằng Toast notification nếu muốn đẹp hơn
+            alert("❌ Có lỗi xảy ra: " + error.message);
         }
         throw error; // Ném lỗi tiếp để hàm gọi bên ngoài (nếu cần) xử lý riêng
     }
@@ -81,9 +98,9 @@ function formatCurrency(amount) {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }
 
-// 4. Hàm tiện ích định dạng ngày giờ (cho input datetime-local hoặc hiển thị)
+// 4. Hàm tiện ích định dạng ngày giờ (cho hiển thị bảng)
 function formatDateTime(isoString) {
     if (!isoString) return '';
     const date = new Date(isoString);
-    return date.toLocaleString('vi-VN');
+    return date.toLocaleString('vi-VN'); // Ra dạng: "12:00:00 10/01/2026"
 }

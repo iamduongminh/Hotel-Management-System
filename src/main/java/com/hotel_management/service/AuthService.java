@@ -1,24 +1,59 @@
 package com.hotel_management.service;
 
 import com.hotel_management.api.core.domain.entity.User;
+import com.hotel_management.dto.LoginRequest;
 import com.hotel_management.repository.UserRepository;
-import org.springframework.security.crypto.password.PasswordEncoder; // Import mới
+import jakarta.servlet.http.HttpSession;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class AuthService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder; // Inject thêm
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+    private final UserRepository userRepo;
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthService(UserRepository userRepo, PasswordEncoder passwordEncoder) {
+        this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User login(String username, String password) {
-        return userRepository.findByUsername(username)
-                .filter(u -> passwordEncoder.matches(password, u.getPassword())) // So sánh mã hóa
-                .orElse(null);
+    public User login(LoginRequest request, HttpSession session) {
+        // 1. Validate
+        if (request.getUsername() == null || request.getPassword() == null) {
+            throw new BadCredentialsException("Thông tin đăng nhập không hợp lệ");
+        }
+
+        // 2. Tìm user
+        Optional<User> userOpt = userRepo.findByUsername(request.getUsername());
+        if (userOpt.isEmpty()) {
+            throw new BadCredentialsException("Sai tên đăng nhập hoặc mật khẩu");
+        }
+        User user = userOpt.get();
+
+        // 3. Lấy mật khẩu và KIỂM TRA NULL (Đây là chỗ bạn đang thiếu!)
+        String dbPassword = user.getPassword();
+
+        if (dbPassword == null || dbPassword.isEmpty()) {
+            // Nếu DB lỗi (không có pass), báo lỗi nhẹ nhàng chứ không crash 500
+            throw new BadCredentialsException("Tài khoản lỗi: Chưa thiết lập mật khẩu");
+        }
+
+        // Xử lý tiền tố {bcrypt}
+        if (dbPassword.startsWith("{bcrypt}")) {
+            dbPassword = dbPassword.substring(8);
+        }
+
+        // 4. So khớp
+        if (!passwordEncoder.matches(request.getPassword(), dbPassword)) {
+            throw new BadCredentialsException("Sai tên đăng nhập hoặc mật khẩu");
+        }
+
+        // 5. Thành công
+        session.setAttribute("currentUser", user);
+        return user;
     }
-    
 }
