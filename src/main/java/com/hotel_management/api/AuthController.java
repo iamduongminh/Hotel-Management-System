@@ -22,25 +22,27 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req, HttpSession session) {
-        // 1. Gọi service xử lý đăng nhập (vẫn trả về User bình thường để lấy dữ liệu)
+        // 1. Gọi service xử lý đăng nhập
         User user = authService.login(req, session);
 
-        // 2. TẠO DỮ LIỆU TRẢ VỀ THỦ CÔNG (DTO)
-        // Mục đích: Cắt đứt mối quan hệ vòng lặp User <-> Booking
+        // 2. TẠO DỮ LIỆU TRẢ VỀ (DTO) - Tránh vòng lặp JSON
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Đăng nhập thành công!");
         response.put("id", user.getId());
         response.put("username", user.getUsername());
         response.put("fullName", user.getFullName());
-        response.put("role", user.getRole()); // Quan trọng để phân quyền Frontend
+        response.put("role", user.getRole());
 
-        // 3. Trả về Map này thay vì User entity
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(HttpSession session) {
+    public ResponseEntity<Map<String, String>> logout(HttpSession session) {
+        // Invalidate server session
         session.invalidate();
-        return ResponseEntity.ok("Đăng xuất thành công");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Đăng xuất thành công");
+        return ResponseEntity.ok(response);
     }
 }

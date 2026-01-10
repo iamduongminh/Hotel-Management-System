@@ -1,14 +1,25 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <title>Quản Lý Ca Làm Việc</title>
     <link rel="stylesheet" href="../../css/style.css">
 </head>
+
 <body>
-    <div class="login-container">
-        <h2>Giao Ca / Nhận Ca</h2>
-        
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3>🏨 Lễ Tân</h3>
+        <a href="staff_dashboard.html">📋 Quản Lý Đặt Phòng</a>
+        <a href="housekeeping.html">🧹 Trạng Thái Phòng</a>
+        <a href="shift.html" class="active">⏰ Ca Làm Việc</a>
+        <a href="#" onclick="handleLogout(); return false;">🚪 Đăng Xuất</a>
+    </div>
+
+    <div class="main-content">
+        <h1>⏰ Quản Lý Ca Làm Việc</h1>
+
         <div class="card" style="margin-bottom: 20px;">
             <h3>Bắt Đầu Ca (Check-in)</h3>
             <div class="form-group">
@@ -26,13 +37,11 @@
             </div>
             <button onclick="endShift()" class="btn-primary" style="background: #dc3545;">Kết Thúc Ca</button>
         </div>
-        
-        <div style="margin-top: 20px; text-align: center;">
-            <a href="booking-list.html">Quay lại trang Booking</a>
-        </div>
     </div>
 
     <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
     <script src="../../js/staff/shift.js"></script>
 </body>
+
 </html>

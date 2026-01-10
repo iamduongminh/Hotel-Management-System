@@ -6,6 +6,8 @@ import com.hotel_management.service.BookingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/bookings")
 public class BookingController {
@@ -15,9 +17,15 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
+    @GetMapping
+    public ResponseEntity<List<Booking>> getAllBookings() {
+        return ResponseEntity.ok(bookingService.getAllBookings());
+    }
+
     @PostMapping
     public ResponseEntity<Booking> create(@RequestBody BookingRequest req) {
-        // Lưu ý: Bạn cần cập nhật BookingService để có hàm createBooking nhận các tham số này
+        // Lưu ý: Bạn cần cập nhật BookingService để có hàm createBooking nhận các tham
+        // số này
         // Hoặc truyền thẳng BookingRequest vào service
         return ResponseEntity.ok(bookingService.createBooking(req));
     }

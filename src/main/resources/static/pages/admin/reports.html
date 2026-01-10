@@ -1,14 +1,26 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <title>Xuất Báo Cáo</title>
     <link rel="stylesheet" href="../../css/style.css">
 </head>
+
 <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3>👔 Quản Lý</h3>
+        <a href="dashboard.html">📊 Tổng quan</a>
+        <a href="approvals.html">✅ Duyệt đơn</a>
+        <a href="reports.html" class="active">📄 Báo cáo</a>
+        <a href="comparison.html">🔍 So sánh</a>
+        <a href="#" onclick="handleLogout(); return false;">🚪 Đăng xuất</a>
+    </div>
+
     <div class="main-content">
-        <h1>Báo Cáo Hoạt Động</h1>
-        <div class="card">
+        <h1>📄 Báo Cáo Hoạt Động</h1>
+        <div class="card" style="max-width: 600px;">
             <div class="form-group">
                 <label>Loại báo cáo:</label>
                 <select id="reportType">
@@ -22,10 +34,10 @@
     </div>
 
     <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
     <script>
         async function exportReport() {
             const type = document.getElementById('reportType').value;
-            // Lấy ngày hiện tại làm demo
             const req = {
                 type: type,
                 start: new Date().toISOString(),
@@ -33,7 +45,6 @@
             };
 
             try {
-                // Gọi API ReportQueryController
                 const result = await callAPI('/reports/export', 'POST', req);
                 document.getElementById('reportResult').innerText = result;
             } catch (e) {
@@ -42,4 +53,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -1,13 +1,13 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     const loginForm = document.getElementById('loginForm');
-    if(loginForm) {
+    if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
 });
 
 async function handleLogin(e) {
     e.preventDefault();
-    
+
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
@@ -16,17 +16,17 @@ async function handleLogin(e) {
     try {
         // Gọi API Login
         const user = await callAPI('/auth/login', 'POST', loginData);
-        
+
         // Lưu thông tin user vào localStorage
         localStorage.setItem(CONFIG.STORAGE_USER_KEY, JSON.stringify(user));
-        
+
         alert(`Xin chào, ${user.fullName}!`);
 
         // Điều hướng dựa trên quyền
         if (user.role === 'ADMIN' || user.role === 'BRANCH_MANAGER') {
-            window.location.href = "/pages/admin/dashboard.html";
+            window.location.href = "/pages/admin/dashboard.html"; // TODO: Sẽ tạo admin SPA sau
         } else {
-            window.location.href = "/pages/staff/booking_list.html";
+            window.location.href = "/pages/staff/staff_dashboard.html"; // SPA mới
         }
 
     } catch (error) {

@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <title>Danh Sách Đặt Phòng</title>
     <link rel="stylesheet" href="../../css/style.css">
 </head>
+
 <body>
     <div class="sidebar">
-        <h3>Lễ Tân</h3>
-        <a href="booking-list.html" class="active">Đặt Phòng</a>
-        <a href="checkout.html">Thanh Toán</a>
-        <a href="housekeeping.html">Trạng Thái Phòng</a>
-        <a href="shift.html">Ca Làm Việc</a>
-        <a href="#" onclick="localStorage.clear(); window.location.href='/pages/auth/login.html'">Đăng Xuất</a>
+        <h3>🏨 Lễ Tân</h3>
+        <a href="staff_dashboard.html" class="active">📋 Quản Lý Đặt Phòng</a>
+        <a href="housekeeping.html">🧹 Trạng Thái Phòng</a>
+        <a href="shift.html">⏰ Ca Làm Việc</a>
+        <a href="#" onclick="handleLogout(); return false;">🚪 Đăng Xuất</a>
     </div>
 
     <div class="main-content">
@@ -29,14 +30,18 @@
                     <th>Phòng</th>
                     <th>Ngày Đến (Check-in)</th>
                     <th>Trạng Thái</th>
-                    <th>Hành Động</th> </tr>
+                    <th>Hành Động</th>
+                </tr>
             </thead>
             <tbody id="booking-table-body">
-                </tbody>
+            </tbody>
         </table>
     </div>
 
     <script src="../../js/common/config.js"></script>
-    <script src="../../js/common/utils.js"></script> <script src="../../js/staff/booking_list.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/common/utils.js"></script>
+    <script src="../../js/staff/booking_list.js"></script>
 </body>
+
 </html>

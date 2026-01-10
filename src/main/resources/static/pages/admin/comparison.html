@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <title>So Sánh Chi Nhánh</title>
     <link rel="stylesheet" href="../../css/style.css">
 </head>
+
 <body>
     <div class="sidebar">
-        <h3>Menu Quản Lý</h3>
-        <a href="dashboard.html">Tổng quan</a>
-        <a href="approvals.html">Duyệt đơn</a>
-        <a href="#" class="active">So sánh (Comparison)</a>
-        <a href="reports.html">Báo cáo</a>
-        <a href="/pages/auth/login.html">Đăng xuất</a>
+        <h3>👔 Quản Lý</h3>
+        <a href="dashboard.html">📊 Tổng quan</a>
+        <a href="approvals.html">✅ Duyệt đơn</a>
+        <a href="reports.html">📄 Báo cáo</a>
+        <a href="comparison.html" class="active">🔍 So sánh</a>
+        <a href="#" onclick="handleLogout(); return false;">🚪 Đăng xuất</a>
     </div>
 
     <div class="main-content">
@@ -24,13 +26,15 @@
             </div>
             <button onclick="compareBranches()" class="btn-primary" style="width: auto;">So Sánh Ngay</button>
         </div>
-        
+
         <div id="comparisonResult" style="margin-top: 20px; padding: 20px; background: white; border-radius: 5px;">
             <p>Kết quả sẽ hiển thị tại đây...</p>
         </div>
     </div>
 
     <script src="../../js/common/config.js"></script>
-    <script src="../../js/admin/comparison.js"></script> 
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/admin/comparison.js"></script>
 </body>
+
 </html>

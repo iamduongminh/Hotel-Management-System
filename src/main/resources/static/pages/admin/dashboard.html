@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <title>Dashboard Quản Lý</title>
     <link rel="stylesheet" href="../../css/style.css">
 </head>
+
 <body>
     <div class="sidebar">
-        <h3>Menu Quản Lý</h3>
-        <a href="#" class="active">Tổng quan</a>
-        <a href="approvals.html">Duyệt đơn (Approval)</a>
-        <a href="reports.html">Báo cáo (Report)</a>
-        <a href="/pages/auth/login.html">Đăng xuất</a>
+        <h3>👔 Quản Lý</h3>
+        <a href="dashboard.html" class="active">📊 Tổng quan</a>
+        <a href="approvals.html">✅ Duyệt đơn</a>
+        <a href="reports.html">📄 Báo cáo</a>
+        <a href="comparison.html">🔍 So sánh</a>
+        <a href="#" onclick="handleLogout(); return false;">🚪 Đăng xuất</a>
     </div>
 
     <div class="main-content">
         <h1>Tổng quan hôm nay</h1>
-        
+
         <div class="stats-grid">
             <div class="card">
                 <h3>Doanh thu ngày</h3>
@@ -30,6 +33,8 @@
     </div>
 
     <script src="../../js/common/config.js"></script>
-    <script src="../../js/manager/dashboard.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/admin/dashboard.js"></script>
 </body>
+
 </html>
