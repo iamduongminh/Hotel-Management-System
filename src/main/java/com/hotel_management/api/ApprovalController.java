@@ -18,24 +18,34 @@ public class ApprovalController {
         this.workflowService = workflowService;
     }
 
-    // API duyệt giảm giá (Trigger Command Pattern)
+    // Helper method để lấy long an toàn từ Map
+    private long parseLongSafe(Object value) {
+        if (value == null) throw new IllegalArgumentException("Giá trị ID không được để trống");
+        return Long.parseLong(value.toString());
+    }
+
     @PostMapping("/discount")
     public ResponseEntity<String> approveDiscount(@RequestBody Map<String, Object> payload) {
-        Long bookingId = Long.valueOf(payload.get("bookingId").toString());
-        int percent = Integer.parseInt(payload.get("percent").toString());
+        // SỬA LỖI: Dùng parseLongSafe để đảm bảo lấy ra kiểu primitive long
+        long bookingId = parseLongSafe(payload.get("bookingId"));
+        
+        // Kiểm tra null cho percent
+        Object percentObj = payload.get("percent");
+        int percent = (percentObj != null) ? Integer.parseInt(percentObj.toString()) : 0;
 
-        // Tạo Command và thực thi
+        // Command Pattern
         ICommand cmd = new ApproveDiscountCmd(bookingId, percent);
         workflowService.executeCommand(cmd);
 
         return ResponseEntity.ok("Đã duyệt giảm giá " + percent + "% cho đơn: " + bookingId);
     }
 
-    // API từ chối yêu cầu
     @PostMapping("/reject")
     public ResponseEntity<String> rejectRequest(@RequestBody Map<String, Object> payload) {
-        Long bookingId = Long.valueOf(payload.get("bookingId").toString());
-        String reason = payload.get("reason").toString();
+        long bookingId = parseLongSafe(payload.get("bookingId"));
+        
+        Object reasonObj = payload.get("reason");
+        String reason = (reasonObj != null) ? reasonObj.toString() : "";
 
         ICommand cmd = new RejectRequestCmd(bookingId, reason);
         workflowService.executeCommand(cmd);

@@ -10,120 +10,133 @@ hotel_management_sytem_web
 ├─ README.md
 └─ src
    ├─ main
-   │  └─ java
-   │     ├─ com
-   │     │  └─ hotel_management
-   │     │     ├─ api
-   │     │     │  ├─ ApprovalController.java
-   │     │     │  ├─ AuthController.java
-   │     │     │  ├─ BookingController.java
-   │     │     │  ├─ CheckInController.java
-   │     │     │  ├─ CheckOutController.java
-   │     │     │  ├─ ComparisonController.java
-   │     │     │  ├─ core
-   │     │     │  │  ├─ domain
-   │     │     │  │  │  ├─ entity
-   │     │     │  │  │  │  ├─ Booking.java
-   │     │     │  │  │  │  ├─ Customer.java
-   │     │     │  │  │  │  ├─ Invoice.java
-   │     │     │  │  │  │  ├─ Room.java
-   │     │     │  │  │  │  └─ User.java
-   │     │     │  │  │  └─ enums
-   │     │     │  │  │     ├─ BookingStatus.java
-   │     │     │  │  │     ├─ IdentityType.java
-   │     │     │  │  │     ├─ PaymentType.java
-   │     │     │  │  │     ├─ RoomStatus.java
-   │     │     │  │  │     ├─ RoomType.java
-   │     │     │  │  │     └─ UserRole.java
-   │     │     │  │  └─ patterns
-   │     │     │  │     ├─ command
-   │     │     │  │     │  ├─ ApproveDiscountCmd.java
-   │     │     │  │     │  ├─ ICommand.java
-   │     │     │  │     │  └─ RejectRequestCmd.java
-   │     │     │  │     ├─ facade
-   │     │     │  │     │  └─ CheckOutFacade.java
-   │     │     │  │     ├─ factory
-   │     │     │  │     │  ├─ IReport.java
-   │     │     │  │     │  ├─ OccupancyReport.java
-   │     │     │  │     │  ├─ ReportFactory.java
-   │     │     │  │     │  └─ RevenueReport.java
-   │     │     │  │     ├─ observer
-   │     │     │  │     │  ├─ IObserver.java
-   │     │     │  │     │  └─ ISubject.java
-   │     │     │  │     └─ strategy
-   │     │     │  │        ├─ BankTransferPayment.java
-   │     │     │  │        ├─ CardPayment.java
-   │     │     │  │        ├─ CashPayment.java
-   │     │     │  │        ├─ IPaymentStrategy.java
-   │     │     │  │        └─ PaymentFactory.java
-   │     │     │  ├─ HousekeepingController.java
-   │     │     │  ├─ ManagerDashboardController.java
-   │     │     │  ├─ ReceptionController.java
-   │     │     │  ├─ ReportQueryController.java
-   │     │     │  └─ ShiftWorkController.java
-   │     │     ├─ dto
-   │     │     │  ├─ BookingRequest.java
-   │     │     │  ├─ LoginRequest.java
-   │     │     │  ├─ PaymentRequest.java
-   │     │     │  └─ ReportRequest.java
-   │     │     ├─ HotelManagementApplication.java
-   │     │     ├─ infrastructure
-   │     │     │  ├─ SessionManager.java
-   │     │     │  └─ SystemConfig.java
-   │     │     ├─ repository
-   │     │     │  ├─ BookingRepository.java
-   │     │     │  ├─ CustomerRepository.java
-   │     │     │  ├─ InvoiceRepository.java
-   │     │     │  ├─ RoomRepository.java
-   │     │     │  └─ UserRepository.java
-   │     │     └─ service
-   │     │        ├─ ApprovalWorkflowService.java
-   │     │        ├─ AuthService.java
-   │     │        ├─ BookingService.java
-   │     │        ├─ ReportExportService.java
-   │     │        └─ RoomService.java
-   │     └─ resources
-   │        ├─ application.properties
-   │        └─ static
-   │           ├─ assets
-   │           │  ├─ icons
-   │           │  └─ images
-   │           ├─ css
-   │           ├─ index.html
-   │           ├─ js
-   │           │  ├─ admin
-   │           │  │  ├─ approvals.js
-   │           │  │  ├─ comparison.js
-   │           │  │  ├─ dashboard.js
-   │           │  │  └─ reports.js
-   │           │  ├─ auth
-   │           │  │  ├─ 403_error.js
-   │           │  │  ├─ change_password.js
-   │           │  │  ├─ forgot_password.js
-   │           │  │  └─ login.js
-   │           │  ├─ common
-   │           │  │  ├─ config.js
-   │           │  │  └─ utils.js
-   │           │  └─ staff
-   │           │     ├─ checkout.js
-   │           │     ├─ housekeeping.js
-   │           │     └─ shift.js
-   │           ├─ pages
-   │           │  ├─ admin
-   │           │  │  ├─ approvals.html
-   │           │  │  ├─ comparison.html
-   │           │  │  ├─ dashboard.html
-   │           │  │  └─ reports.html
-   │           │  ├─ auth
-   │           │  │  ├─ forgot_password.html
-   │           │  │  └─ login.html
-   │           │  └─ staff
-   │           │     ├─ booking_form.html
-   │           │     ├─ booking_list.html
-   │           │     ├─ checkout.html
-   │           │     ├─ housekeeping.html
-   │           │     └─ shift.html
-   │           └─ style.css
+   │  ├─ java
+   │  │  └─ com
+   │  │     └─ hotel_management
+   │  │        ├─ api
+   │  │        │  ├─ ApprovalController.java
+   │  │        │  ├─ AuthController.java
+   │  │        │  ├─ BookingController.java
+   │  │        │  ├─ CheckInController.java
+   │  │        │  ├─ CheckOutController.java
+   │  │        │  ├─ ComparisonController.java
+   │  │        │  ├─ core
+   │  │        │  │  ├─ domain
+   │  │        │  │  │  ├─ entity
+   │  │        │  │  │  │  ├─ ApprovalLog.java
+   │  │        │  │  │  │  ├─ ApprovalRequest.java
+   │  │        │  │  │  │  ├─ Booking.java
+   │  │        │  │  │  │  ├─ Customer.java
+   │  │        │  │  │  │  ├─ Invoice.java
+   │  │        │  │  │  │  ├─ Room.java
+   │  │        │  │  │  │  └─ User.java
+   │  │        │  │  │  └─ enums
+   │  │        │  │  │     ├─ BookingStatus.java
+   │  │        │  │  │     ├─ IdentityType.java
+   │  │        │  │  │     ├─ PaymentType.java
+   │  │        │  │  │     ├─ RequestStatus.java
+   │  │        │  │  │     ├─ RoomStatus.java
+   │  │        │  │  │     ├─ RoomType.java
+   │  │        │  │  │     └─ UserRole.java
+   │  │        │  │  └─ patterns
+   │  │        │  │     ├─ command
+   │  │        │  │     │  ├─ ApproveDiscountCmd.java
+   │  │        │  │     │  ├─ ICommand.java
+   │  │        │  │     │  └─ RejectRequestCmd.java
+   │  │        │  │     ├─ facade
+   │  │        │  │     │  └─ CheckOutFacade.java
+   │  │        │  │     ├─ factory
+   │  │        │  │     │  ├─ IReport.java
+   │  │        │  │     │  ├─ OccupancyReport.java
+   │  │        │  │     │  ├─ ReportFactory.java
+   │  │        │  │     │  └─ RevenueReport.java
+   │  │        │  │     ├─ observer
+   │  │        │  │     │  ├─ IObserver.java
+   │  │        │  │     │  └─ ISubject.java
+   │  │        │  │     └─ strategy
+   │  │        │  │        ├─ BankTransferPayment.java
+   │  │        │  │        ├─ CardPayment.java
+   │  │        │  │        ├─ CashPayment.java
+   │  │        │  │        ├─ IPaymentStrategy.java
+   │  │        │  │        └─ PaymentFactory.java
+   │  │        │  ├─ HousekeepingController.java
+   │  │        │  ├─ ManagerDashboardController.java
+   │  │        │  ├─ ReceptionController.java
+   │  │        │  ├─ ReportQueryController.java
+   │  │        │  └─ ShiftWorkController.java
+   │  │        ├─ dto
+   │  │        │  ├─ BookingRequest.java
+   │  │        │  ├─ LoginRequest.java
+   │  │        │  ├─ PaymentRequest.java
+   │  │        │  └─ ReportRequest.java
+   │  │        ├─ HotelManagementApplication.java
+   │  │        ├─ infrastructure
+   │  │        │  ├─ SessionManager.java
+   │  │        │  └─ SystemConfig.java
+   │  │        ├─ repository
+   │  │        │  ├─ ApprovalLogRepository.java
+   │  │        │  ├─ ApprovalRequestRepository.java
+   │  │        │  ├─ BookingRepository.java
+   │  │        │  ├─ CustomerRepository.java
+   │  │        │  ├─ InvoiceRepository.java
+   │  │        │  ├─ RoomRepository.java
+   │  │        │  └─ UserRepository.java
+   │  │        └─ service
+   │  │           ├─ ApprovalWorkflowService.java
+   │  │           ├─ AuthService.java
+   │  │           ├─ BookingService.java
+   │  │           ├─ ReportExportService.java
+   │  │           └─ RoomService.java
+   │  └─ resources
+   │     ├─ application.properties
+   │     └─ static
+   │        ├─ assets
+   │        │  ├─ icons
+   │        │  └─ images
+   │        │     ├─ background.jpg
+   │        │     └─ logo.png
+   │        ├─ css
+   │        │  └─ style.css
+   │        ├─ index.html
+   │        ├─ js
+   │        │  ├─ admin
+   │        │  │  ├─ approvals.js
+   │        │  │  ├─ comparison.js
+   │        │  │  ├─ dashboard.js
+   │        │  │  └─ reports.js
+   │        │  ├─ auth
+   │        │  │  ├─ 403_error.js
+   │        │  │  ├─ change_password.js
+   │        │  │  ├─ forgot_password.js
+   │        │  │  ├─ login.js
+   │        │  │  └─ reset_password.js
+   │        │  ├─ common
+   │        │  │  ├─ config.js
+   │        │  │  └─ utils.js
+   │        │  └─ staff
+   │        │     ├─ booking_form.js
+   │        │     ├─ booking_list.js
+   │        │     ├─ checkout.js
+   │        │     ├─ housekeeping.js
+   │        │     └─ shift.js
+   │        └─ pages
+   │           ├─ admin
+   │           │  ├─ approvals.html
+   │           │  ├─ comparison.html
+   │           │  ├─ dashboard.html
+   │           │  └─ reports.html
+   │           ├─ auth
+   │           │  ├─ 403_error.html
+   │           │  ├─ change_password.html
+   │           │  ├─ forgot_password.html
+   │           │  ├─ login.html
+   │           │  └─ reset_password.html
+   │           └─ staff
+   │              ├─ booking_form.html
+   │              ├─ booking_list.html
+   │              ├─ checkout.html
+   │              ├─ housekeeping.html
+   │              └─ shift.html
    └─ test
 
 ```

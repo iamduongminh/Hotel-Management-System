@@ -15,25 +15,23 @@ public class RoomService {
         this.roomRepo = roomRepo;
     }
 
-    public List<Room> findAll() {
+    // Đổi tên thành getAllRooms cho khớp với HousekeepingController
+    public List<Room> getAllRooms() {
         return roomRepo.findAll();
     }
     
-    public Room updateStatus(Long id, RoomStatus status) {
-        Long roomId = id;
-
-        if (roomId == null) {
+    // Sửa lỗi setStatus và Null safety
+    public Room updateRoomStatus(Long id, RoomStatus status) {
+        if (id == null) {
             throw new IllegalArgumentException("Room ID cannot be null");
         }
 
-        Room room = roomRepo.findById(roomId)
-                .orElseThrow(() -> new EntityNotFoundException("Room not found with ID: " + roomId));
+        Room room = roomRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Room not found with ID: " + id));
 
-        
-        // --- SỬA Ở ĐÂY ---
-        // Sai: r.setStatus(status.name()); -> Vì setter nhận Enum, không nhận String
-        // Đúng:
-        room.setStatus(status); 
+        // Entity Room định nghĩa status là Enum RoomStatus
+        // Nên ở đây ta truyền trực tiếp Enum vào, KHÔNG dùng .name() hoặc String
+        room.setStatus(status);
         
         return roomRepo.save(room);
     }

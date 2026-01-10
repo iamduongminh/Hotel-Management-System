@@ -1,0 +1,175 @@
+/* --- 1. Cấu hình chung (Reset & Base) --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f6f9;
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+/* --- 2. Style cho Trang Đăng Nhập (Login Page) --- */
+/* Kỹ thuật body:has() giúp gán ảnh nền chỉ khi có class login-container */
+body:has(.login-container) {
+    /* Đường dẫn ../ quay ra thư mục cha (static), rồi vào assets/images */
+    background-image: url('../assets/images/background.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Fallback cho trình duyệt cũ không hỗ trợ :has */
+body.login-page {
+    background-image: url('../assets/images/background.jpg');
+    background-size: cover;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-container {
+    background: rgba(255, 255, 255, 0.95); /* Nền trắng mờ 95% */
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 380px;
+    max-width: 90%;
+}
+
+/* --- 3. Style cho Form & Nút bấm (Components) --- */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-control, input[type="text"], input[type="password"], input[type="number"], input[type="datetime-local"], select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    box-sizing: border-box; /* Quan trọng để padding không làm vỡ layout */
+    font-size: 14px;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+/* --- 4. Style cho Sidebar (Menu trái) --- */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: #343a40;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 20px;
+}
+
+.sidebar h3 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #ffc107; /* Màu vàng nổi bật */
+}
+
+.sidebar a {
+    padding: 15px 20px;
+    text-decoration: none;
+    font-size: 16px;
+    color: #cfd8dc;
+    display: block;
+    border-bottom: 1px solid #454d55;
+}
+
+.sidebar a:hover, .sidebar a.active {
+    background-color: #007bff;
+    color: white;
+}
+
+/* --- 5. Style cho Nội dung chính (Main Content) --- */
+.main-content {
+    margin-left: 250px; /* Chừa chỗ cho sidebar */
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* --- 6. Style cho Bảng dữ liệu (Table) --- */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.data-table th, .data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.data-table th {
+    background-color: #007bff;
+    color: white;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.data-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Status Badges */
+.status {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+}
+.status.BOOKED { background-color: #17a2b8; }
+.status.CHECKED_IN { background-color: #28a745; }
+.status.CHECKED_OUT { background-color: #6c757d; }
+.status.CANCELLED { background-color: #dc3545; }
+.status.DIRTY { background-color: #dc3545; }
+.status.AVAILABLE { background-color: #28a745; }
+.status.MAINTENANCE { background-color: #ffc107; color: black; }
