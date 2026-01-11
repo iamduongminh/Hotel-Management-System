@@ -30,8 +30,7 @@ public class ApprovalWorkflowService {
     }
 
     public List<ApprovalRequestDTO> getPendingApprovals() {
-        // TODO: Thực tế nên query từ database
-        // Giả lập trả về danh sách pending approvals
+        // Note: This is demo data. In production, query from approval_requests table
         List<ApprovalRequestDTO> pending = new ArrayList<>();
 
         // Demo data

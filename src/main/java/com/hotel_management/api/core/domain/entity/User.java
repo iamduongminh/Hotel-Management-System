@@ -1,7 +1,10 @@
 package com.hotel_management.api.core.domain.entity;
 
+import com.hotel_management.api.core.domain.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "users")
@@ -11,9 +14,25 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
     private String fullName;
-    private String role; // ADMIN, STAFF
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role;
+
+    // Organizational fields
+    private String city; // Thành phố: "Hà Nội", "HCM", etc.
+    private String branchName; // Tên chi nhánh: "Ba Đình Hotel", "Quận 1 Hotel", etc.
+    private LocalDate birthday; // Ngày sinh (dùng cho mật khẩu)
+
+    // Optional contact info
+    private String phoneNumber;
+    private String email;
 }

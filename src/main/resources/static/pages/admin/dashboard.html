@@ -3,38 +3,136 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Quản Lý</title>
+    <title>Admin Dashboard - Quản Trị Hệ Thống</title>
     <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/modal.css">
+    <link rel="stylesheet" href="../../css/toast.css">
 </head>
 
 <body>
     <div class="sidebar">
-        <h3>👔 Quản Lý</h3>
-        <a href="dashboard.html" class="active">📊 Tổng quan</a>
-        <a href="approvals.html">✅ Duyệt đơn</a>
+        <h3>💻 IT Admin</h3>
+        <a href="dashboard.html" class="active">👥 Quản Lý User</a>
         <a href="reports.html">📄 Báo cáo</a>
-        <a href="comparison.html">🔍 So sánh</a>
         <a href="#" onclick="handleLogout(); return false;">🚪 Đăng xuất</a>
     </div>
 
     <div class="main-content">
-        <h1>Tổng quan hôm nay</h1>
+        <h1>👥 Quản Lý Tài Khoản</h1>
 
-        <div class="stats-grid">
-            <div class="card">
-                <h3>Doanh thu ngày</h3>
-                <p id="daily-revenue">Đang tải...</p>
-            </div>
-            <div class="card">
-                <h3>Phòng đang thuê</h3>
-                <p id="occupied-rooms">Đang tải...</p>
-            </div>
+        <div style="margin-bottom: 20px;">
+            <button class="btn-primary" onclick="ModalManager.open('create-user-modal')">
+                ➕ Tạo Tài Khoản Mới
+            </button>
+        </div>
+
+        <!-- User List Table -->
+        <div class="card">
+            <h3>Danh Sách Tài Khoản</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Họ Tên</th>
+                        <th>Vai Trò</th>
+                        <th>Thành Phố</th>
+                        <th>Chi Nhánh</th>
+                        <th>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody id="users-tbody">
+                    <tr>
+                        <td colspan="7" style="text-align: center;">Đang tải dữ liệu...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
+    <!-- Modal: Create User -->
+    <div class="modal-backdrop" id="create-user-modal-backdrop">
+        <div class="modal" id="create-user-modal">
+            <div class="modal-header">
+                <h2>➕ Tạo Tài Khoản Mới</h2>
+                <button class="modal-close" onclick="ModalManager.close('create-user-modal')">&times;</button>
+            </div>
+            <form id="create-user-form" onsubmit="handleCreateUser(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Username *</label>
+                        <input type="text" name="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9]+"
+                            title="Chỉ chữ cái và số, không dấu">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mật khẩu *</label>
+                        <input type="password" name="password" required minlength="8" title="Tối thiểu 8 ký tự">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Họ và Tên *</label>
+                        <input type="text" name="fullName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vai Trò *</label>
+                        <select name="role" id="role-select" required onchange="handleRoleChange()">
+                            <option value="">-- Chọn vai trò --</option>
+                            <option value="REGIONAL_MANAGER">Regional Manager (Lãnh đạo khu vực)</option>
+                            <option value="BRANCH_MANAGER">Branch Manager (Quản lý chi nhánh)</option>
+                            <option value="ADMIN">IT Admin (Quản trị hệ thống)</option>
+                            <option value="RECEPTIONIST">Receptionist (Lễ tân)</option>
+                            <option value="HOUSEKEEPER">Housekeeper (Dọn phòng)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="city-group">
+                        <label>Thành Phố *</label>
+                        <select name="city">
+                            <option value="">-- Chọn thành phố --</option>
+                            <option value="Hà Nội">Hà Nội</option>
+                            <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+                            <option value="Đà Nẵng">Đà Nẵng</option>
+                            <option value="Đà Lạt">Đà Lạt</option>
+                            <option value="Phú Quốc">Phú Quốc</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="branch-group">
+                        <label>Chi Nhánh</label>
+                        <input type="text" name="branchName" placeholder="VD: Ba Đình Hotel">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ngày Sinh</label>
+                        <input type="date" name="birthday">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số Điện Thoại</label>
+                        <input type="tel" name="phoneNumber" pattern="[0-9]{10}" placeholder="VD: 0901234567">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('create-user-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Tạo Tài Khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
     <script src="../../js/common/config.js"></script>
     <script src="../../js/common/auth.js"></script>
-    <script src="../../js/admin/dashboard.js"></script>
+    <script src="../../js/common/modal.js"></script>
+    <script src="../../js/admin/user_management.js"></script>
 </body>
 
 </html>

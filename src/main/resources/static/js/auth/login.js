@@ -41,9 +41,14 @@ async function handleLogin(e) {
         showSuccess(`Xin chào, ${response.fullName}!`);
 
         // Điều hướng dựa trên quyền
-        if (response.role === 'ADMIN' || response.role === 'BRANCH_MANAGER') {
+        if (response.role === 'ADMIN') {
+            // IT Admin → Admin Dashboard (quản trị hệ thống)
             window.location.href = "/pages/admin/dashboard.html";
+        } else if (response.role === 'REGIONAL_MANAGER' || response.role === 'BRANCH_MANAGER') {
+            // Business Managers → Manager Dashboard (quản lý kinh doanh)
+            window.location.href = "/pages/manager/dashboard.html";
         } else {
+            // Staff (RECEPTIONIST, HOUSEKEEPER) → Staff Dashboard
             window.location.href = "/pages/staff/staff_dashboard.html";
         }
 
