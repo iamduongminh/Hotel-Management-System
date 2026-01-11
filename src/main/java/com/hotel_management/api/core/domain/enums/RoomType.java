@@ -4,5 +4,8 @@ public enum RoomType {
     SINGLE,
     DOUBLE,
     DORM,
-    STANDARD
+    STANDARD,
+    DELUXE,
+    SUITE,
+    VIP
 }

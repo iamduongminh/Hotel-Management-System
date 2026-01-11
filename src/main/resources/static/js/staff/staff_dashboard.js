@@ -108,12 +108,12 @@ async function handleCreateBooking(event) {
 
     try {
         await callAPI('/bookings', 'POST', bookingData);
-        alert('✅ Đặt phòng thành công!');
+        showSuccess('Đặt phòng thành công!');
         ModalManager.close('create-booking-modal');
         event.target.reset();
         loadBookings(); // Reload table
     } catch (error) {
-        alert('❌ Lỗi: ' + error.message);
+        showError('Lỗi: ' + error.message);
     }
 }
 
@@ -123,10 +123,10 @@ async function checkInBooking(bookingId) {
 
     try {
         await callAPI(`/checkin/${bookingId}`, 'POST');
-        alert('✅ Check-in thành công!');
+        showSuccess('Check-in thành công!');
         loadBookings();
     } catch (error) {
-        alert('❌ Lỗi: ' + error.message);
+        showError('Lỗi: ' + error.message);
     }
 }
 
@@ -148,12 +148,12 @@ async function handleCheckout(event) {
 
     try {
         await callAPI('/checkout', 'POST', checkoutData);
-        alert('✅ Thanh toán thành công!');
+        showSuccess('Thanh toán thành công!');
         ModalManager.close('checkout-modal');
         event.target.reset();
         loadBookings();
     } catch (error) {
-        alert('❌ Lỗi: ' + error.message);
+        showError('Lỗi: ' + error.message);
     }
 }
 

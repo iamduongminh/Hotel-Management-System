@@ -11,25 +11,45 @@ async function handleLogin(e) {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
+    // Validate input
+    if (!username || !password) {
+        showError("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
+        shakeElement('#loginForm');
+        return;
+    }
+
     const loginData = { username, password };
 
     try {
         // Gọi API Login
-        const user = await callAPI('/auth/login', 'POST', loginData);
+        const response = await callAPI('/auth/login', 'POST', loginData);
+
+        // Kiểm tra response có dữ liệu không
+        if (!response) {
+            throw new Error("Server không trả về dữ liệu");
+        }
+
+        // Kiểm tra các trường bắt buộc
+        if (!response.username || !response.fullName || !response.role) {
+            console.error("Invalid response:", response);
+            throw new Error("Dữ liệu đăng nhập không hợp lệ");
+        }
 
         // Lưu thông tin user vào localStorage
-        localStorage.setItem(CONFIG.STORAGE_USER_KEY, JSON.stringify(user));
+        localStorage.setItem(CONFIG.STORAGE_USER_KEY, JSON.stringify(response));
 
-        alert(`Xin chào, ${user.fullName}!`);
+        showSuccess(`Xin chào, ${response.fullName}!`);
 
         // Điều hướng dựa trên quyền
-        if (user.role === 'ADMIN' || user.role === 'BRANCH_MANAGER') {
-            window.location.href = "/pages/admin/dashboard.html"; // TODO: Sẽ tạo admin SPA sau
+        if (response.role === 'ADMIN' || response.role === 'BRANCH_MANAGER') {
+            window.location.href = "/pages/admin/dashboard.html";
         } else {
-            window.location.href = "/pages/staff/staff_dashboard.html"; // SPA mới
+            window.location.href = "/pages/staff/staff_dashboard.html";
         }
 
     } catch (error) {
-        alert("Đăng nhập thất bại: " + error.message);
+        console.error("Login error:", error);
+        showError("Đăng nhập thất bại: " + (error.message || "Lỗi không xác định"));
+        shakeElement('#loginForm');
     }
 }

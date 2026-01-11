@@ -4,21 +4,21 @@ async function exportReport() {
     const endDate = document.getElementById('endDate').value;
 
     if (!startDate || !endDate) {
-        alert("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
+        showWarning("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc!");
         return;
     }
 
     // Body request khớp với ReportRequest.java
     const requestBody = {
         type: type, // "REVENUE" hoặc "OCCUPANCY"
-        start: new Date(startDate).toISOString(), 
+        start: new Date(startDate).toISOString(),
         end: new Date(endDate).toISOString()
     };
 
     try {
         // Gọi API ReportQueryController
         const result = await callAPI('/reports/export', 'POST', requestBody);
-        
+
         // Hiển thị kết quả
         const resultDiv = document.getElementById('reportResult');
         resultDiv.style.display = 'block';
@@ -29,6 +29,6 @@ async function exportReport() {
             </div>
         `;
     } catch (error) {
-        alert("Lỗi xuất báo cáo: " + error.message);
+        showError("Lỗi xuất báo cáo: " + error.message);
     }
 }

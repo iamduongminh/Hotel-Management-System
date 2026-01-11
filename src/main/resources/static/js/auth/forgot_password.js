@@ -5,10 +5,10 @@ async function handleForgotPassword(e) {
     try {
         // Cần bổ sung API này ở Backend
         await callAPI('/auth/forgot-password', 'POST', { email: email });
-        
-        alert("Link đặt lại mật khẩu đã được gửi vào email của bạn!");
+
+        showSuccess("Link đặt lại mật khẩu đã được gửi vào email của bạn!");
         window.location.href = "/pages/auth/login.html";
     } catch (error) {
-        alert("Không thể gửi yêu cầu: " + error.message);
+        showError("Không thể gửi yêu cầu: " + error.message);
     }
 }

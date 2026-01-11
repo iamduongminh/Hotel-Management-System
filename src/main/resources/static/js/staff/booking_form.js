@@ -1,6 +1,6 @@
 // File: src/main/java/resources/static/js/staff/booking_form.js
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     // Gán sự kiện submit cho form
     const form = document.getElementById('bookingForm');
     if (form) {
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 async function handleCreateBooking(e) {
     e.preventDefault();
-    
+
     // 1. Lấy dữ liệu từ các ô input
     const customerName = document.getElementById('customerName').value;
     const roomId = document.getElementById('roomId').value;
@@ -19,7 +19,8 @@ async function handleCreateBooking(e) {
 
     // 2. Kiểm tra dữ liệu hợp lệ (Validation)
     if (new Date(checkInDate) >= new Date(checkOutDate)) {
-        alert("⚠️ Ngày Check-out phải sau ngày Check-in!");
+        showWarning("⚠️ Ngày Check-out phải sau ngày Check-in!");
+        shakeElement('#bookingForm');
         return;
     }
 
@@ -27,19 +28,20 @@ async function handleCreateBooking(e) {
     const requestData = {
         customerName: customerName,
         roomId: parseInt(roomId),
-        checkInDate: checkInDate, 
+        checkInDate: checkInDate,
         checkOutDate: checkOutDate
     };
 
     try {
         // 4. Gọi API tạo booking
         const result = await callAPI('/bookings', 'POST', requestData);
-        
-        alert("✅ Đặt phòng thành công! Mã đơn: #" + result.id);
-        
+
+        showSuccess("Đặt phòng thành công! Mã đơn: #" + result.id);
+
         // 5. Quay về trang danh sách
-        window.location.href = "booking_list.html"; 
+        window.location.href = "booking_list.html";
     } catch (error) {
-        alert("❌ Lỗi đặt phòng: " + error.message);
+        showError("Lỗi đặt phòng: " + error.message);
+        shakeElement('#bookingForm');
     }
 }

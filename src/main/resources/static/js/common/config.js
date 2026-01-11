@@ -50,14 +50,16 @@ async function callAPI(endpoint, method = 'GET', body = null) {
             }
 
             // TRƯỜNG HỢP 2: Đang ở trang khác (không phải login) -> Phiên hết hạn
-            alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!");
-            window.location.href = "/pages/auth/login.html";
+            showWarning("Phiên đăng nhập đã hết hạn. Đang chuyển về trang đăng nhập...");
+            setTimeout(() => {
+                window.location.href = "/pages/auth/login.html";
+            }, 1500);
             throw new Error("Session expired"); // Throw để không return undefined
         }
 
         // Lỗi 403: Đã đăng nhập nhưng không có quyền (VD: Staff vào trang Admin)
         if (response.status === 403) {
-            alert("Bạn không có quyền thực hiện thao tác này!");
+            showError("Bạn không có quyền thực hiện thao tác này!");
             // Nếu có trang 403 thì chuyển, không thì thôi
             // window.location.href = "/pages/auth/403_error.html"; 
             throw new Error("Forbidden: Bạn không có quyền truy cập!");
@@ -82,12 +84,10 @@ async function callAPI(endpoint, method = 'GET', body = null) {
     } catch (error) {
         console.error("System Error calling API:", error);
 
-        // Chỉ hiển thị alert nếu đó không phải là lỗi chuyển trang (như 403 ở trên)
-        if (error.message.indexOf("Forbidden") === -1) {
-            // Hiển thị lỗi ra màn hình để người dùng biết
-            // Dùng alert hoặc thay bằng Toast notification nếu muốn đẹp hơn
-            alert("❌ Có lỗi xảy ra: " + error.message);
-        }
+        // Chỉ log error, không hiển thị toast ở đây
+        // Để các function gọi API tự xử lý hiển thị error message
+        // Tránh duplicate toast notifications
+
         throw error; // Ném lỗi tiếp để hàm gọi bên ngoài (nếu cần) xử lý riêng
     }
 }

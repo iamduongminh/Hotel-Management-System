@@ -1,15 +1,15 @@
 // File: src/main/java/resources/static/js/staff/booking.js
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     loadBookings();
 });
 
 async function loadBookings() {
     try {
         // Gọi API lấy danh sách booking (cần Backend có API GET /bookings)
-        const bookings = await callAPI('/bookings'); 
+        const bookings = await callAPI('/bookings');
         const tableBody = document.getElementById('booking-table-body');
-        
+
         if (!bookings || bookings.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Chưa có đơn đặt phòng nào.</td></tr>';
             return;
@@ -20,7 +20,7 @@ async function loadBookings() {
         bookings.forEach(booking => {
             // Format ngày giờ hiển thị
             const checkIn = formatDateTime(booking.checkInDate);
-            
+
             // Logic hiển thị nút Check-in: Chỉ hiện khi trạng thái là BOOKED
             let actionBtn = '';
             if (booking.status === 'BOOKED') {
@@ -33,8 +33,8 @@ async function loadBookings() {
                     </button>
                 `;
             } else if (booking.status === 'CHECKED_IN') {
-                 // Nếu đã check-in thì hiện nút thanh toán
-                 actionBtn = `
+                // Nếu đã check-in thì hiện nút thanh toán
+                actionBtn = `
                     <a href="checkout.html?bookingId=${booking.id}" class="btn-primary" style="background:#007bff; padding: 5px 10px; font-size: 12px; text-decoration: none;">
                         Thanh toán
                     </a>
@@ -61,25 +61,25 @@ async function loadBookings() {
 
 // Hàm xử lý Check-in
 async function doCheckIn(bookingId) {
-    if(!confirm("Xác nhận khách đã đến và nhận phòng?")) return;
+    if (!confirm("Xác nhận khách đã đến và nhận phòng?")) return;
     try {
         await callAPI(`/checkin/${bookingId}`, 'POST'); // Gọi CheckInController
-        alert("✅ Check-in thành công!");
+        showSuccess("Check-in thành công!");
         loadBookings(); // Tải lại danh sách
     } catch (e) {
-        alert("❌ Lỗi: " + e.message);
+        showError("Lỗi: " + e.message);
     }
 }
 
 // Hàm hủy phòng (Optional)
 async function cancelBooking(bookingId) {
-    if(!confirm("Bạn có chắc muốn hủy đơn này?")) return;
+    if (!confirm("Bạn có chắc muốn hủy đơn này?")) return;
     try {
         // Cần backend hỗ trợ API hủy
-        await callAPI(`/bookings/${bookingId}/cancel`, 'POST'); 
-        alert("Đã hủy đơn đặt phòng.");
+        await callAPI(`/bookings/${bookingId}/cancel`, 'POST');
+        showInfo("Đã hủy đơn đặt phòng.");
         loadBookings();
     } catch (e) {
-        alert("Lỗi: " + e.message);
+        showError("Lỗi: " + e.message);
     }
 }

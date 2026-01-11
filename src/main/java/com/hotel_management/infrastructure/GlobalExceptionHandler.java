@@ -1,5 +1,7 @@
 package com.hotel_management.infrastructure;
 
+import com.hotel_management.exception.InvalidPasswordException;
+import com.hotel_management.exception.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -17,6 +19,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleBadCredentials(BadCredentialsException ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Unauthorized");
+        response.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> handleUserNotFound(UserNotFoundException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "User Not Found");
+        response.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<?> handleInvalidPassword(InvalidPasswordException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Invalid Password");
         response.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }

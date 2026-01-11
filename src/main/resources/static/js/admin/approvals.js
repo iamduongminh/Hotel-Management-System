@@ -1,11 +1,11 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     loadPendingRequests();
 });
 
 async function loadPendingRequests() {
     const container = document.getElementById('approval-list');
     if (!container) return;
-    
+
     container.innerHTML = "<p>Đang tải danh sách yêu cầu...</p>";
 
     try {
@@ -50,35 +50,35 @@ async function loadPendingRequests() {
 }
 
 async function approve(bookingId, requestId) {
-    if(!confirm("Xác nhận DUYỆT yêu cầu này?")) return;
-    
+    if (!confirm("Xác nhận DUYỆT yêu cầu này?")) return;
+
     // Logic: Lấy thông tin request để biết % giảm giá (đơn giản hóa cho demo)
     // Thực tế có thể gửi requestId xuống backend để xử lý
     const percent = prompt("Xác nhận lại % giảm giá (nhập số):", "10");
-    if(!percent) return;
+    if (!percent) return;
 
     try {
-        await callAPI('/admin/approvals/discount', 'POST', { 
-            bookingId: bookingId, 
+        await callAPI('/admin/approvals/discount', 'POST', {
+            bookingId: bookingId,
             percent: parseInt(percent),
             requestId: requestId // Gửi thêm ID request để Backend update trạng thái
         });
-        alert("✅ Đã duyệt thành công!");
+        showSuccess("Đã duyệt thành công!");
         loadPendingRequests();
-    } catch (e) { alert("Lỗi: " + e.message); }
+    } catch (e) { showError("Lỗi: " + e.message); }
 }
 
 async function reject(bookingId, requestId) {
     const reason = prompt("Nhập lý do từ chối:");
-    if(!reason) return;
+    if (!reason) return;
 
     try {
-        await callAPI('/admin/approvals/reject', 'POST', { 
-            bookingId: bookingId, 
+        await callAPI('/admin/approvals/reject', 'POST', {
+            bookingId: bookingId,
             reason: reason,
             requestId: requestId
         });
-        alert("🚫 Đã từ chối yêu cầu.");
+        showWarning("Đã từ chối yêu cầu.");
         loadPendingRequests();
-    } catch (e) { alert("Lỗi: " + e.message); }
+    } catch (e) { showError("Lỗi: " + e.message); }
 }

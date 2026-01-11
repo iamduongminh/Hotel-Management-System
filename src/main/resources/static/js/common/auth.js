@@ -7,7 +7,11 @@
  * Logout user - clears both client and server session
  */
 async function logout() {
-    if (!confirm('Bạn có chắc muốn đăng xuất?')) {
+    // Show confirmation dialog and wait for user response
+    const confirmLogout = confirm('Bạn có chắc muốn đăng xuất?');
+
+    // If user cancels, exit immediately
+    if (!confirmLogout) {
         return;
     }
 

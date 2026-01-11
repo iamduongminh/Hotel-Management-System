@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     loadRooms();
 });
 
@@ -18,7 +18,7 @@ async function loadRooms() {
         container.innerHTML = '';
         rooms.forEach(room => {
             let actionBtn = '';
-            
+
             // Logic hiển thị nút
             if (room.status === 'DIRTY') {
                 actionBtn = `<button onclick="markClean(${room.id})" class="btn-primary" style="background:green; margin-top:5px;">Dọn Xong</button>`;
@@ -50,19 +50,19 @@ async function loadRooms() {
 async function markClean(roomId) {
     try {
         await callAPI(`/housekeeping/rooms/${roomId}/mark-clean`, 'POST');
-        alert("✅ Đã cập nhật trạng thái: SẠCH SẼ");
-        loadRooms(); 
+        showSuccess("Đã cập nhật trạng thái: SẠCH SẼ");
+        loadRooms();
     } catch (e) {
-        alert("❌ Lỗi: " + e.message);
+        showError("Lỗi: " + e.message);
     }
 }
 
 async function setMaintenance(roomId) {
     try {
         await callAPI(`/housekeeping/rooms/${roomId}/maintenance`, 'POST');
-        alert("⚠️ Đã chuyển phòng sang: BẢO TRÌ");
+        showWarning("Đã chuyển phòng sang: BẢO TRÌ");
         loadRooms();
     } catch (e) {
-        alert("❌ Lỗi: " + e.message);
+        showError("Lỗi: " + e.message);
     }
 }

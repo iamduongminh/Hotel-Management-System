@@ -1,18 +1,19 @@
 async function handleChangePassword(e) {
     e.preventDefault();
-    
+
     const currentPass = document.getElementById('currentPassword').value;
     const newPass = document.getElementById('newPassword').value;
     const confirmPass = document.getElementById('confirmPassword').value;
 
     if (newPass !== confirmPass) {
-        alert("Mật khẩu mới không khớp!");
+        showError("Mật khẩu mới không khớp!");
+        shakeElement('#changePasswordForm');
         return;
     }
 
     try {
         const user = JSON.parse(localStorage.getItem(CONFIG.STORAGE_USER_KEY));
-        if(!user) throw new Error("Bạn chưa đăng nhập!");
+        if (!user) throw new Error("Bạn chưa đăng nhập!");
 
         // Cần bổ sung API này ở Backend: AuthController.changePassword
         await callAPI('/auth/change-password', 'POST', {
@@ -21,11 +22,14 @@ async function handleChangePassword(e) {
             newPassword: newPass
         });
 
-        alert("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
-        localStorage.removeItem(CONFIG.STORAGE_USER_KEY);
-        window.location.href = "/pages/auth/login.html";
+        showSuccess("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+        setTimeout(() => {
+            localStorage.removeItem(CONFIG.STORAGE_USER_KEY);
+            window.location.href = "/pages/auth/login.html";
 
+        }, 1500);
     } catch (error) {
-        alert("Lỗi: " + error.message);
+        showError("Lỗi: " + error.message);
+        shakeElement('#changePasswordForm');
     }
 }

@@ -2,30 +2,48 @@ package com.hotel_management.service;
 
 import com.hotel_management.api.core.domain.enums.RoomStatus;
 import com.hotel_management.dto.DashboardData;
+import com.hotel_management.repository.BookingRepository;
 import com.hotel_management.repository.RoomRepository;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Service
 public class DashboardService {
     private final RoomRepository roomRepository;
+    private final BookingRepository bookingRepository;
 
-    public DashboardService(RoomRepository roomRepository) {
+    public DashboardService(RoomRepository roomRepository, BookingRepository bookingRepository) {
         this.roomRepository = roomRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     public DashboardData getDashboardMetrics() {
         DashboardData data = new DashboardData();
 
-        // Tính toán metrics (giả lập - thực tế cần query database)
+        // Get today's date range
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        // Calculate room metrics
         long totalRooms = roomRepository.count();
         long occupiedRooms = roomRepository.countByStatus(RoomStatus.OCCUPIED);
 
+        // Calculate booking metrics
+        Double dailyRevenue = bookingRepository.sumDailyRevenue(startOfDay, endOfDay);
+        long checkInsToday = bookingRepository.countCheckInsToday(startOfDay, endOfDay);
+        long checkOutsToday = bookingRepository.countCheckOutsToday(startOfDay, endOfDay);
+        long pendingApprovals = bookingRepository.countByStatus("BOOKED");
+
         data.setTotalRooms((int) totalRooms);
         data.setOccupiedRooms((int) occupiedRooms);
-        data.setDailyRevenue(5000000.0); // TODO: Tính từ bookings hôm nay
-        data.setCheckInsToday(3); // TODO: Query bookings checked in today
-        data.setCheckOutsToday(2); // TODO: Query bookings checked out today
-        data.setPendingApprovals(1); // TODO: Query pending approvals
+        data.setDailyRevenue(dailyRevenue);
+        data.setCheckInsToday((int) checkInsToday);
+        data.setCheckOutsToday((int) checkOutsToday);
+        data.setPendingApprovals((int) pendingApprovals);
 
         return data;
     }
