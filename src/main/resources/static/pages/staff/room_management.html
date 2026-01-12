@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Phòng - Hotel Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+    <style>
+        /* Room Management Specific Styles */
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            margin: -20px -20px 20px -20px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-bar {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .search-input {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            width: 250px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: #f9fafb;
+        }
+
+        .data-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.AVAILABLE {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.BOOKED {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-badge.OCCUPIED {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+
+        .status-badge.DIRTY {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-badge.MAINTENANCE {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .status-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .status-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .status-btn.available {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-btn.booked {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .status-btn.occupied {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .status-btn.dirty {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-btn.maintenance {
+            background: #6b7280;
+            color: white;
+        }
+
+        .spinner {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Confirm Modal */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-modal.active {
+            display: flex;
+        }
+
+        .confirm-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .confirm-content h3 {
+            margin: 0 0 12px 0;
+            color: #1f2937;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        /* Dropdown Action Menu - Integrated with status badge */
+        .action-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .status-badge-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .status-badge-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .status-badge-btn.AVAILABLE {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge-btn.AVAILABLE:hover {
+            background: #a7f3d0;
+        }
+
+        .status-badge-btn.BOOKED {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-badge-btn.BOOKED:hover {
+            background: #bfdbfe;
+        }
+
+        .status-badge-btn.OCCUPIED {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+
+        .status-badge-btn.OCCUPIED:hover {
+            background: #fdba74;
+        }
+
+        .status-badge-btn.DIRTY {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-badge-btn.DIRTY:hover {
+            background: #fecaca;
+        }
+
+        .status-badge-btn.MAINTENANCE {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .status-badge-btn.MAINTENANCE:hover {
+            background: #d1d5db;
+        }
+
+        .status-badge-btn .dropdown-arrow {
+            font-size: 8px;
+            transition: transform 0.2s;
+        }
+
+        .action-dropdown.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .action-dropdown-menu {
+            display: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 100%;
+            margin-top: 6px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+            min-width: 150px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .action-dropdown-menu.show {
+            display: block;
+            animation: fadeInDown 0.2s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .dropdown-header {
+            padding: 10px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .action-dropdown-item {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 10px 14px;
+            border: none;
+            background: none;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s;
+            color: #374151;
+            gap: 8px;
+        }
+
+        .action-dropdown-item:hover {
+            background: #f3f4f6;
+        }
+
+        .action-dropdown-item.available {
+            color: #059669;
+        }
+
+        .action-dropdown-item.booked {
+            color: #2563eb;
+        }
+
+        .action-dropdown-item.occupied {
+            color: #d97706;
+        }
+
+        .action-dropdown-item.dirty {
+            color: #dc2626;
+        }
+
+        .action-dropdown-item.maintenance {
+            color: #6b7280;
+        }
+
+        .action-dropdown-item i {
+            width: 16px;
+            text-align: center;
+        }
+
+        /* No action state - just display badge without dropdown */
+        .no-action {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .no-action.AVAILABLE {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .no-action.BOOKED {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .no-action.OCCUPIED {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+
+        .no-action.DIRTY {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .no-action.MAINTENANCE {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .room-price {
+            color: #059669;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-door-open"></i> Quản Lý Phòng</h3>
+        <a href="receptionist_dashboard.html"><i class="fas fa-clipboard-list"></i> Quản Lý Đặt Phòng</a>
+        <a href="room_management.html" class="active"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
+        <a href="shift.html"><i class="fas fa-clock"></i> Ca Làm Việc</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1 style="margin: 0;">Quản Lý Phòng</h1>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;" id="user-role-display">Đang tải...</p>
+            </div>
+            <div>
+                <span id="user-fullname">...</span>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label><i class="fas fa-filter"></i> Trạng thái:</label>
+                <select class="filter-select" id="status-filter" onchange="filterRooms()">
+                    <option value="">Tất cả</option>
+                    <option value="AVAILABLE">Phòng trống</option>
+                    <option value="BOOKED">Đã đặt</option>
+                    <option value="OCCUPIED">Đang có khách</option>
+                    <option value="DIRTY">Cần dọn dẹp</option>
+                    <option value="MAINTENANCE">Bảo trì</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label><i class="fas fa-bed"></i> Loại phòng:</label>
+                <select class="filter-select" id="type-filter" onchange="filterRooms()">
+                    <option value="">Tất cả</option>
+                    <option value="VIP">VIP</option>
+                    <option value="DELUXE">Deluxe</option>
+                    <option value="STANDARD">Standard</option>
+                </select>
+            </div>
+
+            <div class="filter-group" style="margin-left: auto;">
+                <label><i class="fas fa-search"></i></label>
+                <input type="text" class="search-input" id="search-input" placeholder="Tìm số phòng..."
+                    oninput="filterRooms()">
+            </div>
+        </div>
+
+        <!-- Rooms Table -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Số Phòng</th>
+                        <th>Loại Phòng</th>
+                        <th>Giá</th>
+                        <th>Trạng Thái</th>
+                    </tr>
+                </thead>
+                <tbody id="rooms-tbody">
+                    <tr>
+                        <td colspan="4" class="spinner">
+                            <i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="confirm-modal" id="confirm-modal">
+        <div class="confirm-content">
+            <h3><i class="fas fa-exclamation-circle"></i> Xác nhận</h3>
+            <p id="confirm-message">Bạn có chắc muốn thay đổi trạng thái phòng?</p>
+            <div class="confirm-buttons">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">Hủy</button>
+                <button class="btn btn-primary" id="confirm-btn" onclick="confirmStatusChange()">Xác Nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/staff/room_management.js"></script>
+</body>
+
+</html>

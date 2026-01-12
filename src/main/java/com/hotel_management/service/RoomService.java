@@ -19,7 +19,7 @@ public class RoomService {
     public List<Room> getAllRooms() {
         return roomRepo.findAll();
     }
-    
+
     // Sửa lỗi setStatus và Null safety
     public Room updateRoomStatus(Long id, RoomStatus status) {
         if (id == null) {
@@ -32,7 +32,17 @@ public class RoomService {
         // Entity Room định nghĩa status là Enum RoomStatus
         // Nên ở đây ta truyền trực tiếp Enum vào, KHÔNG dùng .name() hoặc String
         room.setStatus(status);
-        
+
         return roomRepo.save(room);
+    }
+
+    // Get room by ID
+    public Room getRoomById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Room ID cannot be null");
+        }
+
+        return roomRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Room not found with ID: " + id));
     }
 }

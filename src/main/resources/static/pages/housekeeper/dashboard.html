@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quan Ly Buong Phong</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-broom"></i> Buồng Phòng</h3>
+        <a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
+    </div>
+
+    <div class="main-content">
+        <h1>🧹 Dashboard Buồng Phòng</h1>
+
+        <div class="welcome-card">
+            <h2>Chào mừng, <span id="user-fullname">Nhân viên</span></h2>
+            <p><strong>Vai trò:</strong> BUỒNG PHÒNG (HOUSEKEEPER)</p>
+        </div>
+
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 24px 0;">
+            <div class="card">
+                <h3>🔴 Phòng Cần Dọn</h3>
+                <p style="font-size: 2em; color: #f44336; margin: 10px 0;">3</p>
+                <p style="font-size: 0.9em; color: #666;">(Dữ liệu mẫu)</p>
+            </div>
+            <div class="card">
+                <h3>🟢 Phòng Sạch Sẵn Sàng</h3>
+                <p style="font-size: 2em; color: #4CAF50; margin: 10px 0;">12</p>
+                <p style="font-size: 0.9em; color: #666;">(Dữ liệu mẫu)</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script>
+        // Simple script to load user name
+        document.addEventListener("DOMContentLoaded", function () {
+            const userStr = localStorage.getItem(CONFIG.STORAGE_USER_KEY);
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('user-fullname').textContent = user.fullName || user.username;
+            }
+        });
+    </script>
+</body>
+
+</html>

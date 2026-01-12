@@ -7,6 +7,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -29,8 +34,23 @@ public class SystemConfig {
                         .requestMatchers("/api/auth/**", "/api/debug/**").permitAll()
                         // 3. Các API còn lại tạm thời cho phép hết (để bạn test cho dễ)
                         // Sau này muốn bảo mật thì sửa .permitAll() thành .authenticated()
-                        .anyRequest().permitAll());
+                        .anyRequest().permitAll())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())); // Kích hoạt CORS
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Cho phép frontend từ localhost (bạn có thể thêm pattern khác nếu cần)
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true); // QUAN TRỌNG: Cho phép gửi Cookie JSESSIONID
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Branch Manager - Quản Lý Chi Nhánh</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <h3><i class="fas fa-user-tie"></i> Quản Lý Chi Nhánh</h3>
+        <a href="branch_dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
+        <a href="../admin/reports.html"><i class="fas fa-file-alt"></i> Báo Cáo</a>
+        <a href="shift.html"><i class="fas fa-clock"></i> Ca Làm Việc</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+    </div>
+
+    <div class="main-content">
+        <h1>🏢 Dashboard Chi Nhánh</h1>
+
+        <div class="welcome-card">
+            <h2>Chào mừng, <span id="manager-name">Manager</span></h2>
+            <p><strong>Vai trò:</strong> <span id="manager-role">QUẢN LÝ CHI NHÁNH</span></p>
+            <p><strong>Khu vực/Chi nhánh:</strong> <span id="manager-location">Đang cập nhật...</span></p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0;">
+            <div class="card">
+                <h3>📈 Doanh Thu Ngày</h3>
+                <p style="font-size: 2em; color: #4CAF50; margin: 10px 0;" id="daily-revenue">0 VNĐ</p>
+            </div>
+
+            <div class="card">
+                <h3>🏨 Phòng Đang Có Khách</h3>
+                <p style="font-size: 2em; color: #2196F3; margin: 10px 0;" id="occupied-rooms">0</p>
+            </div>
+
+            <div class="card">
+                <h3>👥 Nhân Viên Đang Làm</h3>
+                <p style="font-size: 2em; color: #FF9800; margin: 10px 0;" id="staff-online">0</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/manager/dashboard.js"></script>
+</body>
+
+</html>

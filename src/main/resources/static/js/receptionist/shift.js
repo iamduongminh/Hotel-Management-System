@@ -56,37 +56,12 @@ function updateSidebarForRole(role) {
     const sidebar = document.querySelector('.sidebar');
     if (!sidebar) return;
 
-    if (role === 'BRANCH_MANAGER') {
-        sidebar.innerHTML = `
-            <h3><i class="fas fa-user-tie"></i> Quản Lý Chi Nhánh</h3>
-            <a href="../manager/branch_dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
-            <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-            <a href="../admin/reports.html"><i class="fas fa-file-alt"></i> Báo Cáo</a>
-            <a href="shift.html" class="active"><i class="fas fa-clock"></i> Ca Làm Việc</a>
-            <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-        `;
-    } else if (role === 'REGIONAL_MANAGER') {
-        sidebar.innerHTML = `
-            <h3><i class="fas fa-globe"></i> Lãnh Đạo Khu Vực</h3>
-            <a href="../manager/regional_dashboard.html"><i class="fas fa-chart-line"></i> Tổng Quan</a>
-            <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-            <a href="../admin/reports.html"><i class="fas fa-chart-bar"></i> Báo Cáo</a>
-            <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-        `;
-    } else if (role === 'HOUSEKEEPER') {
-        sidebar.innerHTML = `
-            <h3><i class="fas fa-broom"></i> Buồng Phòng</h3>
-            <a href="housekeeper_dashboard.html"><i class="fas fa-chart-line"></i> Tổng Quan</a>
-            <a href="room_management.html"><i class="fas fa-door-open"></i> Trạng Thái Phòng</a>
-            <a href="shift.html" class="active"><i class="fas fa-clock"></i> Ca Làm Việc</a>
-            <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
-        `;
-    } else if (role === 'RECEPTIONIST') {
+    if (role === 'RECEPTIONIST') {
         sidebar.innerHTML = `
             <h3><i class="fas fa-hotel"></i> Lễ Tân</h3>
             <a href="receptionist_dashboard.html"><i class="fas fa-clipboard-list"></i> Quản Lý Đặt Phòng</a>
-            <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-            <a href="shift.html" class="active"><i class="fas fa-clock"></i> Ca Làm Việc</a>
+            <a href="receptionist_room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
+            <a href="receptionist_shift.html" class="active"><i class="fas fa-clock"></i> Ca Làm Việc</a>
             <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
         `;
     }

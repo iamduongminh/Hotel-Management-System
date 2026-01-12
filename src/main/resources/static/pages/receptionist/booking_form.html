@@ -11,8 +11,8 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <h3>🏨 Lễ Tân</h3>
-        <a href="staff_dashboard.html">📋 Quản Lý Đặt Phòng</a>
-        <a href="housekeeping.html">🧹 Trạng Thái Phòng</a>
+        <a href="dashboard.html">📋 Quản Lý Đặt Phòng</a>
+        <a href="room_management.html">🚪 Trạng Thái Phòng</a>
         <a href="shift.html">⏰ Ca Làm Việc</a>
         <a href="#" onclick="handleLogout(); return false;">🚪 Đăng Xuất</a>
     </div>
@@ -42,7 +42,7 @@
                 </div>
 
                 <button type="submit" class="btn-primary">Xác Nhận Đặt</button>
-                <button type="button" onclick="window.location.href='staff_dashboard.html'"
+                <button type="button" onclick="window.location.href='dashboard.html'"
                     style="margin-left: 10px; background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Hủy</button>
             </form>
         </div>
@@ -72,7 +72,7 @@
             try {
                 await callAPI('/bookings', 'POST', requestData);
                 alert("✅ Đặt phòng thành công!");
-                window.location.href = "staff_dashboard.html";
+                window.location.href = "dashboard.html";
             } catch (error) {
                 alert("❌ Lỗi đặt phòng: " + error.message);
             }

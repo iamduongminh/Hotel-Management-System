@@ -4,10 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Lễ Tân - Hotel Management</title>
+    <title>Lễ Tân - Hotel Management</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="../../css/modal.css">
     <link rel="stylesheet" href="../../css/toast.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* SPA Dashboard Specific Styles */
         .dashboard-header {
@@ -140,11 +142,10 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <h3>🏨 Nhân Viên</h3>
-        <a href="staff_dashboard.html" class="active">📋 Quản Lý Đặt Phòng</a>
-        <a href="room_management.html">🚪 Quản Lý Phòng</a>
-        <a href="shift.html">⏰ Ca Làm Việc</a>
-        <a href="#" onclick="handleLogout(); return false;">🚪 Đăng Xuất</a>
+        <h3><i class="fas fa-hotel"></i> Lễ Tân</h3>
+        <a href="dashboard.html" class="active"><i class="fas fa-clipboard-list"></i> Quản Lý Đặt Phòng</a>
+        <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
     </div>
 
     <!-- Main Content -->

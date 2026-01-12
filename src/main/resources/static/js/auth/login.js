@@ -41,15 +41,26 @@ async function handleLogin(e) {
         showSuccess(`Xin chào, ${response.fullName}!`);
 
         // Điều hướng dựa trên quyền
-        if (response.role === 'ADMIN') {
-            // IT Admin → Admin Dashboard (quản trị hệ thống)
-            window.location.href = "/pages/admin/dashboard.html";
-        } else if (response.role === 'REGIONAL_MANAGER' || response.role === 'BRANCH_MANAGER') {
-            // Business Managers → Manager Dashboard (quản lý kinh doanh)
-            window.location.href = "/pages/manager/dashboard.html";
-        } else {
-            // Staff (RECEPTIONIST, HOUSEKEEPER) → Staff Dashboard
-            window.location.href = "/pages/staff/staff_dashboard.html";
+        // Điều hướng dựa trên quyền
+        switch (response.role) {
+            case 'ADMIN':
+                window.location.href = "/pages/admin/dashboard.html";
+                break;
+            case 'REGIONAL_MANAGER':
+                window.location.href = "/pages/manager/regional_dashboard.html";
+                break;
+            case 'BRANCH_MANAGER':
+                window.location.href = "/pages/manager/branch_dashboard.html";
+                break;
+            case 'RECEPTIONIST':
+                window.location.href = "/pages/receptionist/dashboard.html";
+                break;
+            case 'HOUSEKEEPER':
+                window.location.href = "/pages/housekeeper/dashboard.html";
+                break;
+            default:
+                console.warn("Unknown role:", response.role);
+                window.location.href = "/pages/receptionist/dashboard.html"; // Fallback
         }
 
     } catch (error) {

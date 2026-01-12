@@ -22,7 +22,7 @@ INSERT INTO users (
     )
 VALUES (
         'MinhRM',
-        '$2a$12$8FHw.pqLhPZPxGKZ4jT.4eYvJG7EHqxK5M.nS2iX9fL3vD8wR6hY6',
+        '$2a$10$2tALBpxsA1Dx9ztRBHQi2.F2WpU6n5cBIoLaRrm5nAAPJMkdzt.Ii',
         'Dương Quang Minh',
         'REGIONAL_MANAGER',
         'Hà Nội',
@@ -46,7 +46,7 @@ INSERT INTO users (
     )
 VALUES (
         'AnhBM',
-        '$2a$12$vG8Jy.qNiR7QyHL5kU.5fuZwKI8FIryL6N.oT3jY0gM4wE9xS7iZ7',
+        '$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK',
         'Hoàng Văn Anh',
         'BRANCH_MANAGER',
         'Hà Nội',
@@ -70,7 +70,7 @@ INSERT INTO users (
     )
 VALUES (
         'admin',
-        '$2a$12$wI9Kz.rOjS8RzIM6lV.6gvAxLJ9GJszM7O.pU4kZ1hN5xF0yT8ja8',
+        '$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q',
         'Trương Văn A',
         'ADMIN',
         'Hà Nội',
@@ -94,7 +94,7 @@ INSERT INTO users (
     )
 VALUES (
         'staff',
-        '$2a$12$xJ0La.sPkT9SzJN7mW.7hvByMK0HKtaN8P.qV5lA2iO6yG1zU9kb9',
+        '$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2',
         'Nguyễn Văn Tuấn',
         'RECEPTIONIST',
         'Hà Nội',
@@ -118,7 +118,7 @@ INSERT INTO users (
     )
 VALUES (
         'housekeeper',
-        '$2a$12$yK1Mb.tQlU0TaKO8nX.8iwCzNL1ILubO9Q.rW6mB3jP7zH2aV0lc0',
+        '$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO',
         'Bùi Văn Nam',
         'HOUSEKEEPER',
         'Hà Nội',

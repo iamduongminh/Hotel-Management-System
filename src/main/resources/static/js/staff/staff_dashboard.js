@@ -23,6 +23,9 @@ function loadUserInfo() {
 
     const user = JSON.parse(userStr);
     document.getElementById('user-fullname').textContent = user.fullName || user.username;
+
+    // Nếu là Manager đang xem trang Staff -> Code đã bị xóa theo yêu cầu
+
 }
 
 // Load all bookings

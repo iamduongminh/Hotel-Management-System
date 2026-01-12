@@ -104,3 +104,24 @@ function formatDateTime(isoString) {
     const date = new Date(isoString);
     return date.toLocaleString('vi-VN'); // Ra dạng: "12:00:00 10/01/2026"
 }
+
+// 5. Hàm lấy user hiện tại từ localStorage
+function getCurrentUser() {
+    const userJson = localStorage.getItem(CONFIG.STORAGE_USER_KEY);
+    if (!userJson) return null;
+    try {
+        return JSON.parse(userJson);
+    } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+        return null;
+    }
+}
+
+// 6. Hàm lưu user vào localStorage
+function saveCurrentUser(user) {
+    if (user) {
+        localStorage.setItem(CONFIG.STORAGE_USER_KEY, JSON.stringify(user));
+    } else {
+        localStorage.removeItem(CONFIG.STORAGE_USER_KEY);
+    }
+}
