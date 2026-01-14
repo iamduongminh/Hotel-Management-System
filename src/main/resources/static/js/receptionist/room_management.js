@@ -337,9 +337,8 @@ function updateSidebarForRole(role) {
     if (role === 'RECEPTIONIST') {
         sidebar.innerHTML = `
             <h3><i class="fas fa-hotel"></i> Lễ Tân</h3>
-            <a href="receptionist_dashboard.html"><i class="fas fa-clipboard-list"></i> Quản Lý Đặt Phòng</a>
-            <a href="receptionist_room_management.html" class="active"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-            <a href="receptionist_shift.html"><i class="fas fa-clock"></i> Ca Làm Việc</a>
+            <a href="dashboard.html"><i class="fas fa-clipboard-list"></i> Quản Lý Đặt Phòng</a>
+            <a href="room_management.html" class="active"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
             <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
         `;
     }

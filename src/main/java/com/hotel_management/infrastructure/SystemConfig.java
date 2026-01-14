@@ -17,6 +17,12 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SystemConfig {
 
+    private final SessionAuthenticationFilter sessionAuthenticationFilter;
+
+    public SystemConfig(SessionAuthenticationFilter sessionAuthenticationFilter) {
+        this.sessionAuthenticationFilter = sessionAuthenticationFilter;
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         // Dùng BCrypt để khớp với dữ liệu {bcrypt} trong Database
@@ -32,10 +38,20 @@ public class SystemConfig {
                         .requestMatchers("/css/**", "/js/**", "/assets/**", "/pages/**", "/index.html", "/").permitAll()
                         // 2. Cho phép truy cập tự do vào API Đăng nhập
                         .requestMatchers("/api/auth/**", "/api/debug/**").permitAll()
-                        // 3. Các API còn lại tạm thời cho phép hết (để bạn test cho dễ)
-                        // Sau này muốn bảo mật thì sửa .permitAll() thành .authenticated()
-                        .anyRequest().permitAll())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())); // Kích hoạt CORS
+                        // 3. BẢO MẬT: Các API còn lại BẮT BUỘC phải đăng nhập
+                        .anyRequest().authenticated())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Kích hoạt CORS
+                // Thêm Filter tùy chỉnh để đồng bộ Session với Spring Security
+                .addFilterBefore(sessionAuthenticationFilter,
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                // Cấu hình xử lý khi chưa đăng nhập
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"error\": \"Unauthorized\", \"message\": \"Bạn cần đăng nhập để truy cập tài nguyên này\"}");
+                        }));
 
         return http.build();
     }

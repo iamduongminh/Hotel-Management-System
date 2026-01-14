@@ -78,8 +78,22 @@
             };
 
             try {
-                const result = await callAPI('/reports/export', 'POST', req);
+                const response = await fetch(`${CONFIG.API_BASE_URL}/reports/export`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(req)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to export report');
+                }
+
+                const result = await response.text();
                 document.getElementById('reportResult').innerText = result;
+                document.getElementById('reportResult').style.color = 'black';
             } catch (e) {
                 alert("Lỗi: " + e.message);
             }
