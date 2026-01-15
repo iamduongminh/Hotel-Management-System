@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Chi Nhánh - Regional Manager</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Sidebar will be dynamically rendered -->
+    <div class="sidebar" id="sidebar">
+        <h3>Loading...</h3>
+    </div>
+
+    <div class="main-content">
+        <h1><i class="fas fa-building"></i> Quản Lý Chi Nhánh</h1>
+
+        <div class="welcome-card">
+            <p>Danh sách các chi nhánh và thông số hoạt động.</p>
+        </div>
+
+        <!-- Placeholder for Branch List / Stats -->
+        <div class="card">
+            <h3>Danh Sách Chi Nhánh</h3>
+            <p><em>(Tính năng đang được cập nhật...)</em></p>
+        </div>
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check authentication
+            const user = getCurrentUser();
+            if (!user) {
+                window.location.href = '/pages/auth/login.html';
+                return;
+            }
+
+            // IMPORTANT: Branch Manager should NOT access this page
+            // Redirect them to their own dashboard
+            if (user.role === 'BRANCH_MANAGER') {
+                showWarning('Trang này dành cho Quản Lý Khu Vực. Đang chuyển về Dashboard...');
+                setTimeout(() => {
+                    window.location.href = '/pages/branch_manager/dashboard.html';
+                }, 1500);
+                return;
+            }
+
+            // Check if user has permission (ONLY Regional Manager and Admin)
+            const allowedRoles = ['REGIONAL_MANAGER', 'ADMIN'];
+            if (!allowedRoles.includes(user.role)) {
+                showError('Bạn không có quyền truy cập trang này!');
+                setTimeout(() => {
+                    window.location.href = '/pages/auth/login.html';
+                }, 2000);
+                return;
+            }
+
+            // Render sidebar for Regional Manager
+            renderSidebar(user.role);
+        });
+
+        function renderSidebar(role) {
+            const sidebar = document.getElementById('sidebar');
+
+            if (role === 'REGIONAL_MANAGER') {
+                sidebar.innerHTML = `
+                    <h3><i class="fas fa-globe"></i> Lãnh Đạo Khu Vực</h3>
+                    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Tổng Quan</a>
+                    <a href="branch_management.html" class="active"><i class="fas fa-building"></i> Quản Lý Chi Nhánh</a>
+                    <a href="regional_report.html"><i class="fas fa-chart-bar"></i> Báo Cáo Tổng Hợp</a>
+                    <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                `;
+            } else if (role === 'ADMIN') {
+                sidebar.innerHTML = `
+                    <h3><i class="fas fa-user-shield"></i> Administrator</h3>
+                    <a href="../admin/dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+                    <a href="branch_management.html" class="active"><i class="fas fa-building"></i> Quản Lý Chi Nhánh</a>
+                    <a href="regional_report.html"><i class="fas fa-chart-bar"></i> Báo Cáo</a>
+                    <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Xuất Báo Cáo</title>
+    <title>Xuất Báo Cáo - Khu Vực</title>
     <link rel="stylesheet" href="../../css/style.css">
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,7 +17,7 @@
     </div>
 
     <div class="main-content">
-        <h1><i class="fas fa-file-invoice-dollar"></i> Báo Cáo Hoạt Động</h1>
+        <h1><i class="fas fa-chart-bar"></i> Báo Cáo Tổng Hợp (Khu Vực)</h1>
         <div class="card" style="max-width: 600px;">
             <div class="form-group">
                 <label>Loại báo cáo:</label>
@@ -46,25 +46,19 @@
         function renderSidebar(role) {
             const sidebar = document.getElementById('sidebar');
 
-            if (role === 'BRANCH_MANAGER') {
-                sidebar.innerHTML = `
-                    <h3><i class="fas fa-user-tie"></i> Quản Lý Chi Nhánh</h3>
-                    <a href="../manager/branch_dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
-                    <a href="../staff/room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-                    <a href="reports.html" class="active"><i class="fas fa-file-alt"></i> Báo Cáo</a>
-                    <a href="../staff/shift.html"><i class="fas fa-clock"></i> Ca Làm Việc</a>
-                    <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-                `;
-            } else if (role === 'REGIONAL_MANAGER') {
+            if (role === 'REGIONAL_MANAGER') {
                 sidebar.innerHTML = `
                     <h3><i class="fas fa-globe"></i> Lãnh Đạo Khu Vực</h3>
-                    <a href="../manager/regional_dashboard.html"><i class="fas fa-chart-line"></i> Tổng Quan</a>
-                    <a href="reports.html" class="active"><i class="fas fa-chart-bar"></i> Báo Cáo Tổng Hợp</a>
+                    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Tổng Quan</a>
+                    <a href="branch_management.html"><i class="fas fa-building"></i> Quản Lý Chi Nhánh</a>
+                    <a href="regional_report.html" class="active"><i class="fas fa-chart-bar"></i> Báo Cáo Tổng Hợp</a>
                     <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 `;
             } else {
                 sidebar.innerHTML = `
                     <h3><i class="fas fa-ban"></i> Truy cập bị từ chối</h3>
+                    <p>Trang này chỉ dành cho Lãnh Đạo Khu Vực</p>
+                    <a href="../auth/login.html" style="color: white; text-decoration: underline;">Quay lại đăng nhập</a>
                 `;
             }
         }

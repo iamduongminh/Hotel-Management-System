@@ -59,18 +59,18 @@ function updateSidebarForRole(role) {
     if (role === 'BRANCH_MANAGER') {
         sidebar.innerHTML = `
             <h3><i class="fas fa-user-tie"></i> Quản Lý Chi Nhánh</h3>
-            <a href="../manager/branch_dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
-            <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-            <a href="../admin/reports.html"><i class="fas fa-file-alt"></i> Báo Cáo</a>
-            <a href="shift.html" class="active"><i class="fas fa-clock"></i> Ca Làm Việc</a>
+            <a href="../branch_manager/dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="../common/room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
+            <a href="../branch_manager/branch_report.html"><i class="fas fa-file-alt"></i> Báo Cáo</a>
+            <a href="../common/shift.html" class="active"><i class="fas fa-clock"></i> Ca Làm Việc</a>
             <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
         `;
     } else if (role === 'REGIONAL_MANAGER') {
         sidebar.innerHTML = `
             <h3><i class="fas fa-globe"></i> Lãnh Đạo Khu Vực</h3>
-            <a href="../manager/regional_dashboard.html"><i class="fas fa-chart-line"></i> Tổng Quan</a>
-            <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-            <a href="../admin/reports.html"><i class="fas fa-chart-bar"></i> Báo Cáo</a>
+            <a href="../regional_manager/dashboard.html"><i class="fas fa-chart-line"></i> Tổng Quan</a>
+            <a href="../regional_manager/branch_management.html"><i class="fas fa-building"></i> Quản Lý Chi Nhánh</a>
+            <a href="../regional_manager/regional_report.html"><i class="fas fa-chart-bar"></i> Báo Cáo Tổng Hợp</a>
             <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
         `;
     } else if (role === 'HOUSEKEEPER') {

@@ -24,6 +24,7 @@ async function logout() {
     }
 
     // Clear client-side storage
+    // Clear both localStorage AND sessionStorage to ensure clean logout
     localStorage.clear();
     sessionStorage.clear();
 

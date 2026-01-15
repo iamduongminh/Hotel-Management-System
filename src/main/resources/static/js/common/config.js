@@ -105,23 +105,35 @@ function formatDateTime(isoString) {
     return date.toLocaleString('vi-VN'); // Ra dạng: "12:00:00 10/01/2026"
 }
 
-// 5. Hàm lấy user hiện tại từ localStorage
+// 5. Hàm lấy user hiện tại từ sessionStorage (riêng biệt cho từng tab)
 function getCurrentUser() {
-    const userJson = localStorage.getItem(CONFIG.STORAGE_USER_KEY);
+    const userJson = sessionStorage.getItem(CONFIG.STORAGE_USER_KEY);
     if (!userJson) return null;
     try {
         return JSON.parse(userJson);
     } catch (e) {
-        console.error('Error parsing user from localStorage:', e);
+        console.error('Error parsing user from sessionStorage:', e);
         return null;
     }
 }
 
-// 6. Hàm lưu user vào localStorage
+// 6. Hàm lưu user vào sessionStorage (riêng biệt cho từng tab)
 function saveCurrentUser(user) {
     if (user) {
-        localStorage.setItem(CONFIG.STORAGE_USER_KEY, JSON.stringify(user));
+        sessionStorage.setItem(CONFIG.STORAGE_USER_KEY, JSON.stringify(user));
     } else {
-        localStorage.removeItem(CONFIG.STORAGE_USER_KEY);
+        sessionStorage.removeItem(CONFIG.STORAGE_USER_KEY);
     }
+}
+
+// 7. Hàm lấy tên hiển thị cho role (Dùng chung)
+function getRoleDisplayName(role) {
+    const roleMap = {
+        'REGIONAL_MANAGER': 'Quản Lý Khu Vực', // Regional Manager
+        'BRANCH_MANAGER': 'Quản Lý Chi Nhánh', // Branch Manager
+        'ADMIN': 'IT Admin',
+        'RECEPTIONIST': 'Lễ Tân',
+        'HOUSEKEEPER': 'Buồng Phòng'
+    };
+    return roleMap[role] || role;
 }

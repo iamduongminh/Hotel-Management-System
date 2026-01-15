@@ -35,8 +35,8 @@ async function handleLogin(e) {
             throw new Error("Dữ liệu đăng nhập không hợp lệ");
         }
 
-        // Lưu thông tin user vào localStorage
-        localStorage.setItem(CONFIG.STORAGE_USER_KEY, JSON.stringify(response));
+        // Lưu thông tin user vào sessionStorage (riêng biệt cho từng tab)
+        sessionStorage.setItem(CONFIG.STORAGE_USER_KEY, JSON.stringify(response));
 
         showSuccess(`Xin chào, ${response.fullName}!`);
 
@@ -47,10 +47,10 @@ async function handleLogin(e) {
                 window.location.href = "/pages/admin/dashboard.html";
                 break;
             case 'REGIONAL_MANAGER':
-                window.location.href = "/pages/manager/regional_dashboard.html";
+                window.location.href = "/pages/regional_manager/dashboard.html";
                 break;
             case 'BRANCH_MANAGER':
-                window.location.href = "/pages/manager/branch_dashboard.html";
+                window.location.href = "/pages/branch_manager/dashboard.html";
                 break;
             case 'RECEPTIONIST':
                 window.location.href = "/pages/receptionist/dashboard.html";

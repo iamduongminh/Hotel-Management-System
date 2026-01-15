@@ -301,6 +301,12 @@
             background: #d1d5db;
         }
 
+        .status-badge-btn.disabled {
+            background: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
         .status-badge-btn .dropdown-arrow {
             font-size: 8px;
             transition: transform 0.2s;
@@ -397,41 +403,6 @@
             text-align: center;
         }
 
-        /* No action state - just display badge without dropdown */
-        .no-action {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .no-action.AVAILABLE {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .no-action.BOOKED {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .no-action.OCCUPIED {
-            background: #fed7aa;
-            color: #c2410c;
-        }
-
-        .no-action.DIRTY {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .no-action.MAINTENANCE {
-            background: #e5e7eb;
-            color: #374151;
-        }
-
         .room-price {
             color: #059669;
             font-weight: 600;
@@ -442,12 +413,8 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <h3><i class="fas fa-user-tie"></i> Quản Lý Chi Nhánh</h3>
-        <a href="branch_dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="room_management.html" class="active"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-        <a href="../admin/reports.html"><i class="fas fa-file-alt"></i> Báo Cáo</a>
-        <a href="shift.html"><i class="fas fa-clock"></i> Ca Làm Việc</a>
-        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        <!-- Will be populated by JS based on role -->
+        <h3>Loading...</h3>
     </div>
 
     <!-- Main Content -->
@@ -456,7 +423,7 @@
         <div class="dashboard-header">
             <div>
                 <h1 style="margin: 0;">Quản Lý Phòng</h1>
-                <p style="margin: 8px 0 0 0; opacity: 0.9;" id="user-role-display">Đang tải...</p>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;" id="user-role-display">...</p>
             </div>
             <div>
                 <span id="user-fullname">...</span>
@@ -531,7 +498,7 @@
     <script src="../../js/common/toast.js"></script>
     <script src="../../js/common/config.js"></script>
     <script src="../../js/common/auth.js"></script>
-    <script src="../../js/manager/room_management.js"></script>
+    <script src="../../js/shared/room_management.js"></script>
 </body>
 
 </html>

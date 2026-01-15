@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Load current user info
 function loadUserInfo() {
-    const userStr = localStorage.getItem(CONFIG.STORAGE_USER_KEY);
+    const userStr = sessionStorage.getItem(CONFIG.STORAGE_USER_KEY);
     if (!userStr) {
         window.location.href = '/pages/auth/login.html';
         return;

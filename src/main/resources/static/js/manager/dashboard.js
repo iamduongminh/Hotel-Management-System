@@ -10,6 +10,7 @@ async function loadManagerInfo() {
         const response = await apiCall('/api/auth/me');
         if (response.success) {
             const user = response.data;
+            // Update UI
             document.getElementById('manager-name').textContent = user.fullName || user.username;
             document.getElementById('manager-role').textContent = getRoleDisplayName(user.role);
 
@@ -17,6 +18,9 @@ async function loadManagerInfo() {
             if (user.city) location += user.city;
             if (user.branchName) location += (location ? ' - ' : '') + user.branchName;
             document.getElementById('manager-location').textContent = location || 'N/A';
+
+            // Sync with localStorage so other pages (sidebar) see the correct role immediately
+            saveCurrentUser(user);
         }
     } catch (error) {
         console.error('Error loading manager info:', error);

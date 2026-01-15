@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Quản Lý Ca Làm Việc</title>
     <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/toast.css">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -12,12 +13,8 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <h3><i class="fas fa-user-tie"></i> Quản Lý Chi Nhánh</h3>
-        <a href="branch_dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-        <a href="../admin/reports.html"><i class="fas fa-file-alt"></i> Báo Cáo</a>
-        <a href="shift.html" class="active"><i class="fas fa-clock"></i> Ca Làm Việc</a>
-        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        <!-- populated by JS -->
+        <h3>Loading...</h3>
     </div>
 
     <div class="main-content">
@@ -35,6 +32,7 @@
                 <input type="number" id="startCash" value="0">
             </div>
             <button onclick="startShift()" class="btn-primary">Bắt Đầu Ca</button>
+            <div id="start-status"></div>
         </div>
 
         <div class="card">
@@ -44,12 +42,14 @@
                 <input type="number" id="endCash" value="0">
             </div>
             <button onclick="endShift()" class="btn-primary" style="background: #dc3545;">Kết Thúc Ca</button>
+            <div id="shift-status"></div>
         </div>
     </div>
 
+    <script src="../../js/common/toast.js"></script>
     <script src="../../js/common/config.js"></script>
     <script src="../../js/common/auth.js"></script>
-    <script src="../../js/manager/shift.js"></script>
+    <script src="../../js/shared/shift.js"></script>
 </body>
 
 </html>

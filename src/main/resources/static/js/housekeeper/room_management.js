@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Load user information
 function loadUserInfo() {
-    const userStr = localStorage.getItem(CONFIG.STORAGE_USER_KEY);
+    const userStr = sessionStorage.getItem(CONFIG.STORAGE_USER_KEY);
     if (userStr) {
         const user = JSON.parse(userStr);
         document.getElementById('user-fullname').textContent = user.fullName || user.username;

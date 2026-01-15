@@ -12,7 +12,7 @@ async function handleChangePassword(e) {
     }
 
     try {
-        const user = JSON.parse(localStorage.getItem(CONFIG.STORAGE_USER_KEY));
+        const user = JSON.parse(sessionStorage.getItem(CONFIG.STORAGE_USER_KEY));
         if (!user) throw new Error("Bạn chưa đăng nhập!");
 
         // Cần bổ sung API này ở Backend: AuthController.changePassword
