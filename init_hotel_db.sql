@@ -1,541 +1,1550 @@
 -- =====================================================
--- HOTEL MANAGEMENT SYSTEM - DATABASE INITIALIZATION
+-- HOTEL MANAGEMENT SYSTEM - DATABASE INITIALIZATION (VALUES ONLY)
+-- TƯƠNG THÍCH MySQL 5.7+ (KHÔNG dùng WITH/CTE)
+-- Sinh dữ liệu cho 16 chi nhánh (HN=5, DN=4, HCM=5, PQ=2)
+-- Mỗi chi nhánh: 1 BRANCH_MANAGER, 7 ADMIN, 10 RECEPTIONIST, 8 HOUSEKEEPER
+-- Mỗi chi nhánh: 50 phòng (chia hết cho 10, <=70)
+-- ID đều là VARCHAR và là PRIMARY KEY theo yêu cầu
 -- =====================================================
--- File này sẽ:
--- 1. Tạo database hotel_db
--- 2. Tạo tất cả các bảng
--- 3. Insert dữ liệu mẫu
--- =====================================================
--- Bước 1: Tạo và chọn database
+
 DROP DATABASE IF EXISTS hotel_db;
 CREATE DATABASE hotel_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE hotel_db;
--- =====================================================
--- BƯỚC 2: TẠO CÁC BẢNG
--- =====================================================
--- Bảng Users (Người dùng hệ thống)
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    full_name VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL,
-    city VARCHAR(100),
-    branch_name VARCHAR(100),
-    birthday DATE,
-    phone_number VARCHAR(20),
-    email VARCHAR(100)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- Bảng Rooms (Phòng)
-CREATE TABLE rooms (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    room_number VARCHAR(50) NOT NULL,
-    price DECIMAL(19, 2) NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    status VARCHAR(50) NOT NULL
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- Bảng Customers (Khách hàng)
-CREATE TABLE customers (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(255),
-    phone VARCHAR(20),
-    identity_number VARCHAR(50)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- Bảng Bookings (Đặt phòng)
-CREATE TABLE bookings (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    customer_name VARCHAR(255),
-    check_in_date DATETIME,
-    check_out_date DATETIME,
-    total_amount DOUBLE,
-    status VARCHAR(50),
-    room_id BIGINT,
-    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE
-    SET NULL
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- Bảng Invoices (Hóa đơn)
-CREATE TABLE invoices (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    booking_id BIGINT,
-    total_amount DECIMAL(19, 2),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    payment_type VARCHAR(50),
-    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- Bảng Approval Requests (Yêu cầu phê duyệt)
-CREATE TABLE approval_requests (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    type VARCHAR(255) NOT NULL,
-    target_id BIGINT NOT NULL,
-    request_data TEXT,
-    reason TEXT,
-    status VARCHAR(50),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(255)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- Bảng Approval Log (Lịch sử phê duyệt)
-CREATE TABLE approval_log (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    command_name VARCHAR(255),
-    description TEXT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
--- =====================================================
--- BƯỚC 3: INSERT DỮ LIỆU MẪU
--- =====================================================
--- 3.1 INSERT USERS (Người dùng)
--- Password format: FirstName + RoleAbbr + DDMMYY
--- Tất cả đều đã được mã hóa bằng bcrypt
--- Regional Manager: Dương Quang Minh
--- Password: MinhRM150585
-INSERT INTO users (
-        username,
-        password,
-        full_name,
-        role,
-        city,
-        branch_name,
-        birthday,
-        phone_number,
-        email
-    )
-VALUES (
-        'MinhRM',
-        '$2a$10$2tALBpxsA1Dx9ztRBHQi2.F2WpU6n5cBIoLaRrm5nAAPJMkdzt.Ii',
-        'Dương Quang Minh',
-        'REGIONAL_MANAGER',
-        'Hà Nội',
-        NULL,
-        '1985-05-15',
-        '0901234567',
-        'minh@hotel.vn'
-    );
--- Branch Manager: Hoàng Văn Anh
--- Password: AnhBM120488
-INSERT INTO users (
-        username,
-        password,
-        full_name,
-        role,
-        city,
-        branch_name,
-        birthday,
-        phone_number,
-        email
-    )
-VALUES (
-        'AnhBM',
-        '$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK',
-        'Hoàng Văn Anh',
-        'BRANCH_MANAGER',
-        'Hà Nội',
-        'Ba Đình Hotel',
-        '1988-04-12',
-        '0906789012',
-        'anh@hotel.vn'
-    );
--- IT Admin: Trương Văn A
--- Password: AADM120392
-INSERT INTO users (
-        username,
-        password,
-        full_name,
-        role,
-        city,
-        branch_name,
-        birthday,
-        phone_number,
-        email
-    )
-VALUES (
-        'admin',
-        '$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q',
-        'Trương Văn A',
-        'ADMIN',
-        'Hà Nội',
-        'Ba Đình Hotel',
-        '1992-03-12',
-        '0922345678',
-        'admin@hotel.vn'
-    );
--- Receptionist: Nguyễn Văn Tuấn
--- Password: TuanREC150695
-INSERT INTO users (
-        username,
-        password,
-        full_name,
-        role,
-        city,
-        branch_name,
-        birthday,
-        phone_number,
-        email
-    )
-VALUES (
-        'staff',
-        '$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2',
-        'Nguyễn Văn Tuấn',
-        'RECEPTIONIST',
-        'Hà Nội',
-        'Ba Đình Hotel',
-        '1995-06-15',
-        '0926789012',
-        'tuan@hotel.vn'
-    );
--- Housekeeper: Bùi Văn Nam
--- Password: NamHSK270994
-INSERT INTO users (
-        username,
-        password,
-        full_name,
-        role,
-        city,
-        branch_name,
-        birthday,
-        phone_number,
-        email
-    )
-VALUES (
-        'housekeeper',
-        '$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO',
-        'Bùi Văn Nam',
-        'HOUSEKEEPER',
-        'Hà Nội',
-        'Ba Đình Hotel',
-        '1994-09-27',
-        '0931234567',
-        'nam@hotel.vn'
-    );
--- 3.2 INSERT ROOMS (Phòng)
--- Các loại phòng: STANDARD, DELUXE, SUITE
--- Trạng thái: AVAILABLE, OCCUPIED, CLEANING, MAINTENANCE
--- Phòng tầng 1 (Standard)
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('101', 500000.00, 'STANDARD', 'AVAILABLE');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('102', 500000.00, 'STANDARD', 'OCCUPIED');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('103', 500000.00, 'STANDARD', 'CLEANING');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('104', 500000.00, 'STANDARD', 'AVAILABLE');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('105', 500000.00, 'STANDARD', 'AVAILABLE');
--- Phòng tầng 2 (Deluxe)
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('201', 800000.00, 'DELUXE', 'AVAILABLE');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('202', 800000.00, 'DELUXE', 'OCCUPIED');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('203', 800000.00, 'DELUXE', 'AVAILABLE');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('204', 800000.00, 'DELUXE', 'MAINTENANCE');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('205', 800000.00, 'DELUXE', 'AVAILABLE');
--- Phòng tầng 3 (Suite)
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('301', 1200000.00, 'SUITE', 'AVAILABLE');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('302', 1200000.00, 'SUITE', 'OCCUPIED');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('303', 1200000.00, 'SUITE', 'AVAILABLE');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('304', 1200000.00, 'SUITE', 'AVAILABLE');
--- Phòng tầng 4 (Presidential)
 
--- 3.3 INSERT CUSTOMERS (Khách hàng)
-INSERT INTO customers (full_name, phone, identity_number)
-VALUES ('Nguyễn Văn A', '0912345678', '001234567890'),
-    ('Trần Thị B', '0923456789', '001234567891'),
-    ('Lê Văn C', '0934567890', '001234567892'),
-    ('Phạm Thị D', '0945678901', '001234567893'),
-    ('Hoàng Văn E', '0956789012', '001234567894');
--- 3.4 INSERT BOOKINGS (Đặt phòng)
--- Status: BOOKED, CHECKED_IN, CHECKED_OUT
--- Booking đang ở (CHECKED_IN)
-INSERT INTO bookings (
-        customer_name,
-        check_in_date,
-        check_out_date,
-        total_amount,
-        status,
-        room_id
-    )
-VALUES (
-        'Nguyễn Văn A',
-        '2026-01-13 14:00:00',
-        '2026-01-16 12:00:00',
-        1500000,
-        'CHECKED_IN',
-        2
-    );
-INSERT INTO bookings (
-        customer_name,
-        check_in_date,
-        check_out_date,
-        total_amount,
-        status,
-        room_id
-    )
-VALUES (
-        'Trần Thị B',
-        '2026-01-12 14:00:00',
-        '2026-01-15 12:00:00',
-        2400000,
-        'CHECKED_IN',
-        7
-    );
-INSERT INTO bookings (
-        customer_name,
-        check_in_date,
-        check_out_date,
-        total_amount,
-        status,
-        room_id
-    )
-VALUES (
-        'Lê Văn C',
-        '2026-01-14 14:00:00',
-        '2026-01-17 12:00:00',
-        3600000,
-        'CHECKED_IN',
-        12
-    );
--- Booking đã đặt (BOOKED)
-INSERT INTO bookings (
-        customer_name,
-        check_in_date,
-        check_out_date,
-        total_amount,
-        status,
-        room_id
-    )
-VALUES (
-        'Phạm Thị D',
-        '2026-01-16 14:00:00',
-        '2026-01-18 12:00:00',
-        1600000,
-        'BOOKED',
-        6
-    );
-INSERT INTO bookings (
-        customer_name,
-        check_in_date,
-        check_out_date,
-        total_amount,
-        status,
-        room_id
-    )
-VALUES (
-        'Hoàng Văn E',
-        '2026-01-17 14:00:00',
-        '2026-01-20 12:00:00',
-        7500000,
-        'BOOKED',
-        15
-    );
--- Booking đã checkout (CHECKED_OUT)
-INSERT INTO bookings (
-        customer_name,
-        check_in_date,
-        check_out_date,
-        total_amount,
-        status,
-        room_id
-    )
-VALUES (
-        'Nguyễn Văn A',
-        '2026-01-10 14:00:00',
-        '2026-01-12 12:00:00',
-        1000000,
-        'CHECKED_OUT',
-        1
-    );
--- 3.5 INSERT INVOICES (Hóa đơn)
--- Payment types: CASH, CARD, BANK_TRANSFER
-INSERT INTO invoices (
-        booking_id,
-        total_amount,
-        created_at,
-        payment_type
-    )
-VALUES (6, 1000000.00, '2026-01-12 12:30:00', 'CASH');
-INSERT INTO invoices (
-        booking_id,
-        total_amount,
-        created_at,
-        payment_type
-    )
-VALUES (1, 1500000.00, '2026-01-16 12:00:00', 'CARD');
--- 3.6 INSERT APPROVAL REQUESTS (Yêu cầu phê duyệt)
--- Types: DISCOUNT, REFUND, ROOM_UPGRADE
--- Status: PENDING, APPROVED, REJECTED
-INSERT INTO approval_requests (
-        type,
-        target_id,
-        request_data,
-        reason,
-        status,
-        created_at,
-        created_by
-    )
-VALUES (
-        'DISCOUNT',
-        1,
-        '{"discountPercent": 10, "bookingId": 1}',
-        'Khách hàng VIP, yêu cầu giảm giá 10%',
-        'PENDING',
-        NOW(),
-        'staff'
-    );
-INSERT INTO approval_requests (
-        type,
-        target_id,
-        request_data,
-        reason,
-        status,
-        created_at,
-        created_by
-    )
-VALUES (
-        'ROOM_UPGRADE',
-        4,
-        '{"fromRoomId": 6, "toRoomId": 11}',
-        'Khách yêu cầu nâng cấp phòng',
-        'APPROVED',
-        NOW(),
-        'staff'
-    );
-INSERT INTO approval_requests (
-        type,
-        target_id,
-        request_data,
-        reason,
-        status,
-        created_at,
-        created_by
-    )
-VALUES (
-        'REFUND',
-        2,
-        '{"bookingId": 2, "amount": 500000}',
-        'Khách hàng hủy booking sớm',
-        'REJECTED',
-        NOW(),
-        'staff'
-    );
--- 3.7 INSERT APPROVAL LOGS (Lịch sử phê duyệt)
-INSERT INTO approval_log (command_name, description, timestamp)
-VALUES (
-        'ApproveDiscountCmd',
-        'Duyệt giảm giá 10% cho Booking #1',
-        '2026-01-14 10:30:00'
-    );
-INSERT INTO approval_log (command_name, description, timestamp)
-VALUES (
-        'ApproveUpgradeCmd',
-        'Duyệt nâng cấp phòng cho Booking #4',
-        '2026-01-14 11:00:00'
-    );
-INSERT INTO approval_log (command_name, description, timestamp)
-VALUES (
-        'RejectRequestCmd',
-        'Từ chối hoàn tiền cho Booking #2',
-        '2026-01-14 11:30:00'
-    );
--- =====================================================
--- BƯỚC 4: VERIFY DỮ LIỆU
--- =====================================================
--- Kiểm tra Users
-SELECT '========== USERS ===========' as '';
-SELECT username,
-    full_name,
-    role,
-    city,
-    branch_name
-FROM users
-ORDER BY CASE
-        role
-        WHEN 'REGIONAL_MANAGER' THEN 1
-        WHEN 'BRANCH_MANAGER' THEN 2
-        WHEN 'ADMIN' THEN 3
-        WHEN 'RECEPTIONIST' THEN 4
-        WHEN 'HOUSEKEEPER' THEN 5
-    END;
--- Kiểm tra Rooms
-SELECT '========== ROOMS ===========' as '';
-SELECT room_number,
-    type,
-    price,
-    status
-FROM rooms
-ORDER BY room_number;
--- Kiểm tra Bookings
-SELECT '========== BOOKINGS ===========' as '';
-SELECT b.id,
-    b.customer_name,
-    r.room_number,
-    b.check_in_date,
-    b.check_out_date,
-    b.status
-FROM bookings b
-    LEFT JOIN rooms r ON b.room_id = r.id;
--- Kiểm tra Customers
-SELECT '========== CUSTOMERS ===========' as '';
-SELECT *
-FROM customers;
--- Kiểm tra Invoices
-SELECT '========== INVOICES ===========' as '';
-SELECT i.id,
-    b.customer_name,
-    i.total_amount,
-    i.payment_type,
-    i.created_at
-FROM invoices i
-    LEFT JOIN bookings b ON i.booking_id = b.id;
--- Kiểm tra Approval Requests
-SELECT '========== APPROVAL REQUESTS ===========' as '';
-SELECT id,
-    type,
-    target_id,
-    reason,
-    status,
-    created_by
-FROM approval_requests;
--- Kiểm tra Approval Logs
-SELECT '========== APPROVAL LOGS ===========' as '';
-SELECT *
-FROM approval_log
-ORDER BY timestamp DESC;
--- =====================================================
--- THỐNG KÊ TỔNG QUAN
--- =====================================================
-SELECT '========== SUMMARY ===========' as '';
-SELECT (
-        SELECT COUNT(*)
-        FROM users
-    ) as total_users,
-    (
-        SELECT COUNT(*)
-        FROM rooms
-    ) as total_rooms,
-    (
-        SELECT COUNT(*)
-        FROM customers
-    ) as total_customers,
-    (
-        SELECT COUNT(*)
-        FROM bookings
-    ) as total_bookings,
-    (
-        SELECT COUNT(*)
-        FROM invoices
-    ) as total_invoices,
-    (
-        SELECT COUNT(*)
-        FROM approval_requests
-    ) as total_approval_requests,
-    (
-        SELECT COUNT(*)
-        FROM approval_log
-    ) as total_approval_logs;
-SELECT '✅ Database hotel_db đã được khởi tạo thành công!' as status;
+-- =========================
+-- CREATE TABLES
+-- =========================
+CREATE TABLE users (
+  id VARCHAR(50) PRIMARY KEY,
+  username VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL,
+  city VARCHAR(100) NOT NULL,
+  branch_name VARCHAR(100),
+  birthday DATE,
+  phone_number VARCHAR(20),
+  email VARCHAR(100)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE rooms (
+  id VARCHAR(30) PRIMARY KEY,
+  room_number VARCHAR(50) NOT NULL,
+  price DECIMAL(19,2) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  city VARCHAR(100) NOT NULL,
+  branch_name VARCHAR(100) NOT NULL,
+  UNIQUE KEY uq_room_per_branch (city, branch_name, room_number)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE customers (
+  id VARCHAR(20) PRIMARY KEY,
+  full_name VARCHAR(255),
+  phone VARCHAR(20),
+  identity_number VARCHAR(50) UNIQUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE bookings (
+  id VARCHAR(150) PRIMARY KEY,
+  customer_id VARCHAR(20),
+  customer_name VARCHAR(255),
+  check_in_date DATETIME,
+  check_out_date DATETIME,
+  total_amount DECIMAL(19,2),
+  status VARCHAR(50),
+  room_id VARCHAR(30),
+  city VARCHAR(100),
+  branch_name VARCHAR(100),
+  FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE SET NULL,
+  FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE invoices (
+  id VARCHAR(150) PRIMARY KEY,
+  booking_id VARCHAR(150) UNIQUE,
+  total_amount DECIMAL(19,2),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  payment_type VARCHAR(50),
+  FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE approval_requests (
+  id VARCHAR(64) PRIMARY KEY,
+  type VARCHAR(255) NOT NULL,
+  target_id VARCHAR(150) NOT NULL,
+  request_data TEXT,
+  reason TEXT,
+  status VARCHAR(50),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_by VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE approval_log (
+  id VARCHAR(64) PRIMARY KEY,
+  command_name VARCHAR(255),
+  description TEXT,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================
+-- INSERT CUSTOMERS (ID = CCCD)
+-- =========================
+INSERT INTO customers (id, full_name, phone, identity_number) VALUES
+('001234567890','Nguyễn Văn A','0912345678','001234567890'),
+('001234567891','Trần Thị B','0923456789','001234567891'),
+('001234567892','Lê Văn C','0934567890','001234567892'),
+('001234567893','Phạm Thị D','0945678901','001234567893'),
+('001234567894','Hoàng Văn E','0956789012','001234567894'),
+('001234567895','Vũ Văn F','0961112223','001234567895'),
+('001234567896','Đặng Thị G','0972223334','001234567896'),
+('001234567897','Phan Văn H','0983334445','001234567897'),
+('001234567898','Đỗ Thị I','0988889991','001234567898'),
+('001234567899','Ngô Văn K','0999990002','001234567899');
+
+-- =========================
+-- INSERT USERS
+-- =========================
+-- REGIONAL_MANAGER (1)
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('RM-001','MinhRM','$2a$10$2tALBpxsA1Dx9ztRBHQi2.F2WpU6n5cBIoLaRrm5nAAPJMkdzt.Ii','Dương Quang Minh','REGIONAL_MANAGER','Hà Nội',NULL,'1985-05-15','0901234567','minh@hotel.vn');
+
+-- ===== Chi nhánh HN01 (Hà Nội - Ba Đình Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN01-BM-001','HN01_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HN01','BRANCH_MANAGER','Hà Nội','Ba Đình Hotel','1988-04-12','0910000001','manager@hn01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN01-ADM-001','HN01_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN01 #1','ADMIN','Hà Nội','Ba Đình Hotel','1992-03-12','0910000002','admin01@hn01.hotel.vn'),
+('HN01-ADM-002','HN01_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN01 #2','ADMIN','Hà Nội','Ba Đình Hotel','1992-03-12','0910000003','admin02@hn01.hotel.vn'),
+('HN01-ADM-003','HN01_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN01 #3','ADMIN','Hà Nội','Ba Đình Hotel','1992-03-12','0910000004','admin03@hn01.hotel.vn'),
+('HN01-ADM-004','HN01_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN01 #4','ADMIN','Hà Nội','Ba Đình Hotel','1992-03-12','0910000005','admin04@hn01.hotel.vn'),
+('HN01-ADM-005','HN01_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN01 #5','ADMIN','Hà Nội','Ba Đình Hotel','1992-03-12','0910000006','admin05@hn01.hotel.vn'),
+('HN01-ADM-006','HN01_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN01 #6','ADMIN','Hà Nội','Ba Đình Hotel','1992-03-12','0910000007','admin06@hn01.hotel.vn'),
+('HN01-ADM-007','HN01_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN01 #7','ADMIN','Hà Nội','Ba Đình Hotel','1992-03-12','0910000008','admin07@hn01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN01-REC-001','HN01_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #1','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000009','staff01@hn01.hotel.vn'),
+('HN01-REC-002','HN01_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #2','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000010','staff02@hn01.hotel.vn'),
+('HN01-REC-003','HN01_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #3','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000011','staff03@hn01.hotel.vn'),
+('HN01-REC-004','HN01_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #4','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000012','staff04@hn01.hotel.vn'),
+('HN01-REC-005','HN01_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #5','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000013','staff05@hn01.hotel.vn'),
+('HN01-REC-006','HN01_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #6','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000014','staff06@hn01.hotel.vn'),
+('HN01-REC-007','HN01_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #7','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000015','staff07@hn01.hotel.vn'),
+('HN01-REC-008','HN01_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #8','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000016','staff08@hn01.hotel.vn'),
+('HN01-REC-009','HN01_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #9','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000017','staff09@hn01.hotel.vn'),
+('HN01-REC-010','HN01_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN01 #10','RECEPTIONIST','Hà Nội','Ba Đình Hotel','1995-06-15','0910000018','staff10@hn01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN01-HSK-001','HN01_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN01 #1','HOUSEKEEPER','Hà Nội','Ba Đình Hotel','1994-09-27','0910000019','hsk01@hn01.hotel.vn'),
+('HN01-HSK-002','HN01_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN01 #2','HOUSEKEEPER','Hà Nội','Ba Đình Hotel','1994-09-27','0910000020','hsk02@hn01.hotel.vn'),
+('HN01-HSK-003','HN01_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN01 #3','HOUSEKEEPER','Hà Nội','Ba Đình Hotel','1994-09-27','0910000021','hsk03@hn01.hotel.vn'),
+('HN01-HSK-004','HN01_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN01 #4','HOUSEKEEPER','Hà Nội','Ba Đình Hotel','1994-09-27','0910000022','hsk04@hn01.hotel.vn'),
+('HN01-HSK-005','HN01_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN01 #5','HOUSEKEEPER','Hà Nội','Ba Đình Hotel','1994-09-27','0910000023','hsk05@hn01.hotel.vn'),
+('HN01-HSK-006','HN01_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN01 #6','HOUSEKEEPER','Hà Nội','Ba Đình Hotel','1994-09-27','0910000024','hsk06@hn01.hotel.vn'),
+('HN01-HSK-007','HN01_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN01 #7','HOUSEKEEPER','Hà Nội','Ba Đình Hotel','1994-09-27','0910000025','hsk07@hn01.hotel.vn'),
+('HN01-HSK-008','HN01_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN01 #8','HOUSEKEEPER','Hà Nội','Ba Đình Hotel','1994-09-27','0910000026','hsk08@hn01.hotel.vn');
+
+-- ===== Chi nhánh HN02 (Hà Nội - Cầu Giấy Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN02-BM-001','HN02_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HN02','BRANCH_MANAGER','Hà Nội','Cầu Giấy Hotel','1988-04-12','0910000027','manager@hn02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN02-ADM-001','HN02_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN02 #1','ADMIN','Hà Nội','Cầu Giấy Hotel','1992-03-12','0910000028','admin01@hn02.hotel.vn'),
+('HN02-ADM-002','HN02_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN02 #2','ADMIN','Hà Nội','Cầu Giấy Hotel','1992-03-12','0910000029','admin02@hn02.hotel.vn'),
+('HN02-ADM-003','HN02_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN02 #3','ADMIN','Hà Nội','Cầu Giấy Hotel','1992-03-12','0910000030','admin03@hn02.hotel.vn'),
+('HN02-ADM-004','HN02_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN02 #4','ADMIN','Hà Nội','Cầu Giấy Hotel','1992-03-12','0910000031','admin04@hn02.hotel.vn'),
+('HN02-ADM-005','HN02_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN02 #5','ADMIN','Hà Nội','Cầu Giấy Hotel','1992-03-12','0910000032','admin05@hn02.hotel.vn'),
+('HN02-ADM-006','HN02_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN02 #6','ADMIN','Hà Nội','Cầu Giấy Hotel','1992-03-12','0910000033','admin06@hn02.hotel.vn'),
+('HN02-ADM-007','HN02_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN02 #7','ADMIN','Hà Nội','Cầu Giấy Hotel','1992-03-12','0910000034','admin07@hn02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN02-REC-001','HN02_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #1','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000035','staff01@hn02.hotel.vn'),
+('HN02-REC-002','HN02_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #2','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000036','staff02@hn02.hotel.vn'),
+('HN02-REC-003','HN02_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #3','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000037','staff03@hn02.hotel.vn'),
+('HN02-REC-004','HN02_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #4','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000038','staff04@hn02.hotel.vn'),
+('HN02-REC-005','HN02_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #5','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000039','staff05@hn02.hotel.vn'),
+('HN02-REC-006','HN02_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #6','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000040','staff06@hn02.hotel.vn'),
+('HN02-REC-007','HN02_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #7','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000041','staff07@hn02.hotel.vn'),
+('HN02-REC-008','HN02_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #8','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000042','staff08@hn02.hotel.vn'),
+('HN02-REC-009','HN02_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #9','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000043','staff09@hn02.hotel.vn'),
+('HN02-REC-010','HN02_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN02 #10','RECEPTIONIST','Hà Nội','Cầu Giấy Hotel','1995-06-15','0910000044','staff10@hn02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN02-HSK-001','HN02_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN02 #1','HOUSEKEEPER','Hà Nội','Cầu Giấy Hotel','1994-09-27','0910000045','hsk01@hn02.hotel.vn'),
+('HN02-HSK-002','HN02_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN02 #2','HOUSEKEEPER','Hà Nội','Cầu Giấy Hotel','1994-09-27','0910000046','hsk02@hn02.hotel.vn'),
+('HN02-HSK-003','HN02_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN02 #3','HOUSEKEEPER','Hà Nội','Cầu Giấy Hotel','1994-09-27','0910000047','hsk03@hn02.hotel.vn'),
+('HN02-HSK-004','HN02_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN02 #4','HOUSEKEEPER','Hà Nội','Cầu Giấy Hotel','1994-09-27','0910000048','hsk04@hn02.hotel.vn'),
+('HN02-HSK-005','HN02_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN02 #5','HOUSEKEEPER','Hà Nội','Cầu Giấy Hotel','1994-09-27','0910000049','hsk05@hn02.hotel.vn'),
+('HN02-HSK-006','HN02_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN02 #6','HOUSEKEEPER','Hà Nội','Cầu Giấy Hotel','1994-09-27','0910000050','hsk06@hn02.hotel.vn'),
+('HN02-HSK-007','HN02_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN02 #7','HOUSEKEEPER','Hà Nội','Cầu Giấy Hotel','1994-09-27','0910000051','hsk07@hn02.hotel.vn'),
+('HN02-HSK-008','HN02_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN02 #8','HOUSEKEEPER','Hà Nội','Cầu Giấy Hotel','1994-09-27','0910000052','hsk08@hn02.hotel.vn');
+
+-- ===== Chi nhánh HN03 (Hà Nội - Đống Đa Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN03-BM-001','HN03_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HN03','BRANCH_MANAGER','Hà Nội','Đống Đa Hotel','1988-04-12','0910000053','manager@hn03.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN03-ADM-001','HN03_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN03 #1','ADMIN','Hà Nội','Đống Đa Hotel','1992-03-12','0910000054','admin01@hn03.hotel.vn'),
+('HN03-ADM-002','HN03_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN03 #2','ADMIN','Hà Nội','Đống Đa Hotel','1992-03-12','0910000055','admin02@hn03.hotel.vn'),
+('HN03-ADM-003','HN03_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN03 #3','ADMIN','Hà Nội','Đống Đa Hotel','1992-03-12','0910000056','admin03@hn03.hotel.vn'),
+('HN03-ADM-004','HN03_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN03 #4','ADMIN','Hà Nội','Đống Đa Hotel','1992-03-12','0910000057','admin04@hn03.hotel.vn'),
+('HN03-ADM-005','HN03_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN03 #5','ADMIN','Hà Nội','Đống Đa Hotel','1992-03-12','0910000058','admin05@hn03.hotel.vn'),
+('HN03-ADM-006','HN03_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN03 #6','ADMIN','Hà Nội','Đống Đa Hotel','1992-03-12','0910000059','admin06@hn03.hotel.vn'),
+('HN03-ADM-007','HN03_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN03 #7','ADMIN','Hà Nội','Đống Đa Hotel','1992-03-12','0910000060','admin07@hn03.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN03-REC-001','HN03_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #1','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000061','staff01@hn03.hotel.vn'),
+('HN03-REC-002','HN03_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #2','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000062','staff02@hn03.hotel.vn'),
+('HN03-REC-003','HN03_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #3','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000063','staff03@hn03.hotel.vn'),
+('HN03-REC-004','HN03_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #4','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000064','staff04@hn03.hotel.vn'),
+('HN03-REC-005','HN03_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #5','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000065','staff05@hn03.hotel.vn'),
+('HN03-REC-006','HN03_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #6','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000066','staff06@hn03.hotel.vn'),
+('HN03-REC-007','HN03_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #7','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000067','staff07@hn03.hotel.vn'),
+('HN03-REC-008','HN03_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #8','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000068','staff08@hn03.hotel.vn'),
+('HN03-REC-009','HN03_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #9','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000069','staff09@hn03.hotel.vn'),
+('HN03-REC-010','HN03_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN03 #10','RECEPTIONIST','Hà Nội','Đống Đa Hotel','1995-06-15','0910000070','staff10@hn03.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN03-HSK-001','HN03_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN03 #1','HOUSEKEEPER','Hà Nội','Đống Đa Hotel','1994-09-27','0910000071','hsk01@hn03.hotel.vn'),
+('HN03-HSK-002','HN03_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN03 #2','HOUSEKEEPER','Hà Nội','Đống Đa Hotel','1994-09-27','0910000072','hsk02@hn03.hotel.vn'),
+('HN03-HSK-003','HN03_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN03 #3','HOUSEKEEPER','Hà Nội','Đống Đa Hotel','1994-09-27','0910000073','hsk03@hn03.hotel.vn'),
+('HN03-HSK-004','HN03_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN03 #4','HOUSEKEEPER','Hà Nội','Đống Đa Hotel','1994-09-27','0910000074','hsk04@hn03.hotel.vn'),
+('HN03-HSK-005','HN03_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN03 #5','HOUSEKEEPER','Hà Nội','Đống Đa Hotel','1994-09-27','0910000075','hsk05@hn03.hotel.vn'),
+('HN03-HSK-006','HN03_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN03 #6','HOUSEKEEPER','Hà Nội','Đống Đa Hotel','1994-09-27','0910000076','hsk06@hn03.hotel.vn'),
+('HN03-HSK-007','HN03_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN03 #7','HOUSEKEEPER','Hà Nội','Đống Đa Hotel','1994-09-27','0910000077','hsk07@hn03.hotel.vn'),
+('HN03-HSK-008','HN03_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN03 #8','HOUSEKEEPER','Hà Nội','Đống Đa Hotel','1994-09-27','0910000078','hsk08@hn03.hotel.vn');
+
+-- ===== Chi nhánh HN04 (Hà Nội - Hai Bà Trưng Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN04-BM-001','HN04_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HN04','BRANCH_MANAGER','Hà Nội','Hai Bà Trưng Hotel','1988-04-12','0910000079','manager@hn04.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN04-ADM-001','HN04_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN04 #1','ADMIN','Hà Nội','Hai Bà Trưng Hotel','1992-03-12','0910000080','admin01@hn04.hotel.vn'),
+('HN04-ADM-002','HN04_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN04 #2','ADMIN','Hà Nội','Hai Bà Trưng Hotel','1992-03-12','0910000081','admin02@hn04.hotel.vn'),
+('HN04-ADM-003','HN04_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN04 #3','ADMIN','Hà Nội','Hai Bà Trưng Hotel','1992-03-12','0910000082','admin03@hn04.hotel.vn'),
+('HN04-ADM-004','HN04_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN04 #4','ADMIN','Hà Nội','Hai Bà Trưng Hotel','1992-03-12','0910000083','admin04@hn04.hotel.vn'),
+('HN04-ADM-005','HN04_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN04 #5','ADMIN','Hà Nội','Hai Bà Trưng Hotel','1992-03-12','0910000084','admin05@hn04.hotel.vn'),
+('HN04-ADM-006','HN04_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN04 #6','ADMIN','Hà Nội','Hai Bà Trưng Hotel','1992-03-12','0910000085','admin06@hn04.hotel.vn'),
+('HN04-ADM-007','HN04_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN04 #7','ADMIN','Hà Nội','Hai Bà Trưng Hotel','1992-03-12','0910000086','admin07@hn04.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN04-REC-001','HN04_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #1','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000087','staff01@hn04.hotel.vn'),
+('HN04-REC-002','HN04_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #2','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000088','staff02@hn04.hotel.vn'),
+('HN04-REC-003','HN04_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #3','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000089','staff03@hn04.hotel.vn'),
+('HN04-REC-004','HN04_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #4','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000090','staff04@hn04.hotel.vn'),
+('HN04-REC-005','HN04_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #5','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000091','staff05@hn04.hotel.vn'),
+('HN04-REC-006','HN04_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #6','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000092','staff06@hn04.hotel.vn'),
+('HN04-REC-007','HN04_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #7','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000093','staff07@hn04.hotel.vn'),
+('HN04-REC-008','HN04_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #8','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000094','staff08@hn04.hotel.vn'),
+('HN04-REC-009','HN04_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #9','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000095','staff09@hn04.hotel.vn'),
+('HN04-REC-010','HN04_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN04 #10','RECEPTIONIST','Hà Nội','Hai Bà Trưng Hotel','1995-06-15','0910000096','staff10@hn04.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN04-HSK-001','HN04_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN04 #1','HOUSEKEEPER','Hà Nội','Hai Bà Trưng Hotel','1994-09-27','0910000097','hsk01@hn04.hotel.vn'),
+('HN04-HSK-002','HN04_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN04 #2','HOUSEKEEPER','Hà Nội','Hai Bà Trưng Hotel','1994-09-27','0910000098','hsk02@hn04.hotel.vn'),
+('HN04-HSK-003','HN04_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN04 #3','HOUSEKEEPER','Hà Nội','Hai Bà Trưng Hotel','1994-09-27','0910000099','hsk03@hn04.hotel.vn'),
+('HN04-HSK-004','HN04_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN04 #4','HOUSEKEEPER','Hà Nội','Hai Bà Trưng Hotel','1994-09-27','0910000100','hsk04@hn04.hotel.vn'),
+('HN04-HSK-005','HN04_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN04 #5','HOUSEKEEPER','Hà Nội','Hai Bà Trưng Hotel','1994-09-27','0910000101','hsk05@hn04.hotel.vn'),
+('HN04-HSK-006','HN04_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN04 #6','HOUSEKEEPER','Hà Nội','Hai Bà Trưng Hotel','1994-09-27','0910000102','hsk06@hn04.hotel.vn'),
+('HN04-HSK-007','HN04_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN04 #7','HOUSEKEEPER','Hà Nội','Hai Bà Trưng Hotel','1994-09-27','0910000103','hsk07@hn04.hotel.vn'),
+('HN04-HSK-008','HN04_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN04 #8','HOUSEKEEPER','Hà Nội','Hai Bà Trưng Hotel','1994-09-27','0910000104','hsk08@hn04.hotel.vn');
+
+-- ===== Chi nhánh HN05 (Hà Nội - Hoàn Kiếm Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN05-BM-001','HN05_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HN05','BRANCH_MANAGER','Hà Nội','Hoàn Kiếm Hotel','1988-04-12','0910000105','manager@hn05.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN05-ADM-001','HN05_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN05 #1','ADMIN','Hà Nội','Hoàn Kiếm Hotel','1992-03-12','0910000106','admin01@hn05.hotel.vn'),
+('HN05-ADM-002','HN05_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN05 #2','ADMIN','Hà Nội','Hoàn Kiếm Hotel','1992-03-12','0910000107','admin02@hn05.hotel.vn'),
+('HN05-ADM-003','HN05_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN05 #3','ADMIN','Hà Nội','Hoàn Kiếm Hotel','1992-03-12','0910000108','admin03@hn05.hotel.vn'),
+('HN05-ADM-004','HN05_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN05 #4','ADMIN','Hà Nội','Hoàn Kiếm Hotel','1992-03-12','0910000109','admin04@hn05.hotel.vn'),
+('HN05-ADM-005','HN05_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN05 #5','ADMIN','Hà Nội','Hoàn Kiếm Hotel','1992-03-12','0910000110','admin05@hn05.hotel.vn'),
+('HN05-ADM-006','HN05_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN05 #6','ADMIN','Hà Nội','Hoàn Kiếm Hotel','1992-03-12','0910000111','admin06@hn05.hotel.vn'),
+('HN05-ADM-007','HN05_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HN05 #7','ADMIN','Hà Nội','Hoàn Kiếm Hotel','1992-03-12','0910000112','admin07@hn05.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN05-REC-001','HN05_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #1','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000113','staff01@hn05.hotel.vn'),
+('HN05-REC-002','HN05_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #2','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000114','staff02@hn05.hotel.vn'),
+('HN05-REC-003','HN05_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #3','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000115','staff03@hn05.hotel.vn'),
+('HN05-REC-004','HN05_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #4','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000116','staff04@hn05.hotel.vn'),
+('HN05-REC-005','HN05_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #5','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000117','staff05@hn05.hotel.vn'),
+('HN05-REC-006','HN05_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #6','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000118','staff06@hn05.hotel.vn'),
+('HN05-REC-007','HN05_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #7','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000119','staff07@hn05.hotel.vn'),
+('HN05-REC-008','HN05_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #8','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000120','staff08@hn05.hotel.vn'),
+('HN05-REC-009','HN05_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #9','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000121','staff09@hn05.hotel.vn'),
+('HN05-REC-010','HN05_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HN05 #10','RECEPTIONIST','Hà Nội','Hoàn Kiếm Hotel','1995-06-15','0910000122','staff10@hn05.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HN05-HSK-001','HN05_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN05 #1','HOUSEKEEPER','Hà Nội','Hoàn Kiếm Hotel','1994-09-27','0910000123','hsk01@hn05.hotel.vn'),
+('HN05-HSK-002','HN05_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN05 #2','HOUSEKEEPER','Hà Nội','Hoàn Kiếm Hotel','1994-09-27','0910000124','hsk02@hn05.hotel.vn'),
+('HN05-HSK-003','HN05_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN05 #3','HOUSEKEEPER','Hà Nội','Hoàn Kiếm Hotel','1994-09-27','0910000125','hsk03@hn05.hotel.vn'),
+('HN05-HSK-004','HN05_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN05 #4','HOUSEKEEPER','Hà Nội','Hoàn Kiếm Hotel','1994-09-27','0910000126','hsk04@hn05.hotel.vn'),
+('HN05-HSK-005','HN05_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN05 #5','HOUSEKEEPER','Hà Nội','Hoàn Kiếm Hotel','1994-09-27','0910000127','hsk05@hn05.hotel.vn'),
+('HN05-HSK-006','HN05_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN05 #6','HOUSEKEEPER','Hà Nội','Hoàn Kiếm Hotel','1994-09-27','0910000128','hsk06@hn05.hotel.vn'),
+('HN05-HSK-007','HN05_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN05 #7','HOUSEKEEPER','Hà Nội','Hoàn Kiếm Hotel','1994-09-27','0910000129','hsk07@hn05.hotel.vn'),
+('HN05-HSK-008','HN05_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HN05 #8','HOUSEKEEPER','Hà Nội','Hoàn Kiếm Hotel','1994-09-27','0910000130','hsk08@hn05.hotel.vn');
+
+-- ===== Chi nhánh DN01 (Đà Nẵng - Hải Châu Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN01-BM-001','DN01_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh DN01','BRANCH_MANAGER','Đà Nẵng','Hải Châu Hotel','1988-04-12','0910000131','manager@dn01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN01-ADM-001','DN01_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN01 #1','ADMIN','Đà Nẵng','Hải Châu Hotel','1992-03-12','0910000132','admin01@dn01.hotel.vn'),
+('DN01-ADM-002','DN01_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN01 #2','ADMIN','Đà Nẵng','Hải Châu Hotel','1992-03-12','0910000133','admin02@dn01.hotel.vn'),
+('DN01-ADM-003','DN01_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN01 #3','ADMIN','Đà Nẵng','Hải Châu Hotel','1992-03-12','0910000134','admin03@dn01.hotel.vn'),
+('DN01-ADM-004','DN01_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN01 #4','ADMIN','Đà Nẵng','Hải Châu Hotel','1992-03-12','0910000135','admin04@dn01.hotel.vn'),
+('DN01-ADM-005','DN01_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN01 #5','ADMIN','Đà Nẵng','Hải Châu Hotel','1992-03-12','0910000136','admin05@dn01.hotel.vn'),
+('DN01-ADM-006','DN01_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN01 #6','ADMIN','Đà Nẵng','Hải Châu Hotel','1992-03-12','0910000137','admin06@dn01.hotel.vn'),
+('DN01-ADM-007','DN01_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN01 #7','ADMIN','Đà Nẵng','Hải Châu Hotel','1992-03-12','0910000138','admin07@dn01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN01-REC-001','DN01_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #1','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000139','staff01@dn01.hotel.vn'),
+('DN01-REC-002','DN01_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #2','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000140','staff02@dn01.hotel.vn'),
+('DN01-REC-003','DN01_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #3','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000141','staff03@dn01.hotel.vn'),
+('DN01-REC-004','DN01_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #4','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000142','staff04@dn01.hotel.vn'),
+('DN01-REC-005','DN01_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #5','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000143','staff05@dn01.hotel.vn'),
+('DN01-REC-006','DN01_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #6','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000144','staff06@dn01.hotel.vn'),
+('DN01-REC-007','DN01_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #7','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000145','staff07@dn01.hotel.vn'),
+('DN01-REC-008','DN01_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #8','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000146','staff08@dn01.hotel.vn'),
+('DN01-REC-009','DN01_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #9','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000147','staff09@dn01.hotel.vn'),
+('DN01-REC-010','DN01_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN01 #10','RECEPTIONIST','Đà Nẵng','Hải Châu Hotel','1995-06-15','0910000148','staff10@dn01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN01-HSK-001','DN01_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN01 #1','HOUSEKEEPER','Đà Nẵng','Hải Châu Hotel','1994-09-27','0910000149','hsk01@dn01.hotel.vn'),
+('DN01-HSK-002','DN01_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN01 #2','HOUSEKEEPER','Đà Nẵng','Hải Châu Hotel','1994-09-27','0910000150','hsk02@dn01.hotel.vn'),
+('DN01-HSK-003','DN01_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN01 #3','HOUSEKEEPER','Đà Nẵng','Hải Châu Hotel','1994-09-27','0910000151','hsk03@dn01.hotel.vn'),
+('DN01-HSK-004','DN01_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN01 #4','HOUSEKEEPER','Đà Nẵng','Hải Châu Hotel','1994-09-27','0910000152','hsk04@dn01.hotel.vn'),
+('DN01-HSK-005','DN01_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN01 #5','HOUSEKEEPER','Đà Nẵng','Hải Châu Hotel','1994-09-27','0910000153','hsk05@dn01.hotel.vn'),
+('DN01-HSK-006','DN01_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN01 #6','HOUSEKEEPER','Đà Nẵng','Hải Châu Hotel','1994-09-27','0910000154','hsk06@dn01.hotel.vn'),
+('DN01-HSK-007','DN01_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN01 #7','HOUSEKEEPER','Đà Nẵng','Hải Châu Hotel','1994-09-27','0910000155','hsk07@dn01.hotel.vn'),
+('DN01-HSK-008','DN01_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN01 #8','HOUSEKEEPER','Đà Nẵng','Hải Châu Hotel','1994-09-27','0910000156','hsk08@dn01.hotel.vn');
+
+-- ===== Chi nhánh DN02 (Đà Nẵng - Sơn Trà Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN02-BM-001','DN02_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh DN02','BRANCH_MANAGER','Đà Nẵng','Sơn Trà Hotel','1988-04-12','0910000157','manager@dn02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN02-ADM-001','DN02_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN02 #1','ADMIN','Đà Nẵng','Sơn Trà Hotel','1992-03-12','0910000158','admin01@dn02.hotel.vn'),
+('DN02-ADM-002','DN02_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN02 #2','ADMIN','Đà Nẵng','Sơn Trà Hotel','1992-03-12','0910000159','admin02@dn02.hotel.vn'),
+('DN02-ADM-003','DN02_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN02 #3','ADMIN','Đà Nẵng','Sơn Trà Hotel','1992-03-12','0910000160','admin03@dn02.hotel.vn'),
+('DN02-ADM-004','DN02_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN02 #4','ADMIN','Đà Nẵng','Sơn Trà Hotel','1992-03-12','0910000161','admin04@dn02.hotel.vn'),
+('DN02-ADM-005','DN02_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN02 #5','ADMIN','Đà Nẵng','Sơn Trà Hotel','1992-03-12','0910000162','admin05@dn02.hotel.vn'),
+('DN02-ADM-006','DN02_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN02 #6','ADMIN','Đà Nẵng','Sơn Trà Hotel','1992-03-12','0910000163','admin06@dn02.hotel.vn'),
+('DN02-ADM-007','DN02_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN02 #7','ADMIN','Đà Nẵng','Sơn Trà Hotel','1992-03-12','0910000164','admin07@dn02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN02-REC-001','DN02_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #1','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000165','staff01@dn02.hotel.vn'),
+('DN02-REC-002','DN02_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #2','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000166','staff02@dn02.hotel.vn'),
+('DN02-REC-003','DN02_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #3','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000167','staff03@dn02.hotel.vn'),
+('DN02-REC-004','DN02_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #4','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000168','staff04@dn02.hotel.vn'),
+('DN02-REC-005','DN02_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #5','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000169','staff05@dn02.hotel.vn'),
+('DN02-REC-006','DN02_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #6','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000170','staff06@dn02.hotel.vn'),
+('DN02-REC-007','DN02_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #7','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000171','staff07@dn02.hotel.vn'),
+('DN02-REC-008','DN02_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #8','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000172','staff08@dn02.hotel.vn'),
+('DN02-REC-009','DN02_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #9','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000173','staff09@dn02.hotel.vn'),
+('DN02-REC-010','DN02_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN02 #10','RECEPTIONIST','Đà Nẵng','Sơn Trà Hotel','1995-06-15','0910000174','staff10@dn02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN02-HSK-001','DN02_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN02 #1','HOUSEKEEPER','Đà Nẵng','Sơn Trà Hotel','1994-09-27','0910000175','hsk01@dn02.hotel.vn'),
+('DN02-HSK-002','DN02_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN02 #2','HOUSEKEEPER','Đà Nẵng','Sơn Trà Hotel','1994-09-27','0910000176','hsk02@dn02.hotel.vn'),
+('DN02-HSK-003','DN02_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN02 #3','HOUSEKEEPER','Đà Nẵng','Sơn Trà Hotel','1994-09-27','0910000177','hsk03@dn02.hotel.vn'),
+('DN02-HSK-004','DN02_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN02 #4','HOUSEKEEPER','Đà Nẵng','Sơn Trà Hotel','1994-09-27','0910000178','hsk04@dn02.hotel.vn'),
+('DN02-HSK-005','DN02_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN02 #5','HOUSEKEEPER','Đà Nẵng','Sơn Trà Hotel','1994-09-27','0910000179','hsk05@dn02.hotel.vn'),
+('DN02-HSK-006','DN02_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN02 #6','HOUSEKEEPER','Đà Nẵng','Sơn Trà Hotel','1994-09-27','0910000180','hsk06@dn02.hotel.vn'),
+('DN02-HSK-007','DN02_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN02 #7','HOUSEKEEPER','Đà Nẵng','Sơn Trà Hotel','1994-09-27','0910000181','hsk07@dn02.hotel.vn'),
+('DN02-HSK-008','DN02_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN02 #8','HOUSEKEEPER','Đà Nẵng','Sơn Trà Hotel','1994-09-27','0910000182','hsk08@dn02.hotel.vn');
+
+-- ===== Chi nhánh DN03 (Đà Nẵng - Ngũ Hành Sơn Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN03-BM-001','DN03_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh DN03','BRANCH_MANAGER','Đà Nẵng','Ngũ Hành Sơn Hotel','1988-04-12','0910000183','manager@dn03.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN03-ADM-001','DN03_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN03 #1','ADMIN','Đà Nẵng','Ngũ Hành Sơn Hotel','1992-03-12','0910000184','admin01@dn03.hotel.vn'),
+('DN03-ADM-002','DN03_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN03 #2','ADMIN','Đà Nẵng','Ngũ Hành Sơn Hotel','1992-03-12','0910000185','admin02@dn03.hotel.vn'),
+('DN03-ADM-003','DN03_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN03 #3','ADMIN','Đà Nẵng','Ngũ Hành Sơn Hotel','1992-03-12','0910000186','admin03@dn03.hotel.vn'),
+('DN03-ADM-004','DN03_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN03 #4','ADMIN','Đà Nẵng','Ngũ Hành Sơn Hotel','1992-03-12','0910000187','admin04@dn03.hotel.vn'),
+('DN03-ADM-005','DN03_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN03 #5','ADMIN','Đà Nẵng','Ngũ Hành Sơn Hotel','1992-03-12','0910000188','admin05@dn03.hotel.vn'),
+('DN03-ADM-006','DN03_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN03 #6','ADMIN','Đà Nẵng','Ngũ Hành Sơn Hotel','1992-03-12','0910000189','admin06@dn03.hotel.vn'),
+('DN03-ADM-007','DN03_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN03 #7','ADMIN','Đà Nẵng','Ngũ Hành Sơn Hotel','1992-03-12','0910000190','admin07@dn03.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN03-REC-001','DN03_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #1','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000191','staff01@dn03.hotel.vn'),
+('DN03-REC-002','DN03_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #2','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000192','staff02@dn03.hotel.vn'),
+('DN03-REC-003','DN03_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #3','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000193','staff03@dn03.hotel.vn'),
+('DN03-REC-004','DN03_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #4','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000194','staff04@dn03.hotel.vn'),
+('DN03-REC-005','DN03_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #5','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000195','staff05@dn03.hotel.vn'),
+('DN03-REC-006','DN03_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #6','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000196','staff06@dn03.hotel.vn'),
+('DN03-REC-007','DN03_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #7','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000197','staff07@dn03.hotel.vn'),
+('DN03-REC-008','DN03_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #8','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000198','staff08@dn03.hotel.vn'),
+('DN03-REC-009','DN03_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #9','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000199','staff09@dn03.hotel.vn'),
+('DN03-REC-010','DN03_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN03 #10','RECEPTIONIST','Đà Nẵng','Ngũ Hành Sơn Hotel','1995-06-15','0910000200','staff10@dn03.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN03-HSK-001','DN03_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN03 #1','HOUSEKEEPER','Đà Nẵng','Ngũ Hành Sơn Hotel','1994-09-27','0910000201','hsk01@dn03.hotel.vn'),
+('DN03-HSK-002','DN03_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN03 #2','HOUSEKEEPER','Đà Nẵng','Ngũ Hành Sơn Hotel','1994-09-27','0910000202','hsk02@dn03.hotel.vn'),
+('DN03-HSK-003','DN03_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN03 #3','HOUSEKEEPER','Đà Nẵng','Ngũ Hành Sơn Hotel','1994-09-27','0910000203','hsk03@dn03.hotel.vn'),
+('DN03-HSK-004','DN03_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN03 #4','HOUSEKEEPER','Đà Nẵng','Ngũ Hành Sơn Hotel','1994-09-27','0910000204','hsk04@dn03.hotel.vn'),
+('DN03-HSK-005','DN03_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN03 #5','HOUSEKEEPER','Đà Nẵng','Ngũ Hành Sơn Hotel','1994-09-27','0910000205','hsk05@dn03.hotel.vn'),
+('DN03-HSK-006','DN03_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN03 #6','HOUSEKEEPER','Đà Nẵng','Ngũ Hành Sơn Hotel','1994-09-27','0910000206','hsk06@dn03.hotel.vn'),
+('DN03-HSK-007','DN03_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN03 #7','HOUSEKEEPER','Đà Nẵng','Ngũ Hành Sơn Hotel','1994-09-27','0910000207','hsk07@dn03.hotel.vn'),
+('DN03-HSK-008','DN03_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN03 #8','HOUSEKEEPER','Đà Nẵng','Ngũ Hành Sơn Hotel','1994-09-27','0910000208','hsk08@dn03.hotel.vn');
+
+-- ===== Chi nhánh DN04 (Đà Nẵng - Thanh Khê Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN04-BM-001','DN04_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh DN04','BRANCH_MANAGER','Đà Nẵng','Thanh Khê Hotel','1988-04-12','0910000209','manager@dn04.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN04-ADM-001','DN04_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN04 #1','ADMIN','Đà Nẵng','Thanh Khê Hotel','1992-03-12','0910000210','admin01@dn04.hotel.vn'),
+('DN04-ADM-002','DN04_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN04 #2','ADMIN','Đà Nẵng','Thanh Khê Hotel','1992-03-12','0910000211','admin02@dn04.hotel.vn'),
+('DN04-ADM-003','DN04_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN04 #3','ADMIN','Đà Nẵng','Thanh Khê Hotel','1992-03-12','0910000212','admin03@dn04.hotel.vn'),
+('DN04-ADM-004','DN04_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN04 #4','ADMIN','Đà Nẵng','Thanh Khê Hotel','1992-03-12','0910000213','admin04@dn04.hotel.vn'),
+('DN04-ADM-005','DN04_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN04 #5','ADMIN','Đà Nẵng','Thanh Khê Hotel','1992-03-12','0910000214','admin05@dn04.hotel.vn'),
+('DN04-ADM-006','DN04_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN04 #6','ADMIN','Đà Nẵng','Thanh Khê Hotel','1992-03-12','0910000215','admin06@dn04.hotel.vn'),
+('DN04-ADM-007','DN04_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin DN04 #7','ADMIN','Đà Nẵng','Thanh Khê Hotel','1992-03-12','0910000216','admin07@dn04.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN04-REC-001','DN04_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #1','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000217','staff01@dn04.hotel.vn'),
+('DN04-REC-002','DN04_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #2','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000218','staff02@dn04.hotel.vn'),
+('DN04-REC-003','DN04_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #3','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000219','staff03@dn04.hotel.vn'),
+('DN04-REC-004','DN04_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #4','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000220','staff04@dn04.hotel.vn'),
+('DN04-REC-005','DN04_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #5','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000221','staff05@dn04.hotel.vn'),
+('DN04-REC-006','DN04_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #6','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000222','staff06@dn04.hotel.vn'),
+('DN04-REC-007','DN04_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #7','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000223','staff07@dn04.hotel.vn'),
+('DN04-REC-008','DN04_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #8','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000224','staff08@dn04.hotel.vn'),
+('DN04-REC-009','DN04_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #9','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000225','staff09@dn04.hotel.vn'),
+('DN04-REC-010','DN04_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân DN04 #10','RECEPTIONIST','Đà Nẵng','Thanh Khê Hotel','1995-06-15','0910000226','staff10@dn04.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('DN04-HSK-001','DN04_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN04 #1','HOUSEKEEPER','Đà Nẵng','Thanh Khê Hotel','1994-09-27','0910000227','hsk01@dn04.hotel.vn'),
+('DN04-HSK-002','DN04_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN04 #2','HOUSEKEEPER','Đà Nẵng','Thanh Khê Hotel','1994-09-27','0910000228','hsk02@dn04.hotel.vn'),
+('DN04-HSK-003','DN04_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN04 #3','HOUSEKEEPER','Đà Nẵng','Thanh Khê Hotel','1994-09-27','0910000229','hsk03@dn04.hotel.vn'),
+('DN04-HSK-004','DN04_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN04 #4','HOUSEKEEPER','Đà Nẵng','Thanh Khê Hotel','1994-09-27','0910000230','hsk04@dn04.hotel.vn'),
+('DN04-HSK-005','DN04_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN04 #5','HOUSEKEEPER','Đà Nẵng','Thanh Khê Hotel','1994-09-27','0910000231','hsk05@dn04.hotel.vn'),
+('DN04-HSK-006','DN04_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN04 #6','HOUSEKEEPER','Đà Nẵng','Thanh Khê Hotel','1994-09-27','0910000232','hsk06@dn04.hotel.vn'),
+('DN04-HSK-007','DN04_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN04 #7','HOUSEKEEPER','Đà Nẵng','Thanh Khê Hotel','1994-09-27','0910000233','hsk07@dn04.hotel.vn'),
+('DN04-HSK-008','DN04_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng DN04 #8','HOUSEKEEPER','Đà Nẵng','Thanh Khê Hotel','1994-09-27','0910000234','hsk08@dn04.hotel.vn');
+
+-- ===== Chi nhánh HCM01 (Thành phố Hồ Chí Minh - Quận 1 Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM01-BM-001','HCM01_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HCM01','BRANCH_MANAGER','Thành phố Hồ Chí Minh','Quận 1 Hotel','1988-04-12','0910000235','manager@hcm01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM01-ADM-001','HCM01_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM01 #1','ADMIN','Thành phố Hồ Chí Minh','Quận 1 Hotel','1992-03-12','0910000236','admin01@hcm01.hotel.vn'),
+('HCM01-ADM-002','HCM01_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM01 #2','ADMIN','Thành phố Hồ Chí Minh','Quận 1 Hotel','1992-03-12','0910000237','admin02@hcm01.hotel.vn'),
+('HCM01-ADM-003','HCM01_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM01 #3','ADMIN','Thành phố Hồ Chí Minh','Quận 1 Hotel','1992-03-12','0910000238','admin03@hcm01.hotel.vn'),
+('HCM01-ADM-004','HCM01_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM01 #4','ADMIN','Thành phố Hồ Chí Minh','Quận 1 Hotel','1992-03-12','0910000239','admin04@hcm01.hotel.vn'),
+('HCM01-ADM-005','HCM01_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM01 #5','ADMIN','Thành phố Hồ Chí Minh','Quận 1 Hotel','1992-03-12','0910000240','admin05@hcm01.hotel.vn'),
+('HCM01-ADM-006','HCM01_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM01 #6','ADMIN','Thành phố Hồ Chí Minh','Quận 1 Hotel','1992-03-12','0910000241','admin06@hcm01.hotel.vn'),
+('HCM01-ADM-007','HCM01_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM01 #7','ADMIN','Thành phố Hồ Chí Minh','Quận 1 Hotel','1992-03-12','0910000242','admin07@hcm01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM01-REC-001','HCM01_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #1','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000243','staff01@hcm01.hotel.vn'),
+('HCM01-REC-002','HCM01_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #2','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000244','staff02@hcm01.hotel.vn'),
+('HCM01-REC-003','HCM01_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #3','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000245','staff03@hcm01.hotel.vn'),
+('HCM01-REC-004','HCM01_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #4','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000246','staff04@hcm01.hotel.vn'),
+('HCM01-REC-005','HCM01_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #5','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000247','staff05@hcm01.hotel.vn'),
+('HCM01-REC-006','HCM01_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #6','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000248','staff06@hcm01.hotel.vn'),
+('HCM01-REC-007','HCM01_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #7','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000249','staff07@hcm01.hotel.vn'),
+('HCM01-REC-008','HCM01_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #8','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000250','staff08@hcm01.hotel.vn'),
+('HCM01-REC-009','HCM01_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #9','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000251','staff09@hcm01.hotel.vn'),
+('HCM01-REC-010','HCM01_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM01 #10','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 1 Hotel','1995-06-15','0910000252','staff10@hcm01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM01-HSK-001','HCM01_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM01 #1','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 1 Hotel','1994-09-27','0910000253','hsk01@hcm01.hotel.vn'),
+('HCM01-HSK-002','HCM01_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM01 #2','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 1 Hotel','1994-09-27','0910000254','hsk02@hcm01.hotel.vn'),
+('HCM01-HSK-003','HCM01_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM01 #3','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 1 Hotel','1994-09-27','0910000255','hsk03@hcm01.hotel.vn'),
+('HCM01-HSK-004','HCM01_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM01 #4','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 1 Hotel','1994-09-27','0910000256','hsk04@hcm01.hotel.vn'),
+('HCM01-HSK-005','HCM01_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM01 #5','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 1 Hotel','1994-09-27','0910000257','hsk05@hcm01.hotel.vn'),
+('HCM01-HSK-006','HCM01_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM01 #6','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 1 Hotel','1994-09-27','0910000258','hsk06@hcm01.hotel.vn'),
+('HCM01-HSK-007','HCM01_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM01 #7','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 1 Hotel','1994-09-27','0910000259','hsk07@hcm01.hotel.vn'),
+('HCM01-HSK-008','HCM01_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM01 #8','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 1 Hotel','1994-09-27','0910000260','hsk08@hcm01.hotel.vn');
+
+-- ===== Chi nhánh HCM02 (Thành phố Hồ Chí Minh - Quận 3 Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM02-BM-001','HCM02_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HCM02','BRANCH_MANAGER','Thành phố Hồ Chí Minh','Quận 3 Hotel','1988-04-12','0910000261','manager@hcm02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM02-ADM-001','HCM02_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM02 #1','ADMIN','Thành phố Hồ Chí Minh','Quận 3 Hotel','1992-03-12','0910000262','admin01@hcm02.hotel.vn'),
+('HCM02-ADM-002','HCM02_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM02 #2','ADMIN','Thành phố Hồ Chí Minh','Quận 3 Hotel','1992-03-12','0910000263','admin02@hcm02.hotel.vn'),
+('HCM02-ADM-003','HCM02_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM02 #3','ADMIN','Thành phố Hồ Chí Minh','Quận 3 Hotel','1992-03-12','0910000264','admin03@hcm02.hotel.vn'),
+('HCM02-ADM-004','HCM02_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM02 #4','ADMIN','Thành phố Hồ Chí Minh','Quận 3 Hotel','1992-03-12','0910000265','admin04@hcm02.hotel.vn'),
+('HCM02-ADM-005','HCM02_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM02 #5','ADMIN','Thành phố Hồ Chí Minh','Quận 3 Hotel','1992-03-12','0910000266','admin05@hcm02.hotel.vn'),
+('HCM02-ADM-006','HCM02_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM02 #6','ADMIN','Thành phố Hồ Chí Minh','Quận 3 Hotel','1992-03-12','0910000267','admin06@hcm02.hotel.vn'),
+('HCM02-ADM-007','HCM02_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM02 #7','ADMIN','Thành phố Hồ Chí Minh','Quận 3 Hotel','1992-03-12','0910000268','admin07@hcm02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM02-REC-001','HCM02_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #1','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000269','staff01@hcm02.hotel.vn'),
+('HCM02-REC-002','HCM02_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #2','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000270','staff02@hcm02.hotel.vn'),
+('HCM02-REC-003','HCM02_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #3','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000271','staff03@hcm02.hotel.vn'),
+('HCM02-REC-004','HCM02_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #4','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000272','staff04@hcm02.hotel.vn'),
+('HCM02-REC-005','HCM02_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #5','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000273','staff05@hcm02.hotel.vn'),
+('HCM02-REC-006','HCM02_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #6','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000274','staff06@hcm02.hotel.vn'),
+('HCM02-REC-007','HCM02_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #7','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000275','staff07@hcm02.hotel.vn'),
+('HCM02-REC-008','HCM02_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #8','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000276','staff08@hcm02.hotel.vn'),
+('HCM02-REC-009','HCM02_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #9','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000277','staff09@hcm02.hotel.vn'),
+('HCM02-REC-010','HCM02_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM02 #10','RECEPTIONIST','Thành phố Hồ Chí Minh','Quận 3 Hotel','1995-06-15','0910000278','staff10@hcm02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM02-HSK-001','HCM02_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM02 #1','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 3 Hotel','1994-09-27','0910000279','hsk01@hcm02.hotel.vn'),
+('HCM02-HSK-002','HCM02_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM02 #2','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 3 Hotel','1994-09-27','0910000280','hsk02@hcm02.hotel.vn'),
+('HCM02-HSK-003','HCM02_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM02 #3','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 3 Hotel','1994-09-27','0910000281','hsk03@hcm02.hotel.vn'),
+('HCM02-HSK-004','HCM02_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM02 #4','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 3 Hotel','1994-09-27','0910000282','hsk04@hcm02.hotel.vn'),
+('HCM02-HSK-005','HCM02_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM02 #5','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 3 Hotel','1994-09-27','0910000283','hsk05@hcm02.hotel.vn'),
+('HCM02-HSK-006','HCM02_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM02 #6','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 3 Hotel','1994-09-27','0910000284','hsk06@hcm02.hotel.vn'),
+('HCM02-HSK-007','HCM02_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM02 #7','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 3 Hotel','1994-09-27','0910000285','hsk07@hcm02.hotel.vn'),
+('HCM02-HSK-008','HCM02_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM02 #8','HOUSEKEEPER','Thành phố Hồ Chí Minh','Quận 3 Hotel','1994-09-27','0910000286','hsk08@hcm02.hotel.vn');
+
+-- ===== Chi nhánh HCM03 (Thành phố Hồ Chí Minh - Phú Nhuận Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM03-BM-001','HCM03_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HCM03','BRANCH_MANAGER','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1988-04-12','0910000287','manager@hcm03.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM03-ADM-001','HCM03_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM03 #1','ADMIN','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1992-03-12','0910000288','admin01@hcm03.hotel.vn'),
+('HCM03-ADM-002','HCM03_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM03 #2','ADMIN','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1992-03-12','0910000289','admin02@hcm03.hotel.vn'),
+('HCM03-ADM-003','HCM03_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM03 #3','ADMIN','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1992-03-12','0910000290','admin03@hcm03.hotel.vn'),
+('HCM03-ADM-004','HCM03_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM03 #4','ADMIN','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1992-03-12','0910000291','admin04@hcm03.hotel.vn'),
+('HCM03-ADM-005','HCM03_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM03 #5','ADMIN','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1992-03-12','0910000292','admin05@hcm03.hotel.vn'),
+('HCM03-ADM-006','HCM03_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM03 #6','ADMIN','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1992-03-12','0910000293','admin06@hcm03.hotel.vn'),
+('HCM03-ADM-007','HCM03_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM03 #7','ADMIN','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1992-03-12','0910000294','admin07@hcm03.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM03-REC-001','HCM03_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #1','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000295','staff01@hcm03.hotel.vn'),
+('HCM03-REC-002','HCM03_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #2','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000296','staff02@hcm03.hotel.vn'),
+('HCM03-REC-003','HCM03_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #3','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000297','staff03@hcm03.hotel.vn'),
+('HCM03-REC-004','HCM03_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #4','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000298','staff04@hcm03.hotel.vn'),
+('HCM03-REC-005','HCM03_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #5','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000299','staff05@hcm03.hotel.vn'),
+('HCM03-REC-006','HCM03_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #6','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000300','staff06@hcm03.hotel.vn'),
+('HCM03-REC-007','HCM03_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #7','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000301','staff07@hcm03.hotel.vn'),
+('HCM03-REC-008','HCM03_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #8','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000302','staff08@hcm03.hotel.vn'),
+('HCM03-REC-009','HCM03_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #9','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000303','staff09@hcm03.hotel.vn'),
+('HCM03-REC-010','HCM03_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM03 #10','RECEPTIONIST','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1995-06-15','0910000304','staff10@hcm03.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM03-HSK-001','HCM03_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM03 #1','HOUSEKEEPER','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1994-09-27','0910000305','hsk01@hcm03.hotel.vn'),
+('HCM03-HSK-002','HCM03_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM03 #2','HOUSEKEEPER','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1994-09-27','0910000306','hsk02@hcm03.hotel.vn'),
+('HCM03-HSK-003','HCM03_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM03 #3','HOUSEKEEPER','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1994-09-27','0910000307','hsk03@hcm03.hotel.vn'),
+('HCM03-HSK-004','HCM03_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM03 #4','HOUSEKEEPER','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1994-09-27','0910000308','hsk04@hcm03.hotel.vn'),
+('HCM03-HSK-005','HCM03_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM03 #5','HOUSEKEEPER','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1994-09-27','0910000309','hsk05@hcm03.hotel.vn'),
+('HCM03-HSK-006','HCM03_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM03 #6','HOUSEKEEPER','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1994-09-27','0910000310','hsk06@hcm03.hotel.vn'),
+('HCM03-HSK-007','HCM03_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM03 #7','HOUSEKEEPER','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1994-09-27','0910000311','hsk07@hcm03.hotel.vn'),
+('HCM03-HSK-008','HCM03_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM03 #8','HOUSEKEEPER','Thành phố Hồ Chí Minh','Phú Nhuận Hotel','1994-09-27','0910000312','hsk08@hcm03.hotel.vn');
+
+-- ===== Chi nhánh HCM04 (Thành phố Hồ Chí Minh - Tân Bình Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM04-BM-001','HCM04_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HCM04','BRANCH_MANAGER','Thành phố Hồ Chí Minh','Tân Bình Hotel','1988-04-12','0910000313','manager@hcm04.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM04-ADM-001','HCM04_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM04 #1','ADMIN','Thành phố Hồ Chí Minh','Tân Bình Hotel','1992-03-12','0910000314','admin01@hcm04.hotel.vn'),
+('HCM04-ADM-002','HCM04_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM04 #2','ADMIN','Thành phố Hồ Chí Minh','Tân Bình Hotel','1992-03-12','0910000315','admin02@hcm04.hotel.vn'),
+('HCM04-ADM-003','HCM04_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM04 #3','ADMIN','Thành phố Hồ Chí Minh','Tân Bình Hotel','1992-03-12','0910000316','admin03@hcm04.hotel.vn'),
+('HCM04-ADM-004','HCM04_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM04 #4','ADMIN','Thành phố Hồ Chí Minh','Tân Bình Hotel','1992-03-12','0910000317','admin04@hcm04.hotel.vn'),
+('HCM04-ADM-005','HCM04_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM04 #5','ADMIN','Thành phố Hồ Chí Minh','Tân Bình Hotel','1992-03-12','0910000318','admin05@hcm04.hotel.vn'),
+('HCM04-ADM-006','HCM04_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM04 #6','ADMIN','Thành phố Hồ Chí Minh','Tân Bình Hotel','1992-03-12','0910000319','admin06@hcm04.hotel.vn'),
+('HCM04-ADM-007','HCM04_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM04 #7','ADMIN','Thành phố Hồ Chí Minh','Tân Bình Hotel','1992-03-12','0910000320','admin07@hcm04.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM04-REC-001','HCM04_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #1','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000321','staff01@hcm04.hotel.vn'),
+('HCM04-REC-002','HCM04_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #2','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000322','staff02@hcm04.hotel.vn'),
+('HCM04-REC-003','HCM04_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #3','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000323','staff03@hcm04.hotel.vn'),
+('HCM04-REC-004','HCM04_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #4','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000324','staff04@hcm04.hotel.vn'),
+('HCM04-REC-005','HCM04_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #5','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000325','staff05@hcm04.hotel.vn'),
+('HCM04-REC-006','HCM04_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #6','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000326','staff06@hcm04.hotel.vn'),
+('HCM04-REC-007','HCM04_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #7','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000327','staff07@hcm04.hotel.vn'),
+('HCM04-REC-008','HCM04_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #8','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000328','staff08@hcm04.hotel.vn'),
+('HCM04-REC-009','HCM04_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #9','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000329','staff09@hcm04.hotel.vn'),
+('HCM04-REC-010','HCM04_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM04 #10','RECEPTIONIST','Thành phố Hồ Chí Minh','Tân Bình Hotel','1995-06-15','0910000330','staff10@hcm04.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM04-HSK-001','HCM04_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM04 #1','HOUSEKEEPER','Thành phố Hồ Chí Minh','Tân Bình Hotel','1994-09-27','0910000331','hsk01@hcm04.hotel.vn'),
+('HCM04-HSK-002','HCM04_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM04 #2','HOUSEKEEPER','Thành phố Hồ Chí Minh','Tân Bình Hotel','1994-09-27','0910000332','hsk02@hcm04.hotel.vn'),
+('HCM04-HSK-003','HCM04_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM04 #3','HOUSEKEEPER','Thành phố Hồ Chí Minh','Tân Bình Hotel','1994-09-27','0910000333','hsk03@hcm04.hotel.vn'),
+('HCM04-HSK-004','HCM04_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM04 #4','HOUSEKEEPER','Thành phố Hồ Chí Minh','Tân Bình Hotel','1994-09-27','0910000334','hsk04@hcm04.hotel.vn'),
+('HCM04-HSK-005','HCM04_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM04 #5','HOUSEKEEPER','Thành phố Hồ Chí Minh','Tân Bình Hotel','1994-09-27','0910000335','hsk05@hcm04.hotel.vn'),
+('HCM04-HSK-006','HCM04_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM04 #6','HOUSEKEEPER','Thành phố Hồ Chí Minh','Tân Bình Hotel','1994-09-27','0910000336','hsk06@hcm04.hotel.vn'),
+('HCM04-HSK-007','HCM04_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM04 #7','HOUSEKEEPER','Thành phố Hồ Chí Minh','Tân Bình Hotel','1994-09-27','0910000337','hsk07@hcm04.hotel.vn'),
+('HCM04-HSK-008','HCM04_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM04 #8','HOUSEKEEPER','Thành phố Hồ Chí Minh','Tân Bình Hotel','1994-09-27','0910000338','hsk08@hcm04.hotel.vn');
+
+-- ===== Chi nhánh HCM05 (Thành phố Hồ Chí Minh - Thủ Đức Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM05-BM-001','HCM05_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh HCM05','BRANCH_MANAGER','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1988-04-12','0910000339','manager@hcm05.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM05-ADM-001','HCM05_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM05 #1','ADMIN','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1992-03-12','0910000340','admin01@hcm05.hotel.vn'),
+('HCM05-ADM-002','HCM05_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM05 #2','ADMIN','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1992-03-12','0910000341','admin02@hcm05.hotel.vn'),
+('HCM05-ADM-003','HCM05_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM05 #3','ADMIN','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1992-03-12','0910000342','admin03@hcm05.hotel.vn'),
+('HCM05-ADM-004','HCM05_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM05 #4','ADMIN','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1992-03-12','0910000343','admin04@hcm05.hotel.vn'),
+('HCM05-ADM-005','HCM05_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM05 #5','ADMIN','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1992-03-12','0910000344','admin05@hcm05.hotel.vn'),
+('HCM05-ADM-006','HCM05_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM05 #6','ADMIN','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1992-03-12','0910000345','admin06@hcm05.hotel.vn'),
+('HCM05-ADM-007','HCM05_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin HCM05 #7','ADMIN','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1992-03-12','0910000346','admin07@hcm05.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM05-REC-001','HCM05_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #1','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000347','staff01@hcm05.hotel.vn'),
+('HCM05-REC-002','HCM05_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #2','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000348','staff02@hcm05.hotel.vn'),
+('HCM05-REC-003','HCM05_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #3','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000349','staff03@hcm05.hotel.vn'),
+('HCM05-REC-004','HCM05_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #4','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000350','staff04@hcm05.hotel.vn'),
+('HCM05-REC-005','HCM05_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #5','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000351','staff05@hcm05.hotel.vn'),
+('HCM05-REC-006','HCM05_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #6','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000352','staff06@hcm05.hotel.vn'),
+('HCM05-REC-007','HCM05_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #7','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000353','staff07@hcm05.hotel.vn'),
+('HCM05-REC-008','HCM05_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #8','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000354','staff08@hcm05.hotel.vn'),
+('HCM05-REC-009','HCM05_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #9','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000355','staff09@hcm05.hotel.vn'),
+('HCM05-REC-010','HCM05_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân HCM05 #10','RECEPTIONIST','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1995-06-15','0910000356','staff10@hcm05.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('HCM05-HSK-001','HCM05_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM05 #1','HOUSEKEEPER','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1994-09-27','0910000357','hsk01@hcm05.hotel.vn'),
+('HCM05-HSK-002','HCM05_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM05 #2','HOUSEKEEPER','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1994-09-27','0910000358','hsk02@hcm05.hotel.vn'),
+('HCM05-HSK-003','HCM05_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM05 #3','HOUSEKEEPER','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1994-09-27','0910000359','hsk03@hcm05.hotel.vn'),
+('HCM05-HSK-004','HCM05_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM05 #4','HOUSEKEEPER','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1994-09-27','0910000360','hsk04@hcm05.hotel.vn'),
+('HCM05-HSK-005','HCM05_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM05 #5','HOUSEKEEPER','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1994-09-27','0910000361','hsk05@hcm05.hotel.vn'),
+('HCM05-HSK-006','HCM05_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM05 #6','HOUSEKEEPER','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1994-09-27','0910000362','hsk06@hcm05.hotel.vn'),
+('HCM05-HSK-007','HCM05_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM05 #7','HOUSEKEEPER','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1994-09-27','0910000363','hsk07@hcm05.hotel.vn'),
+('HCM05-HSK-008','HCM05_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng HCM05 #8','HOUSEKEEPER','Thành phố Hồ Chí Minh','Thủ Đức Hotel','1994-09-27','0910000364','hsk08@hcm05.hotel.vn');
+
+-- ===== Chi nhánh PQ01 (Phú Quốc - Dương Đông Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('PQ01-BM-001','PQ01_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh PQ01','BRANCH_MANAGER','Phú Quốc','Dương Đông Hotel','1988-04-12','0910000365','manager@pq01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('PQ01-ADM-001','PQ01_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ01 #1','ADMIN','Phú Quốc','Dương Đông Hotel','1992-03-12','0910000366','admin01@pq01.hotel.vn'),
+('PQ01-ADM-002','PQ01_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ01 #2','ADMIN','Phú Quốc','Dương Đông Hotel','1992-03-12','0910000367','admin02@pq01.hotel.vn'),
+('PQ01-ADM-003','PQ01_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ01 #3','ADMIN','Phú Quốc','Dương Đông Hotel','1992-03-12','0910000368','admin03@pq01.hotel.vn'),
+('PQ01-ADM-004','PQ01_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ01 #4','ADMIN','Phú Quốc','Dương Đông Hotel','1992-03-12','0910000369','admin04@pq01.hotel.vn'),
+('PQ01-ADM-005','PQ01_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ01 #5','ADMIN','Phú Quốc','Dương Đông Hotel','1992-03-12','0910000370','admin05@pq01.hotel.vn'),
+('PQ01-ADM-006','PQ01_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ01 #6','ADMIN','Phú Quốc','Dương Đông Hotel','1992-03-12','0910000371','admin06@pq01.hotel.vn'),
+('PQ01-ADM-007','PQ01_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ01 #7','ADMIN','Phú Quốc','Dương Đông Hotel','1992-03-12','0910000372','admin07@pq01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('PQ01-REC-001','PQ01_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #1','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000373','staff01@pq01.hotel.vn'),
+('PQ01-REC-002','PQ01_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #2','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000374','staff02@pq01.hotel.vn'),
+('PQ01-REC-003','PQ01_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #3','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000375','staff03@pq01.hotel.vn'),
+('PQ01-REC-004','PQ01_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #4','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000376','staff04@pq01.hotel.vn'),
+('PQ01-REC-005','PQ01_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #5','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000377','staff05@pq01.hotel.vn'),
+('PQ01-REC-006','PQ01_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #6','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000378','staff06@pq01.hotel.vn'),
+('PQ01-REC-007','PQ01_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #7','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000379','staff07@pq01.hotel.vn'),
+('PQ01-REC-008','PQ01_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #8','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000380','staff08@pq01.hotel.vn'),
+('PQ01-REC-009','PQ01_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #9','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000381','staff09@pq01.hotel.vn'),
+('PQ01-REC-010','PQ01_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ01 #10','RECEPTIONIST','Phú Quốc','Dương Đông Hotel','1995-06-15','0910000382','staff10@pq01.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('PQ01-HSK-001','PQ01_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ01 #1','HOUSEKEEPER','Phú Quốc','Dương Đông Hotel','1994-09-27','0910000383','hsk01@pq01.hotel.vn'),
+('PQ01-HSK-002','PQ01_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ01 #2','HOUSEKEEPER','Phú Quốc','Dương Đông Hotel','1994-09-27','0910000384','hsk02@pq01.hotel.vn'),
+('PQ01-HSK-003','PQ01_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ01 #3','HOUSEKEEPER','Phú Quốc','Dương Đông Hotel','1994-09-27','0910000385','hsk03@pq01.hotel.vn'),
+('PQ01-HSK-004','PQ01_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ01 #4','HOUSEKEEPER','Phú Quốc','Dương Đông Hotel','1994-09-27','0910000386','hsk04@pq01.hotel.vn'),
+('PQ01-HSK-005','PQ01_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ01 #5','HOUSEKEEPER','Phú Quốc','Dương Đông Hotel','1994-09-27','0910000387','hsk05@pq01.hotel.vn'),
+('PQ01-HSK-006','PQ01_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ01 #6','HOUSEKEEPER','Phú Quốc','Dương Đông Hotel','1994-09-27','0910000388','hsk06@pq01.hotel.vn'),
+('PQ01-HSK-007','PQ01_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ01 #7','HOUSEKEEPER','Phú Quốc','Dương Đông Hotel','1994-09-27','0910000389','hsk07@pq01.hotel.vn'),
+('PQ01-HSK-008','PQ01_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ01 #8','HOUSEKEEPER','Phú Quốc','Dương Đông Hotel','1994-09-27','0910000390','hsk08@pq01.hotel.vn');
+
+-- ===== Chi nhánh PQ02 (Phú Quốc - An Thới Hotel) =====
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('PQ02-BM-001','PQ02_manager','$2a$10$cZz/2xo0J9oZ8TovDes8Xem/zAojjezdYdv2FBmJNUlaOCEua/vfK','Quản lý chi nhánh PQ02','BRANCH_MANAGER','Phú Quốc','An Thới Hotel','1988-04-12','0910000391','manager@pq02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('PQ02-ADM-001','PQ02_admin01','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ02 #1','ADMIN','Phú Quốc','An Thới Hotel','1992-03-12','0910000392','admin01@pq02.hotel.vn'),
+('PQ02-ADM-002','PQ02_admin02','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ02 #2','ADMIN','Phú Quốc','An Thới Hotel','1992-03-12','0910000393','admin02@pq02.hotel.vn'),
+('PQ02-ADM-003','PQ02_admin03','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ02 #3','ADMIN','Phú Quốc','An Thới Hotel','1992-03-12','0910000394','admin03@pq02.hotel.vn'),
+('PQ02-ADM-004','PQ02_admin04','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ02 #4','ADMIN','Phú Quốc','An Thới Hotel','1992-03-12','0910000395','admin04@pq02.hotel.vn'),
+('PQ02-ADM-005','PQ02_admin05','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ02 #5','ADMIN','Phú Quốc','An Thới Hotel','1992-03-12','0910000396','admin05@pq02.hotel.vn'),
+('PQ02-ADM-006','PQ02_admin06','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ02 #6','ADMIN','Phú Quốc','An Thới Hotel','1992-03-12','0910000397','admin06@pq02.hotel.vn'),
+('PQ02-ADM-007','PQ02_admin07','$2a$10$dtavq9BCQpPJefK38ngSpekB60iTL1OoazPd2rcS.mcsLt2knzU6q','Admin PQ02 #7','ADMIN','Phú Quốc','An Thới Hotel','1992-03-12','0910000398','admin07@pq02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('PQ02-REC-001','PQ02_staff01','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #1','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000399','staff01@pq02.hotel.vn'),
+('PQ02-REC-002','PQ02_staff02','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #2','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000400','staff02@pq02.hotel.vn'),
+('PQ02-REC-003','PQ02_staff03','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #3','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000401','staff03@pq02.hotel.vn'),
+('PQ02-REC-004','PQ02_staff04','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #4','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000402','staff04@pq02.hotel.vn'),
+('PQ02-REC-005','PQ02_staff05','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #5','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000403','staff05@pq02.hotel.vn'),
+('PQ02-REC-006','PQ02_staff06','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #6','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000404','staff06@pq02.hotel.vn'),
+('PQ02-REC-007','PQ02_staff07','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #7','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000405','staff07@pq02.hotel.vn'),
+('PQ02-REC-008','PQ02_staff08','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #8','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000406','staff08@pq02.hotel.vn'),
+('PQ02-REC-009','PQ02_staff09','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #9','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000407','staff09@pq02.hotel.vn'),
+('PQ02-REC-010','PQ02_staff10','$2a$10$O2lc4YJhXB.0CxYrmuIsd.Gs9qmDaRGEqSw8p1QYpStvXwRkxcXu2','Lễ tân PQ02 #10','RECEPTIONIST','Phú Quốc','An Thới Hotel','1995-06-15','0910000408','staff10@pq02.hotel.vn');
+INSERT INTO users (id, username, password, full_name, role, city, branch_name, birthday, phone_number, email) VALUES
+('PQ02-HSK-001','PQ02_hsk01','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ02 #1','HOUSEKEEPER','Phú Quốc','An Thới Hotel','1994-09-27','0910000409','hsk01@pq02.hotel.vn'),
+('PQ02-HSK-002','PQ02_hsk02','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ02 #2','HOUSEKEEPER','Phú Quốc','An Thới Hotel','1994-09-27','0910000410','hsk02@pq02.hotel.vn'),
+('PQ02-HSK-003','PQ02_hsk03','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ02 #3','HOUSEKEEPER','Phú Quốc','An Thới Hotel','1994-09-27','0910000411','hsk03@pq02.hotel.vn'),
+('PQ02-HSK-004','PQ02_hsk04','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ02 #4','HOUSEKEEPER','Phú Quốc','An Thới Hotel','1994-09-27','0910000412','hsk04@pq02.hotel.vn'),
+('PQ02-HSK-005','PQ02_hsk05','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ02 #5','HOUSEKEEPER','Phú Quốc','An Thới Hotel','1994-09-27','0910000413','hsk05@pq02.hotel.vn'),
+('PQ02-HSK-006','PQ02_hsk06','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ02 #6','HOUSEKEEPER','Phú Quốc','An Thới Hotel','1994-09-27','0910000414','hsk06@pq02.hotel.vn'),
+('PQ02-HSK-007','PQ02_hsk07','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ02 #7','HOUSEKEEPER','Phú Quốc','An Thới Hotel','1994-09-27','0910000415','hsk07@pq02.hotel.vn'),
+('PQ02-HSK-008','PQ02_hsk08','$2a$10$1g6SohFDPIqmfqfxW/IAcu/fxv8ZD2JqdUJRo17s9TC74AmwMOBbO','Dọn phòng PQ02 #8','HOUSEKEEPER','Phú Quốc','An Thới Hotel','1994-09-27','0910000416','hsk08@pq02.hotel.vn');
+
+-- =========================
+-- INSERT ROOMS (50 phòng / chi nhánh)
+-- rooms.id = <BRANCH_CODE>-<ROOM_CODE> ; room_number = <ROOM_CODE>
+-- =========================
+INSERT INTO rooms (id, room_number, price, type, status, city, branch_name) VALUES
+('HN01-101','101',500000.00,'STANDARD','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-102','102',500000.00,'STANDARD','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-103','103',500000.00,'STANDARD','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-104','104',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-105','105',500000.00,'STANDARD','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-106','106',500000.00,'STANDARD','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-107','107',500000.00,'STANDARD','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-108','108',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-109','109',500000.00,'STANDARD','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-110','110',500000.00,'STANDARD','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-201','201',500000.00,'STANDARD','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-202','202',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-203','203',500000.00,'STANDARD','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-204','204',500000.00,'STANDARD','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-205','205',500000.00,'STANDARD','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-206','206',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-207','207',500000.00,'STANDARD','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-208','208',500000.00,'STANDARD','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-209','209',500000.00,'STANDARD','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-210','210',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-301','301',800000.00,'DELUXE','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-302','302',800000.00,'DELUXE','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-303','303',800000.00,'DELUXE','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-304','304',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-305','305',800000.00,'DELUXE','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-306','306',800000.00,'DELUXE','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-307','307',800000.00,'DELUXE','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-308','308',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-309','309',800000.00,'DELUXE','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-310','310',800000.00,'DELUXE','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-401','401',1200000.00,'SUITE','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-402','402',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-403','403',1200000.00,'SUITE','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-404','404',1200000.00,'SUITE','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-405','405',1200000.00,'SUITE','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-406','406',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-407','407',1200000.00,'SUITE','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-408','408',1200000.00,'SUITE','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-409','409',1200000.00,'SUITE','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-410','410',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-501','501',1500000.00,'SUITE','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-502','502',1500000.00,'SUITE','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-503','503',1500000.00,'SUITE','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-504','504',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-505','505',1500000.00,'SUITE','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-506','506',1500000.00,'SUITE','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN01-507','507',1500000.00,'SUITE','CLEANING','Hà Nội','Ba Đình Hotel'),
+('HN01-508','508',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Ba Đình Hotel'),
+('HN01-509','509',1500000.00,'SUITE','AVAILABLE','Hà Nội','Ba Đình Hotel'),
+('HN01-510','510',1500000.00,'SUITE','OCCUPIED','Hà Nội','Ba Đình Hotel'),
+('HN02-101','101',500000.00,'STANDARD','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-102','102',500000.00,'STANDARD','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-103','103',500000.00,'STANDARD','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-104','104',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-105','105',500000.00,'STANDARD','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-106','106',500000.00,'STANDARD','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-107','107',500000.00,'STANDARD','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-108','108',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-109','109',500000.00,'STANDARD','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-110','110',500000.00,'STANDARD','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-201','201',500000.00,'STANDARD','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-202','202',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-203','203',500000.00,'STANDARD','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-204','204',500000.00,'STANDARD','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-205','205',500000.00,'STANDARD','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-206','206',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-207','207',500000.00,'STANDARD','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-208','208',500000.00,'STANDARD','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-209','209',500000.00,'STANDARD','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-210','210',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-301','301',800000.00,'DELUXE','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-302','302',800000.00,'DELUXE','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-303','303',800000.00,'DELUXE','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-304','304',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-305','305',800000.00,'DELUXE','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-306','306',800000.00,'DELUXE','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-307','307',800000.00,'DELUXE','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-308','308',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-309','309',800000.00,'DELUXE','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-310','310',800000.00,'DELUXE','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-401','401',1200000.00,'SUITE','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-402','402',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-403','403',1200000.00,'SUITE','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-404','404',1200000.00,'SUITE','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-405','405',1200000.00,'SUITE','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-406','406',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-407','407',1200000.00,'SUITE','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-408','408',1200000.00,'SUITE','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-409','409',1200000.00,'SUITE','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-410','410',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-501','501',1500000.00,'SUITE','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-502','502',1500000.00,'SUITE','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-503','503',1500000.00,'SUITE','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-504','504',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-505','505',1500000.00,'SUITE','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-506','506',1500000.00,'SUITE','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN02-507','507',1500000.00,'SUITE','CLEANING','Hà Nội','Cầu Giấy Hotel'),
+('HN02-508','508',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-509','509',1500000.00,'SUITE','AVAILABLE','Hà Nội','Cầu Giấy Hotel'),
+('HN02-510','510',1500000.00,'SUITE','OCCUPIED','Hà Nội','Cầu Giấy Hotel'),
+('HN03-101','101',500000.00,'STANDARD','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-102','102',500000.00,'STANDARD','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-103','103',500000.00,'STANDARD','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-104','104',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-105','105',500000.00,'STANDARD','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-106','106',500000.00,'STANDARD','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-107','107',500000.00,'STANDARD','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-108','108',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-109','109',500000.00,'STANDARD','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-110','110',500000.00,'STANDARD','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-201','201',500000.00,'STANDARD','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-202','202',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-203','203',500000.00,'STANDARD','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-204','204',500000.00,'STANDARD','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-205','205',500000.00,'STANDARD','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-206','206',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-207','207',500000.00,'STANDARD','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-208','208',500000.00,'STANDARD','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-209','209',500000.00,'STANDARD','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-210','210',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-301','301',800000.00,'DELUXE','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-302','302',800000.00,'DELUXE','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-303','303',800000.00,'DELUXE','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-304','304',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-305','305',800000.00,'DELUXE','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-306','306',800000.00,'DELUXE','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-307','307',800000.00,'DELUXE','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-308','308',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-309','309',800000.00,'DELUXE','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-310','310',800000.00,'DELUXE','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-401','401',1200000.00,'SUITE','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-402','402',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-403','403',1200000.00,'SUITE','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-404','404',1200000.00,'SUITE','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-405','405',1200000.00,'SUITE','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-406','406',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-407','407',1200000.00,'SUITE','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-408','408',1200000.00,'SUITE','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-409','409',1200000.00,'SUITE','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-410','410',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-501','501',1500000.00,'SUITE','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-502','502',1500000.00,'SUITE','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-503','503',1500000.00,'SUITE','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-504','504',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-505','505',1500000.00,'SUITE','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-506','506',1500000.00,'SUITE','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN03-507','507',1500000.00,'SUITE','CLEANING','Hà Nội','Đống Đa Hotel'),
+('HN03-508','508',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Đống Đa Hotel'),
+('HN03-509','509',1500000.00,'SUITE','AVAILABLE','Hà Nội','Đống Đa Hotel'),
+('HN03-510','510',1500000.00,'SUITE','OCCUPIED','Hà Nội','Đống Đa Hotel'),
+('HN04-101','101',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-102','102',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-103','103',500000.00,'STANDARD','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-104','104',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-105','105',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-106','106',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-107','107',500000.00,'STANDARD','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-108','108',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-109','109',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-110','110',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-201','201',500000.00,'STANDARD','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-202','202',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-203','203',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-204','204',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-205','205',500000.00,'STANDARD','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-206','206',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-207','207',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-208','208',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-209','209',500000.00,'STANDARD','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-210','210',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-301','301',800000.00,'DELUXE','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-302','302',800000.00,'DELUXE','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-303','303',800000.00,'DELUXE','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-304','304',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-305','305',800000.00,'DELUXE','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-306','306',800000.00,'DELUXE','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-307','307',800000.00,'DELUXE','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-308','308',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-309','309',800000.00,'DELUXE','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-310','310',800000.00,'DELUXE','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-401','401',1200000.00,'SUITE','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-402','402',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-403','403',1200000.00,'SUITE','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-404','404',1200000.00,'SUITE','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-405','405',1200000.00,'SUITE','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-406','406',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-407','407',1200000.00,'SUITE','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-408','408',1200000.00,'SUITE','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-409','409',1200000.00,'SUITE','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-410','410',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-501','501',1500000.00,'SUITE','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-502','502',1500000.00,'SUITE','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-503','503',1500000.00,'SUITE','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-504','504',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-505','505',1500000.00,'SUITE','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-506','506',1500000.00,'SUITE','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-507','507',1500000.00,'SUITE','CLEANING','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-508','508',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-509','509',1500000.00,'SUITE','AVAILABLE','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04-510','510',1500000.00,'SUITE','OCCUPIED','Hà Nội','Hai Bà Trưng Hotel'),
+('HN05-101','101',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-102','102',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-103','103',500000.00,'STANDARD','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-104','104',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-105','105',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-106','106',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-107','107',500000.00,'STANDARD','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-108','108',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-109','109',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-110','110',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-201','201',500000.00,'STANDARD','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-202','202',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-203','203',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-204','204',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-205','205',500000.00,'STANDARD','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-206','206',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-207','207',500000.00,'STANDARD','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-208','208',500000.00,'STANDARD','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-209','209',500000.00,'STANDARD','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-210','210',500000.00,'STANDARD','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-301','301',800000.00,'DELUXE','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-302','302',800000.00,'DELUXE','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-303','303',800000.00,'DELUXE','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-304','304',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-305','305',800000.00,'DELUXE','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-306','306',800000.00,'DELUXE','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-307','307',800000.00,'DELUXE','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-308','308',800000.00,'DELUXE','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-309','309',800000.00,'DELUXE','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-310','310',800000.00,'DELUXE','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-401','401',1200000.00,'SUITE','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-402','402',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-403','403',1200000.00,'SUITE','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-404','404',1200000.00,'SUITE','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-405','405',1200000.00,'SUITE','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-406','406',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-407','407',1200000.00,'SUITE','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-408','408',1200000.00,'SUITE','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-409','409',1200000.00,'SUITE','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-410','410',1200000.00,'SUITE','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-501','501',1500000.00,'SUITE','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-502','502',1500000.00,'SUITE','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-503','503',1500000.00,'SUITE','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-504','504',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-505','505',1500000.00,'SUITE','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-506','506',1500000.00,'SUITE','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-507','507',1500000.00,'SUITE','CLEANING','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-508','508',1500000.00,'SUITE','MAINTENANCE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-509','509',1500000.00,'SUITE','AVAILABLE','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05-510','510',1500000.00,'SUITE','OCCUPIED','Hà Nội','Hoàn Kiếm Hotel'),
+('DN01-101','101',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-102','102',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-103','103',500000.00,'STANDARD','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-104','104',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-105','105',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-106','106',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-107','107',500000.00,'STANDARD','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-108','108',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-109','109',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-110','110',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-201','201',500000.00,'STANDARD','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-202','202',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-203','203',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-204','204',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-205','205',500000.00,'STANDARD','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-206','206',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-207','207',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-208','208',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-209','209',500000.00,'STANDARD','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-210','210',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-301','301',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-302','302',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-303','303',800000.00,'DELUXE','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-304','304',800000.00,'DELUXE','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-305','305',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-306','306',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-307','307',800000.00,'DELUXE','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-308','308',800000.00,'DELUXE','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-309','309',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-310','310',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-401','401',1200000.00,'SUITE','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-402','402',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-403','403',1200000.00,'SUITE','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-404','404',1200000.00,'SUITE','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-405','405',1200000.00,'SUITE','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-406','406',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-407','407',1200000.00,'SUITE','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-408','408',1200000.00,'SUITE','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-409','409',1200000.00,'SUITE','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-410','410',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-501','501',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-502','502',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-503','503',1500000.00,'SUITE','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-504','504',1500000.00,'SUITE','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-505','505',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-506','506',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN01-507','507',1500000.00,'SUITE','CLEANING','Đà Nẵng','Hải Châu Hotel'),
+('DN01-508','508',1500000.00,'SUITE','MAINTENANCE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-509','509',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Hải Châu Hotel'),
+('DN01-510','510',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Hải Châu Hotel'),
+('DN02-101','101',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-102','102',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-103','103',500000.00,'STANDARD','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-104','104',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-105','105',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-106','106',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-107','107',500000.00,'STANDARD','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-108','108',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-109','109',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-110','110',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-201','201',500000.00,'STANDARD','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-202','202',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-203','203',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-204','204',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-205','205',500000.00,'STANDARD','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-206','206',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-207','207',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-208','208',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-209','209',500000.00,'STANDARD','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-210','210',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-301','301',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-302','302',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-303','303',800000.00,'DELUXE','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-304','304',800000.00,'DELUXE','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-305','305',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-306','306',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-307','307',800000.00,'DELUXE','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-308','308',800000.00,'DELUXE','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-309','309',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-310','310',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-401','401',1200000.00,'SUITE','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-402','402',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-403','403',1200000.00,'SUITE','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-404','404',1200000.00,'SUITE','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-405','405',1200000.00,'SUITE','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-406','406',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-407','407',1200000.00,'SUITE','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-408','408',1200000.00,'SUITE','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-409','409',1200000.00,'SUITE','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-410','410',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-501','501',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-502','502',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-503','503',1500000.00,'SUITE','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-504','504',1500000.00,'SUITE','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-505','505',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-506','506',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-507','507',1500000.00,'SUITE','CLEANING','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-508','508',1500000.00,'SUITE','MAINTENANCE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-509','509',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Sơn Trà Hotel'),
+('DN02-510','510',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Sơn Trà Hotel'),
+('DN03-101','101',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-102','102',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-103','103',500000.00,'STANDARD','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-104','104',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-105','105',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-106','106',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-107','107',500000.00,'STANDARD','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-108','108',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-109','109',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-110','110',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-201','201',500000.00,'STANDARD','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-202','202',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-203','203',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-204','204',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-205','205',500000.00,'STANDARD','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-206','206',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-207','207',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-208','208',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-209','209',500000.00,'STANDARD','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-210','210',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-301','301',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-302','302',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-303','303',800000.00,'DELUXE','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-304','304',800000.00,'DELUXE','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-305','305',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-306','306',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-307','307',800000.00,'DELUXE','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-308','308',800000.00,'DELUXE','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-309','309',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-310','310',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-401','401',1200000.00,'SUITE','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-402','402',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-403','403',1200000.00,'SUITE','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-404','404',1200000.00,'SUITE','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-405','405',1200000.00,'SUITE','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-406','406',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-407','407',1200000.00,'SUITE','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-408','408',1200000.00,'SUITE','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-409','409',1200000.00,'SUITE','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-410','410',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-501','501',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-502','502',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-503','503',1500000.00,'SUITE','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-504','504',1500000.00,'SUITE','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-505','505',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-506','506',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-507','507',1500000.00,'SUITE','CLEANING','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-508','508',1500000.00,'SUITE','MAINTENANCE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-509','509',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03-510','510',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN04-101','101',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-102','102',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-103','103',500000.00,'STANDARD','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-104','104',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-105','105',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-106','106',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-107','107',500000.00,'STANDARD','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-108','108',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-109','109',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-110','110',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-201','201',500000.00,'STANDARD','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-202','202',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-203','203',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-204','204',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-205','205',500000.00,'STANDARD','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-206','206',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-207','207',500000.00,'STANDARD','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-208','208',500000.00,'STANDARD','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-209','209',500000.00,'STANDARD','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-210','210',500000.00,'STANDARD','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-301','301',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-302','302',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-303','303',800000.00,'DELUXE','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-304','304',800000.00,'DELUXE','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-305','305',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-306','306',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-307','307',800000.00,'DELUXE','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-308','308',800000.00,'DELUXE','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-309','309',800000.00,'DELUXE','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-310','310',800000.00,'DELUXE','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-401','401',1200000.00,'SUITE','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-402','402',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-403','403',1200000.00,'SUITE','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-404','404',1200000.00,'SUITE','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-405','405',1200000.00,'SUITE','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-406','406',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-407','407',1200000.00,'SUITE','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-408','408',1200000.00,'SUITE','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-409','409',1200000.00,'SUITE','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-410','410',1200000.00,'SUITE','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-501','501',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-502','502',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-503','503',1500000.00,'SUITE','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-504','504',1500000.00,'SUITE','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-505','505',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-506','506',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-507','507',1500000.00,'SUITE','CLEANING','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-508','508',1500000.00,'SUITE','MAINTENANCE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-509','509',1500000.00,'SUITE','AVAILABLE','Đà Nẵng','Thanh Khê Hotel'),
+('DN04-510','510',1500000.00,'SUITE','OCCUPIED','Đà Nẵng','Thanh Khê Hotel'),
+('HCM01-101','101',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-102','102',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-103','103',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-104','104',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-105','105',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-106','106',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-107','107',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-108','108',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-109','109',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-110','110',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-201','201',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-202','202',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-203','203',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-204','204',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-205','205',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-206','206',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-207','207',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-208','208',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-209','209',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-210','210',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-301','301',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-302','302',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-303','303',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-304','304',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-305','305',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-306','306',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-307','307',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-308','308',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-309','309',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-310','310',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-401','401',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-402','402',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-403','403',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-404','404',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-405','405',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-406','406',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-407','407',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-408','408',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-409','409',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-410','410',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-501','501',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-502','502',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-503','503',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-504','504',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-505','505',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-506','506',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-507','507',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-508','508',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-509','509',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01-510','510',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM02-101','101',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-102','102',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-103','103',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-104','104',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-105','105',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-106','106',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-107','107',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-108','108',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-109','109',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-110','110',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-201','201',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-202','202',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-203','203',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-204','204',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-205','205',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-206','206',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-207','207',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-208','208',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-209','209',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-210','210',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-301','301',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-302','302',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-303','303',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-304','304',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-305','305',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-306','306',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-307','307',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-308','308',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-309','309',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-310','310',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-401','401',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-402','402',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-403','403',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-404','404',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-405','405',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-406','406',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-407','407',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-408','408',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-409','409',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-410','410',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-501','501',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-502','502',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-503','503',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-504','504',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-505','505',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-506','506',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-507','507',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-508','508',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-509','509',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02-510','510',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM03-101','101',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-102','102',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-103','103',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-104','104',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-105','105',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-106','106',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-107','107',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-108','108',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-109','109',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-110','110',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-201','201',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-202','202',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-203','203',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-204','204',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-205','205',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-206','206',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-207','207',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-208','208',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-209','209',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-210','210',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-301','301',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-302','302',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-303','303',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-304','304',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-305','305',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-306','306',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-307','307',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-308','308',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-309','309',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-310','310',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-401','401',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-402','402',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-403','403',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-404','404',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-405','405',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-406','406',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-407','407',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-408','408',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-409','409',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-410','410',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-501','501',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-502','502',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-503','503',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-504','504',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-505','505',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-506','506',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-507','507',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-508','508',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-509','509',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03-510','510',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM04-101','101',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-102','102',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-103','103',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-104','104',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-105','105',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-106','106',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-107','107',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-108','108',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-109','109',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-110','110',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-201','201',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-202','202',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-203','203',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-204','204',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-205','205',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-206','206',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-207','207',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-208','208',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-209','209',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-210','210',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-301','301',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-302','302',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-303','303',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-304','304',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-305','305',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-306','306',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-307','307',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-308','308',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-309','309',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-310','310',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-401','401',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-402','402',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-403','403',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-404','404',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-405','405',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-406','406',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-407','407',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-408','408',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-409','409',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-410','410',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-501','501',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-502','502',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-503','503',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-504','504',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-505','505',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-506','506',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-507','507',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-508','508',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-509','509',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04-510','510',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM05-101','101',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-102','102',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-103','103',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-104','104',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-105','105',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-106','106',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-107','107',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-108','108',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-109','109',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-110','110',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-201','201',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-202','202',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-203','203',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-204','204',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-205','205',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-206','206',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-207','207',500000.00,'STANDARD','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-208','208',500000.00,'STANDARD','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-209','209',500000.00,'STANDARD','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-210','210',500000.00,'STANDARD','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-301','301',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-302','302',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-303','303',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-304','304',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-305','305',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-306','306',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-307','307',800000.00,'DELUXE','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-308','308',800000.00,'DELUXE','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-309','309',800000.00,'DELUXE','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-310','310',800000.00,'DELUXE','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-401','401',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-402','402',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-403','403',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-404','404',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-405','405',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-406','406',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-407','407',1200000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-408','408',1200000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-409','409',1200000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-410','410',1200000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-501','501',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-502','502',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-503','503',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-504','504',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-505','505',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-506','506',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-507','507',1500000.00,'SUITE','CLEANING','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-508','508',1500000.00,'SUITE','MAINTENANCE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-509','509',1500000.00,'SUITE','AVAILABLE','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05-510','510',1500000.00,'SUITE','OCCUPIED','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('PQ01-101','101',500000.00,'STANDARD','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-102','102',500000.00,'STANDARD','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-103','103',500000.00,'STANDARD','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-104','104',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-105','105',500000.00,'STANDARD','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-106','106',500000.00,'STANDARD','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-107','107',500000.00,'STANDARD','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-108','108',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-109','109',500000.00,'STANDARD','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-110','110',500000.00,'STANDARD','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-201','201',500000.00,'STANDARD','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-202','202',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-203','203',500000.00,'STANDARD','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-204','204',500000.00,'STANDARD','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-205','205',500000.00,'STANDARD','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-206','206',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-207','207',500000.00,'STANDARD','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-208','208',500000.00,'STANDARD','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-209','209',500000.00,'STANDARD','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-210','210',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-301','301',800000.00,'DELUXE','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-302','302',800000.00,'DELUXE','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-303','303',800000.00,'DELUXE','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-304','304',800000.00,'DELUXE','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-305','305',800000.00,'DELUXE','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-306','306',800000.00,'DELUXE','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-307','307',800000.00,'DELUXE','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-308','308',800000.00,'DELUXE','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-309','309',800000.00,'DELUXE','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-310','310',800000.00,'DELUXE','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-401','401',1200000.00,'SUITE','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-402','402',1200000.00,'SUITE','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-403','403',1200000.00,'SUITE','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-404','404',1200000.00,'SUITE','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-405','405',1200000.00,'SUITE','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-406','406',1200000.00,'SUITE','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-407','407',1200000.00,'SUITE','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-408','408',1200000.00,'SUITE','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-409','409',1200000.00,'SUITE','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-410','410',1200000.00,'SUITE','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-501','501',1500000.00,'SUITE','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-502','502',1500000.00,'SUITE','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-503','503',1500000.00,'SUITE','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-504','504',1500000.00,'SUITE','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-505','505',1500000.00,'SUITE','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-506','506',1500000.00,'SUITE','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ01-507','507',1500000.00,'SUITE','CLEANING','Phú Quốc','Dương Đông Hotel'),
+('PQ01-508','508',1500000.00,'SUITE','MAINTENANCE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-509','509',1500000.00,'SUITE','AVAILABLE','Phú Quốc','Dương Đông Hotel'),
+('PQ01-510','510',1500000.00,'SUITE','OCCUPIED','Phú Quốc','Dương Đông Hotel'),
+('PQ02-101','101',500000.00,'STANDARD','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-102','102',500000.00,'STANDARD','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-103','103',500000.00,'STANDARD','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-104','104',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-105','105',500000.00,'STANDARD','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-106','106',500000.00,'STANDARD','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-107','107',500000.00,'STANDARD','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-108','108',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-109','109',500000.00,'STANDARD','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-110','110',500000.00,'STANDARD','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-201','201',500000.00,'STANDARD','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-202','202',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-203','203',500000.00,'STANDARD','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-204','204',500000.00,'STANDARD','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-205','205',500000.00,'STANDARD','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-206','206',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-207','207',500000.00,'STANDARD','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-208','208',500000.00,'STANDARD','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-209','209',500000.00,'STANDARD','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-210','210',500000.00,'STANDARD','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-301','301',800000.00,'DELUXE','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-302','302',800000.00,'DELUXE','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-303','303',800000.00,'DELUXE','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-304','304',800000.00,'DELUXE','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-305','305',800000.00,'DELUXE','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-306','306',800000.00,'DELUXE','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-307','307',800000.00,'DELUXE','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-308','308',800000.00,'DELUXE','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-309','309',800000.00,'DELUXE','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-310','310',800000.00,'DELUXE','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-401','401',1200000.00,'SUITE','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-402','402',1200000.00,'SUITE','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-403','403',1200000.00,'SUITE','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-404','404',1200000.00,'SUITE','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-405','405',1200000.00,'SUITE','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-406','406',1200000.00,'SUITE','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-407','407',1200000.00,'SUITE','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-408','408',1200000.00,'SUITE','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-409','409',1200000.00,'SUITE','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-410','410',1200000.00,'SUITE','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-501','501',1500000.00,'SUITE','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-502','502',1500000.00,'SUITE','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-503','503',1500000.00,'SUITE','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-504','504',1500000.00,'SUITE','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-505','505',1500000.00,'SUITE','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-506','506',1500000.00,'SUITE','OCCUPIED','Phú Quốc','An Thới Hotel'),
+('PQ02-507','507',1500000.00,'SUITE','CLEANING','Phú Quốc','An Thới Hotel'),
+('PQ02-508','508',1500000.00,'SUITE','MAINTENANCE','Phú Quốc','An Thới Hotel'),
+('PQ02-509','509',1500000.00,'SUITE','AVAILABLE','Phú Quốc','An Thới Hotel'),
+('PQ02-510','510',1500000.00,'SUITE','OCCUPIED','Phú Quốc','An Thới Hotel');
+
+-- =========================
+-- INSERT BOOKINGS (3 / chi nhánh)
+-- booking.id = <BRANCH>_<DDMMYYYYHHMMSS>_<CUSTOMER_ID>
+-- check_out nằm trong 6-12 tháng (180..365 ngày)
+-- =========================
+INSERT INTO bookings (id, customer_id, customer_name, check_in_date, check_out_date, total_amount, status, room_id, city, branch_name) VALUES
+('HN01_15012026140000_001234567890','001234567890','Nguyễn Văn A','2026-01-15 14:00:00','2026-07-14 12:00:00',2500000.00,'CHECKED_IN','HN01-102','Hà Nội','Ba Đình Hotel'),
+('HN01_20012026140000_001234567891','001234567891','Trần Thị B','2026-01-20 14:00:00','2026-08-17 12:00:00',3000000.00,'BOOKED','HN01-203','Hà Nội','Ba Đình Hotel'),
+('HN01_10012026140000_001234567892','001234567892','Lê Văn C','2026-01-10 14:00:00','2026-09-05 12:00:00',3500000.00,'CHECKED_OUT','HN01-104','Hà Nội','Ba Đình Hotel'),
+('HN02_16012026140000_001234567891','001234567891','Trần Thị B','2026-01-16 14:00:00','2026-08-01 12:00:00',2500000.00,'CHECKED_IN','HN02-102','Hà Nội','Cầu Giấy Hotel'),
+('HN02_21012026140000_001234567892','001234567892','Lê Văn C','2026-01-21 14:00:00','2026-09-04 12:00:00',3000000.00,'BOOKED','HN02-203','Hà Nội','Cầu Giấy Hotel'),
+('HN02_11012026140000_001234567893','001234567893','Phạm Thị D','2026-01-11 14:00:00','2026-09-23 12:00:00',3500000.00,'CHECKED_OUT','HN02-104','Hà Nội','Cầu Giấy Hotel'),
+('HN03_17012026140000_001234567892','001234567892','Lê Văn C','2026-01-17 14:00:00','2026-08-19 12:00:00',2500000.00,'CHECKED_IN','HN03-102','Hà Nội','Đống Đa Hotel'),
+('HN03_22012026140000_001234567893','001234567893','Phạm Thị D','2026-01-22 14:00:00','2026-09-22 12:00:00',3000000.00,'BOOKED','HN03-203','Hà Nội','Đống Đa Hotel'),
+('HN03_12012026140000_001234567894','001234567894','Hoàng Văn E','2026-01-12 14:00:00','2026-10-11 12:00:00',3500000.00,'CHECKED_OUT','HN03-104','Hà Nội','Đống Đa Hotel'),
+('HN04_18012026140000_001234567893','001234567893','Phạm Thị D','2026-01-18 14:00:00','2026-09-06 12:00:00',2500000.00,'CHECKED_IN','HN04-102','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04_23012026140000_001234567894','001234567894','Hoàng Văn E','2026-01-23 14:00:00','2026-10-10 12:00:00',3000000.00,'BOOKED','HN04-203','Hà Nội','Hai Bà Trưng Hotel'),
+('HN04_13012026140000_001234567895','001234567895','Vũ Văn F','2026-01-13 14:00:00','2026-10-29 12:00:00',3500000.00,'CHECKED_OUT','HN04-104','Hà Nội','Hai Bà Trưng Hotel'),
+('HN05_19012026140000_001234567894','001234567894','Hoàng Văn E','2026-01-19 14:00:00','2026-09-24 12:00:00',2500000.00,'CHECKED_IN','HN05-102','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05_24012026140000_001234567895','001234567895','Vũ Văn F','2026-01-24 14:00:00','2026-10-28 12:00:00',3000000.00,'BOOKED','HN05-203','Hà Nội','Hoàn Kiếm Hotel'),
+('HN05_14012026140000_001234567896','001234567896','Đặng Thị G','2026-01-14 14:00:00','2026-11-16 12:00:00',3500000.00,'CHECKED_OUT','HN05-104','Hà Nội','Hoàn Kiếm Hotel'),
+('DN01_20012026140000_001234567895','001234567895','Vũ Văn F','2026-01-20 14:00:00','2026-10-12 12:00:00',2500000.00,'CHECKED_IN','DN01-102','Đà Nẵng','Hải Châu Hotel'),
+('DN01_25012026140000_001234567896','001234567896','Đặng Thị G','2026-01-25 14:00:00','2026-11-15 12:00:00',3000000.00,'BOOKED','DN01-203','Đà Nẵng','Hải Châu Hotel'),
+('DN01_15012026140000_001234567897','001234567897','Phan Văn H','2026-01-15 14:00:00','2026-12-04 12:00:00',3500000.00,'CHECKED_OUT','DN01-104','Đà Nẵng','Hải Châu Hotel'),
+('DN02_21012026140000_001234567896','001234567896','Đặng Thị G','2026-01-21 14:00:00','2026-10-30 12:00:00',2500000.00,'CHECKED_IN','DN02-102','Đà Nẵng','Sơn Trà Hotel'),
+('DN02_26012026140000_001234567897','001234567897','Phan Văn H','2026-01-26 14:00:00','2026-12-03 12:00:00',3000000.00,'BOOKED','DN02-203','Đà Nẵng','Sơn Trà Hotel'),
+('DN02_16012026140000_001234567898','001234567898','Đỗ Thị I','2026-01-16 14:00:00','2026-12-22 12:00:00',3500000.00,'CHECKED_OUT','DN02-104','Đà Nẵng','Sơn Trà Hotel'),
+('DN03_22012026140000_001234567897','001234567897','Phan Văn H','2026-01-22 14:00:00','2026-11-17 12:00:00',2500000.00,'CHECKED_IN','DN03-102','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03_27012026140000_001234567898','001234567898','Đỗ Thị I','2026-01-27 14:00:00','2026-12-21 12:00:00',3000000.00,'BOOKED','DN03-203','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN03_17012026140000_001234567899','001234567899','Ngô Văn K','2026-01-17 14:00:00','2027-01-09 12:00:00',3500000.00,'CHECKED_OUT','DN03-104','Đà Nẵng','Ngũ Hành Sơn Hotel'),
+('DN04_23012026140000_001234567898','001234567898','Đỗ Thị I','2026-01-23 14:00:00','2026-12-05 12:00:00',2500000.00,'CHECKED_IN','DN04-102','Đà Nẵng','Thanh Khê Hotel'),
+('DN04_28012026140000_001234567899','001234567899','Ngô Văn K','2026-01-28 14:00:00','2027-01-08 12:00:00',3000000.00,'BOOKED','DN04-203','Đà Nẵng','Thanh Khê Hotel'),
+('DN04_18012026140000_001234567890','001234567890','Nguyễn Văn A','2026-01-18 14:00:00','2026-07-25 12:00:00',3500000.00,'CHECKED_OUT','DN04-104','Đà Nẵng','Thanh Khê Hotel'),
+('HCM01_24012026140000_001234567899','001234567899','Ngô Văn K','2026-01-24 14:00:00','2026-12-23 12:00:00',2500000.00,'CHECKED_IN','HCM01-102','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01_29012026140000_001234567890','001234567890','Nguyễn Văn A','2026-01-29 14:00:00','2027-01-26 12:00:00',3000000.00,'BOOKED','HCM01-203','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM01_19012026140000_001234567891','001234567891','Trần Thị B','2026-01-19 14:00:00','2026-08-12 12:00:00',3500000.00,'CHECKED_OUT','HCM01-104','Thành phố Hồ Chí Minh','Quận 1 Hotel'),
+('HCM02_25012026140000_001234567890','001234567890','Nguyễn Văn A','2026-01-25 14:00:00','2027-01-10 12:00:00',2500000.00,'CHECKED_IN','HCM02-102','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02_30012026140000_001234567891','001234567891','Trần Thị B','2026-01-30 14:00:00','2026-08-11 12:00:00',3000000.00,'BOOKED','HCM02-203','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM02_20012026140000_001234567892','001234567892','Lê Văn C','2026-01-20 14:00:00','2026-08-30 12:00:00',3500000.00,'CHECKED_OUT','HCM02-104','Thành phố Hồ Chí Minh','Quận 3 Hotel'),
+('HCM03_26012026140000_001234567891','001234567891','Trần Thị B','2026-01-26 14:00:00','2026-07-26 12:00:00',2500000.00,'CHECKED_IN','HCM03-102','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03_31012026140000_001234567892','001234567892','Lê Văn C','2026-01-31 14:00:00','2026-08-29 12:00:00',3000000.00,'BOOKED','HCM03-203','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM03_21012026140000_001234567893','001234567893','Phạm Thị D','2026-01-21 14:00:00','2026-09-17 12:00:00',3500000.00,'CHECKED_OUT','HCM03-104','Thành phố Hồ Chí Minh','Phú Nhuận Hotel'),
+('HCM04_27012026140000_001234567892','001234567892','Lê Văn C','2026-01-27 14:00:00','2026-08-13 12:00:00',2500000.00,'CHECKED_IN','HCM04-102','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04_01022026140000_001234567893','001234567893','Phạm Thị D','2026-02-01 14:00:00','2026-09-16 12:00:00',3000000.00,'BOOKED','HCM04-203','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM04_22012026140000_001234567894','001234567894','Hoàng Văn E','2026-01-22 14:00:00','2026-10-05 12:00:00',3500000.00,'CHECKED_OUT','HCM04-104','Thành phố Hồ Chí Minh','Tân Bình Hotel'),
+('HCM05_28012026140000_001234567893','001234567893','Phạm Thị D','2026-01-28 14:00:00','2026-08-31 12:00:00',2500000.00,'CHECKED_IN','HCM05-102','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05_02022026140000_001234567894','001234567894','Hoàng Văn E','2026-02-02 14:00:00','2026-10-04 12:00:00',3000000.00,'BOOKED','HCM05-203','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('HCM05_23012026140000_001234567895','001234567895','Vũ Văn F','2026-01-23 14:00:00','2026-10-23 12:00:00',3500000.00,'CHECKED_OUT','HCM05-104','Thành phố Hồ Chí Minh','Thủ Đức Hotel'),
+('PQ01_29012026140000_001234567894','001234567894','Hoàng Văn E','2026-01-29 14:00:00','2026-09-18 12:00:00',2500000.00,'CHECKED_IN','PQ01-102','Phú Quốc','Dương Đông Hotel'),
+('PQ01_03022026140000_001234567895','001234567895','Vũ Văn F','2026-02-03 14:00:00','2026-10-22 12:00:00',3000000.00,'BOOKED','PQ01-203','Phú Quốc','Dương Đông Hotel'),
+('PQ01_24012026140000_001234567896','001234567896','Đặng Thị G','2026-01-24 14:00:00','2026-11-10 12:00:00',3500000.00,'CHECKED_OUT','PQ01-104','Phú Quốc','Dương Đông Hotel'),
+('PQ02_30012026140000_001234567895','001234567895','Vũ Văn F','2026-01-30 14:00:00','2026-10-06 12:00:00',2500000.00,'CHECKED_IN','PQ02-102','Phú Quốc','An Thới Hotel'),
+('PQ02_04022026140000_001234567896','001234567896','Đặng Thị G','2026-02-04 14:00:00','2026-11-09 12:00:00',3000000.00,'BOOKED','PQ02-203','Phú Quốc','An Thới Hotel'),
+('PQ02_25012026140000_001234567897','001234567897','Phan Văn H','2026-01-25 14:00:00','2026-11-28 12:00:00',3500000.00,'CHECKED_OUT','PQ02-104','Phú Quốc','An Thới Hotel');
+
+-- =========================
+-- INSERT INVOICES (tạo cho các booking CHECKED_OUT)
+-- invoices.id = booking_id
+-- =========================
+INSERT INTO invoices (id, booking_id, total_amount, created_at, payment_type) VALUES
+('HN01_10012026140000_001234567892','HN01_10012026140000_001234567892',3500000.00,'2026-09-05 13:00:00','CASH'),
+('HN02_11012026140000_001234567893','HN02_11012026140000_001234567893',3500000.00,'2026-09-23 13:00:00','CASH'),
+('HN03_12012026140000_001234567894','HN03_12012026140000_001234567894',3500000.00,'2026-10-11 13:00:00','CASH'),
+('HN04_13012026140000_001234567895','HN04_13012026140000_001234567895',3500000.00,'2026-10-29 13:00:00','CASH'),
+('HN05_14012026140000_001234567896','HN05_14012026140000_001234567896',3500000.00,'2026-11-16 13:00:00','CASH'),
+('DN01_15012026140000_001234567897','DN01_15012026140000_001234567897',3500000.00,'2026-12-04 13:00:00','CASH'),
+('DN02_16012026140000_001234567898','DN02_16012026140000_001234567898',3500000.00,'2026-12-22 13:00:00','CASH'),
+('DN03_17012026140000_001234567899','DN03_17012026140000_001234567899',3500000.00,'2027-01-09 13:00:00','CASH'),
+('DN04_18012026140000_001234567890','DN04_18012026140000_001234567890',3500000.00,'2026-07-25 13:00:00','CASH'),
+('HCM01_19012026140000_001234567891','HCM01_19012026140000_001234567891',3500000.00,'2026-08-12 13:00:00','CASH'),
+('HCM02_20012026140000_001234567892','HCM02_20012026140000_001234567892',3500000.00,'2026-08-30 13:00:00','CASH'),
+('HCM03_21012026140000_001234567893','HCM03_21012026140000_001234567893',3500000.00,'2026-09-17 13:00:00','CASH'),
+('HCM04_22012026140000_001234567894','HCM04_22012026140000_001234567894',3500000.00,'2026-10-05 13:00:00','CASH'),
+('HCM05_23012026140000_001234567895','HCM05_23012026140000_001234567895',3500000.00,'2026-10-23 13:00:00','CASH'),
+('PQ01_24012026140000_001234567896','PQ01_24012026140000_001234567896',3500000.00,'2026-11-10 13:00:00','CASH'),
+('PQ02_25012026140000_001234567897','PQ02_25012026140000_001234567897',3500000.00,'2026-11-28 13:00:00','CASH');
+
+-- =========================
+-- INSERT APPROVAL REQUESTS / LOGS (mẫu)
+-- =========================
+INSERT INTO approval_requests (id, type, target_id, request_data, reason, status, created_at, created_by) VALUES
+('AR-0001','DISCOUNT','HN01_15012026140000_001234567890','{"discountPercent":10,"bookingId":"HN01_15012026140000_001234567890"}','Seed request','PENDING',NOW(),'seed_system'),
+('AR-0002','DISCOUNT','HN01_20012026140000_001234567891','{"discountPercent":10,"bookingId":"HN01_20012026140000_001234567891"}','Seed request','PENDING',NOW(),'seed_system'),
+('AR-0003','DISCOUNT','HN01_10012026140000_001234567892','{"discountPercent":10,"bookingId":"HN01_10012026140000_001234567892"}','Seed request','PENDING',NOW(),'seed_system'),
+('AR-0004','DISCOUNT','HN02_16012026140000_001234567891','{"discountPercent":10,"bookingId":"HN02_16012026140000_001234567891"}','Seed request','PENDING',NOW(),'seed_system'),
+('AR-0005','DISCOUNT','HN02_21012026140000_001234567892','{"discountPercent":10,"bookingId":"HN02_21012026140000_001234567892"}','Seed request','PENDING',NOW(),'seed_system'),
+('AR-0006','DISCOUNT','HN02_11012026140000_001234567893','{"discountPercent":10,"bookingId":"HN02_11012026140000_001234567893"}','Seed request','PENDING',NOW(),'seed_system'),
+('AR-0007','DISCOUNT','HN03_17012026140000_001234567892','{"discountPercent":10,"bookingId":"HN03_17012026140000_001234567892"}','Seed request','PENDING',NOW(),'seed_system'),
+('AR-0008','DISCOUNT','HN03_22012026140000_001234567893','{"discountPercent":10,"bookingId":"HN03_22012026140000_001234567893"}','Seed request','PENDING',NOW(),'seed_system'),
+('AR-0009','DISCOUNT','HN03_12012026140000_001234567894','{"discountPercent":10,"bookingId":"HN03_12012026140000_001234567894"}','Seed request','PENDING',NOW(),'seed_system'),
+('AR-0010','DISCOUNT','HN04_18012026140000_001234567893','{"discountPercent":10,"bookingId":"HN04_18012026140000_001234567893"}','Seed request','PENDING',NOW(),'seed_system');
+
+INSERT INTO approval_log (id, command_name, description, timestamp) VALUES
+('AL-0001','ApproveDiscountCmd','Duyệt giảm giá (seed log)',NOW()),
+('AL-0002','RejectRequestCmd','Từ chối yêu cầu (seed log)',NOW());
+
+-- =========================
+-- VERIFY / SUMMARY
+-- =========================
+SELECT '========== USERS (COUNT BY ROLE & BRANCH) ===========' AS '';
+SELECT city, branch_name, role, COUNT(*) AS cnt FROM users GROUP BY city, branch_name, role ORDER BY city, branch_name, role;
+
+SELECT '========== ROOMS (COUNT PER BRANCH) ===========' AS '';
+SELECT city, branch_name, COUNT(*) AS rooms_cnt FROM rooms GROUP BY city, branch_name ORDER BY city, branch_name;
+
+SELECT '========== BOOKINGS (SAMPLE) ===========' AS '';
+SELECT b.id, b.customer_name, b.status, b.check_in_date, b.check_out_date, r.room_number, b.city, b.branch_name FROM bookings b LEFT JOIN rooms r ON b.room_id = r.id ORDER BY b.city, b.branch_name, b.check_in_date LIMIT 50;
+
+SELECT '========== INVOICES (SAMPLE) ===========' AS '';
+SELECT i.id, i.booking_id, i.total_amount, i.payment_type, i.created_at FROM invoices i ORDER BY i.created_at DESC LIMIT 20;
+
+SELECT '========== SUMMARY ===========' AS '';
+SELECT (SELECT COUNT(*) FROM users) AS total_users,
+       (SELECT COUNT(*) FROM rooms) AS total_rooms,
+       (SELECT COUNT(*) FROM customers) AS total_customers,
+       (SELECT COUNT(*) FROM bookings) AS total_bookings,
+       (SELECT COUNT(*) FROM invoices) AS total_invoices,
+       (SELECT COUNT(*) FROM approval_requests) AS total_approval_requests,
+       (SELECT COUNT(*) FROM approval_log) AS total_approval_logs;
+
+SELECT '✅ Database hotel_db đã được khởi tạo thành công!' AS status;
