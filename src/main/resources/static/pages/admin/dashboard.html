@@ -30,9 +30,35 @@
             </button>
         </div>
 
-        <!-- User List Table -->
-        <div class="card">
-            <h3>Danh Sách Tài Khoản</h3>
+        <!-- User List Table with Integrated Search/Filter -->
+        <div class="card" style="padding: 0; overflow: visible;">
+            <div class="table-header-sticky">
+                <div class="table-title-section">
+                    <h3 style="margin: 0;">Danh Sách Tài Khoản</h3>
+                </div>
+                <div class="search-filter-compact">
+                    <input type="text" id="search-input" placeholder="🔍 Tìm kiếm..." onkeyup="filterUsers()"
+                        class="search-input-compact">
+                    <select id="role-filter" onchange="filterUsers()" class="filter-select-compact">
+                        <option value="">Vai trò</option>
+                        <option value="REGIONAL_MANAGER">Regional Manager</option>
+                        <option value="BRANCH_MANAGER">Branch Manager</option>
+                        <option value="ADMIN">IT Admin</option>
+                        <option value="RECEPTIONIST">Lễ tân</option>
+                        <option value="HOUSEKEEPER">Dọn phòng</option>
+                    </select>
+                    <select id="city-filter" onchange="filterUsers()" class="filter-select-compact">
+                        <option value="">Thành phố</option>
+                        <option value="Hà Nội">Hà Nội</option>
+                        <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+                        <option value="Đà Nẵng">Đà Nẵng</option>
+                        <option value="Phú Quốc">Phú Quốc</option>
+                    </select>
+                    <select id="branch-filter" onchange="filterUsers()" class="filter-select-compact">
+                        <option value="">Chi nhánh</option>
+                    </select>
+                </div>
+            </div>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -42,7 +68,7 @@
                         <th>Vai Trò</th>
                         <th>Thành Phố</th>
                         <th>Chi Nhánh</th>
-                        <th>Hành Động</th>
+                        <th style="width: 50px;"></th>
                     </tr>
                 </thead>
                 <tbody id="users-tbody">
@@ -129,6 +155,110 @@
                     <button type="submit" class="btn btn-primary">Tạo Tài Khoản</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal: Edit User -->
+    <div class="modal-backdrop" id="edit-user-modal-backdrop">
+        <div class="modal" id="edit-user-modal">
+            <div class="modal-header">
+                <h2>✏️ Chỉnh Sửa Tài Khoản</h2>
+                <button class="modal-close" onclick="ModalManager.close('edit-user-modal')">&times;</button>
+            </div>
+            <form id="edit-user-form" onsubmit="handleEditUser(event)">
+                <input type="hidden" name="id" id="edit-user-id">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Username *</label>
+                            <input type="text" id="edit-username" name="username" required minlength="3" maxlength="20"
+                                pattern="[a-zA-Z0-9]+" title="Chỉ chữ cái và số, không dấu" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Họ và Tên *</label>
+                            <input type="text" id="edit-fullName" name="fullName" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Vai Trò *</label>
+                            <select id="edit-role" name="role" required onchange="handleEditRoleChange()">
+                                <option value="">-- Chọn vai trò --</option>
+                                <option value="REGIONAL_MANAGER">Regional Manager</option>
+                                <option value="BRANCH_MANAGER">Branch Manager</option>
+                                <option value="ADMIN">IT Admin</option>
+                                <option value="RECEPTIONIST">Receptionist</option>
+                                <option value="HOUSEKEEPER">Housekeeper</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="edit-city-group">
+                            <label>Thành Phố *</label>
+                            <select id="edit-city" name="city">
+                                <option value="">-- Chọn thành phố --</option>
+                                <option value="Hà Nội">Hà Nội</option>
+                                <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+                                <option value="Đà Nẵng">Đà Nẵng</option>
+                                <option value="Đà Lạt">Đà Lạt</option>
+                                <option value="Phú Quốc">Phú Quốc</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" id="edit-branch-group">
+                            <label>Chi Nhánh</label>
+                            <input type="text" id="edit-branchName" name="branchName" placeholder="VD: Ba Đình Hotel">
+                        </div>
+                        <div class="form-group">
+                            <label>Ngày Sinh</label>
+                            <input type="date" id="edit-birthday" name="birthday">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Số Điện Thoại</label>
+                            <input type="tel" id="edit-phoneNumber" name="phoneNumber" pattern="[0-9]{10}"
+                                placeholder="VD: 0901234567">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="edit-email" name="email">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('edit-user-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Cập Nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-backdrop" id="confirm-delete-modal-backdrop">
+        <div class="modal confirm-modal" id="confirm-delete-modal">
+            <div class="modal-header">
+                <h2>⚠️ Xác Nhận Xóa</h2>
+                <button class="modal-close" onclick="ModalManager.close('confirm-delete-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-icon delete">🗑️</div>
+                <div class="modal-message">Bạn có chắc muốn xóa tài khoản này?</div>
+                <div class="modal-detail" id="confirm-delete-detail">
+                    Tài khoản "<span id="delete-username"></span>" sẽ bị xóa vĩnh viễn và không thể khôi phục.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="ModalManager.close('confirm-delete-modal')">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+                    Xóa Tài Khoản
+                </button>
+            </div>
         </div>
     </div>
 
