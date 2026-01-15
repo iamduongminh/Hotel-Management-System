@@ -207,7 +207,7 @@ VALUES (
         'nam@hotel.vn'
     );
 -- 3.2 INSERT ROOMS (Phòng)
--- Các loại phòng: STANDARD, DELUXE, SUITE, PRESIDENTIAL
+-- Các loại phòng: STANDARD, DELUXE, SUITE
 -- Trạng thái: AVAILABLE, OCCUPIED, CLEANING, MAINTENANCE
 -- Phòng tầng 1 (Standard)
 INSERT INTO rooms (room_number, price, type, status)
@@ -241,10 +241,7 @@ VALUES ('303', 1200000.00, 'SUITE', 'AVAILABLE');
 INSERT INTO rooms (room_number, price, type, status)
 VALUES ('304', 1200000.00, 'SUITE', 'AVAILABLE');
 -- Phòng tầng 4 (Presidential)
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('401', 2500000.00, 'PRESIDENTIAL', 'AVAILABLE');
-INSERT INTO rooms (room_number, price, type, status)
-VALUES ('402', 2500000.00, 'PRESIDENTIAL', 'AVAILABLE');
+
 -- 3.3 INSERT CUSTOMERS (Khách hàng)
 INSERT INTO customers (full_name, phone, identity_number)
 VALUES ('Nguyễn Văn A', '0912345678', '001234567890'),
