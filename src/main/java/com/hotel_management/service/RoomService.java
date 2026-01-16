@@ -25,13 +25,6 @@ public class RoomService {
         return calculateRoomStatuses(roomRepo.findAll());
     }
 
-    public List<Room> getRoomsByBranch(String branchName) {
-        if (branchName == null || branchName.isEmpty()) {
-            return getAllRooms();
-        }
-        return calculateRoomStatuses(roomRepo.findByBranchName(branchName));
-    }
-
     private List<Room> calculateRoomStatuses(List<Room> rooms) {
         // 1. Fetch active bookings (for OCCUPIED / BOOKED overlay)
         List<com.hotel_management.api.core.domain.entity.Booking> activeBookings = bookingRepo.findActiveBookings();
@@ -183,7 +176,6 @@ public class RoomService {
     /**
      * Get filtered rooms based on multiple criteria
      * 
-     * @param branchName Branch to filter by
      * @param type       Room type filter (optional)
      * @param status     Room status filter (optional)
      * @param minPrice   Minimum price filter (optional)
@@ -192,15 +184,14 @@ public class RoomService {
      * @return List of rooms matching the criteria
      */
     public List<Room> getFilteredRooms(
-            String branchName,
             RoomType type,
             RoomStatus status,
             java.math.BigDecimal minPrice,
             java.math.BigDecimal maxPrice,
             String roomNumber) {
 
-        // Start with rooms by branch
-        List<Room> rooms = getRoomsByBranch(branchName);
+        // Get all rooms (single-branch system)
+        List<Room> rooms = getAllRooms();
 
         // Apply filters
         return rooms.stream()

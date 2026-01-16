@@ -23,11 +23,7 @@ public class Room {
     @Enumerated(EnumType.STRING)
     private RoomType type;
 
-    private String city;
-
     @Enumerated(EnumType.STRING)
     @Column(length = 50)
     private RoomStatus status;
-
-    private String branchName; // Link to branch
 }

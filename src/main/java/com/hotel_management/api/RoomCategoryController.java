@@ -21,7 +21,7 @@ public class RoomCategoryController {
     private RoomCategoryService roomCategoryService;
 
     /**
-     * Get all room categories filtered by user's branch
+     * Get all room categories
      */
     @GetMapping
     public ResponseEntity<?> getAllCategories(HttpSession session) {
@@ -32,8 +32,7 @@ public class RoomCategoryController {
                         .body(createErrorResponse("Vui lòng đăng nhập"));
             }
 
-            String branchName = currentUser.getBranchName();
-            List<RoomCategory> categories = roomCategoryService.getAllCategoriesByBranch(branchName);
+            List<RoomCategory> categories = roomCategoryService.getAllCategories();
             return ResponseEntity.ok(categories);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -54,13 +53,6 @@ public class RoomCategoryController {
             }
 
             RoomCategory category = roomCategoryService.getCategoryById(id);
-
-            // Check if category belongs to user's branch
-            if (!category.getBranchName().equals(currentUser.getBranchName())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("Bạn không có quyền xem danh mục này"));
-            }
-
             return ResponseEntity.ok(category);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -82,10 +74,6 @@ public class RoomCategoryController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(createErrorResponse("Vui lòng đăng nhập"));
             }
-
-            // Set branch info from current user
-            category.setCity(currentUser.getCity());
-            category.setBranchName(currentUser.getBranchName());
 
             RoomCategory createdCategory = roomCategoryService.createCategory(category);
 
@@ -117,13 +105,6 @@ public class RoomCategoryController {
                         .body(createErrorResponse("Vui lòng đăng nhập"));
             }
 
-            // Check if category belongs to user's branch
-            RoomCategory existingCategory = roomCategoryService.getCategoryById(id);
-            if (!existingCategory.getBranchName().equals(currentUser.getBranchName())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("Bạn không có quyền sửa danh mục này"));
-            }
-
             RoomCategory updatedCategory = roomCategoryService.updateCategory(id, category);
 
             Map<String, Object> response = new HashMap<>();
@@ -151,13 +132,6 @@ public class RoomCategoryController {
                         .body(createErrorResponse("Vui lòng đăng nhập"));
             }
 
-            // Check if category belongs to user's branch
-            RoomCategory existingCategory = roomCategoryService.getCategoryById(id);
-            if (!existingCategory.getBranchName().equals(currentUser.getBranchName())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("Bạn không có quyền xóa danh mục này"));
-            }
-
             roomCategoryService.deleteCategory(id);
 
             Map<String, String> response = new HashMap<>();
@@ -182,13 +156,6 @@ public class RoomCategoryController {
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(createErrorResponse("Vui lòng đăng nhập"));
-            }
-
-            // Check if category belongs to user's branch
-            RoomCategory existingCategory = roomCategoryService.getCategoryById(id);
-            if (!existingCategory.getBranchName().equals(currentUser.getBranchName())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("Bạn không có quyền thay đổi trạng thái danh mục này"));
             }
 
             RoomCategory updatedCategory = roomCategoryService.toggleCategoryStatus(id);

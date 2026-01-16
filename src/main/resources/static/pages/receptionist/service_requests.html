@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yêu Cầu Dịch Vụ - Lễ Tân</title>
+    <title>Receptionist</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -70,23 +70,23 @@
                         placeholder="Tìm theo phòng, khách...">
                     <select id="status-filter" class="filter-select-compact" onchange="applyFilter()">
                         <option value="">Tất cả trạng thái</option>
-                        <option value="PENDING">⏳ Chờ xử lý</option>
-                        <option value="PROCESSING">⚙️ Đang xử lý</option>
-                        <option value="COMPLETED">✅ Hoàn thành</option>
-                        <option value="CANCELLED">❌ Đã hủy</option>
+                        <option value="PENDING">Chờ xử lý</option>
+                        <option value="PROCESSING">Đang xử lý</option>
+                        <option value="COMPLETED">Hoàn thành</option>
+                        <option value="CANCELLED">Đã hủy</option>
                     </select>
                 </div>
             </div>
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th style="width: 120px;">Thời Gian</th>
+                        <th style="width: 150px; white-space: nowrap;">Thời Gian</th>
                         <th style="width: 80px;">Phòng</th>
                         <th style="width: 150px;">Khách</th>
-                        <th style="width: 120px;">Loại Dịch Vụ</th>
+                        <th style="width: 150px; text-align: center;">Loại Dịch Vụ</th>
                         <th>Nội Dung</th>
-                        <th style="width: 120px;">Trạng Thái</th>
-                        <th style="width: 150px;">Hành Động</th>
+                        <th style="width: 150px; text-align: center;">Trạng Thái</th>
+                        <th style="width: 80px; text-align: center;">Hành Động</th>
                     </tr>
                 </thead>
                 <tbody id="requests-tbody">
@@ -134,13 +134,39 @@
                 </div>
             </form>
         </div>
-    </div>
+        <!-- Update Status Modal -->
+        <div class="modal-backdrop" id="update-status-modal-backdrop">
+            <div class="modal" id="update-status-modal">
+                <div class="modal-header">
+                    <h2>Cập nhật trạng thái</h2>
+                    <button class="modal-close" onclick="ModalManager.close('update-status-modal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="update-request-id">
+                    <div class="form-group">
+                        <label>Chọn trạng thái mới</label>
+                        <select id="update-request-status"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text);">
+                            <option value="PENDING">⏳ Chờ xử lý</option>
+                            <option value="PROCESSING">⚙️ Đang xử lý</option>
+                            <option value="COMPLETED">✅ Hoàn thành</option>
+                            <option value="CANCELLED">❌ Hủy bỏ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('update-status-modal')">Đóng</button>
+                    <button type="button" class="btn btn-primary" onclick="submitUpdateStatus()">Lưu thay đổi</button>
+                </div>
+            </div>
+        </div>
 
-    <script src="../../js/common/toast.js"></script>
-    <script src="../../js/common/config.js"></script>
-    <script src="../../js/common/auth.js"></script>
-    <script src="../../js/common/modal.js"></script>
-    <script src="../../js/receptionist/service_requests.js"></script>
+        <script src="../../js/common/toast.js"></script>
+        <script src="../../js/common/config.js"></script>
+        <script src="../../js/common/auth.js"></script>
+        <script src="../../js/common/modal.js"></script>
+        <script src="../../js/receptionist/service_requests.js"></script>
 </body>
 
 </html>

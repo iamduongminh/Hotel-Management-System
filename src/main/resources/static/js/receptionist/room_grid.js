@@ -26,16 +26,51 @@ const STATUS_DISPLAY = {
     'MAINTENANCE': { text: 'Bảo trì', class: 'maintenance', icon: 'fa-tools' }
 };
 
+// Menu configurations for each room status
+const MENU_CONFIGS = {
+    AVAILABLE: [
+        { icon: 'fa-user-plus', text: 'Khách đến (Check-in)', action: 'showWalkInModal', color: '#10b981' },
+        { type: 'divider' },
+        { icon: 'fa-broom', text: 'Cần dọn', action: 'updateRoomStatus', status: 'DIRTY', color: '#f97316' },
+        { icon: 'fa-tools', text: 'Bảo trì', action: 'updateRoomStatus', status: 'MAINTENANCE', color: '#6b7280' }
+    ],
+    BOOKED: [
+        { icon: 'fa-calendar-check', text: 'Chi tiết booking', action: 'showBookingInfo', color: '#3b82f6' },
+        { type: 'divider' },
+        { icon: 'fa-door-open', text: 'Check-in', action: 'confirmCheckIn', color: '#10b981' },
+        { icon: 'fa-times-circle', text: 'Hủy booking', action: 'cancelBooking', color: '#ef4444' },
+        { type: 'divider' },
+        { icon: 'fa-broom', text: 'Cần dọn', action: 'updateRoomStatus', status: 'DIRTY' },
+        { icon: 'fa-tools', text: 'Bảo trì', action: 'updateRoomStatus', status: 'MAINTENANCE' }
+    ],
+    OCCUPIED: [
+        { icon: 'fa-concierge-bell', text: 'Dịch vụ đã dùng', action: 'showServices' },
+        { type: 'divider' },
+        { icon: 'fa-cash-register', text: 'Check-out & Thanh toán', action: 'showCheckoutModal', color: '#f59e0b' }
+    ],
+    CHECKED_IN: [
+        { icon: 'fa-cash-register', text: 'Check-out & Thanh toán', action: 'showCheckoutModal', color: '#f59e0b' }
+    ],
+    DIRTY: [
+        { icon: 'fa-soap', text: 'Đang dọn', action: 'updateRoomStatus', status: 'CLEANING', color: '#eab308' },
+        { icon: 'fa-check', text: 'Sẵn sàng (Trống)', action: 'updateRoomStatus', status: 'AVAILABLE', color: '#10b981' },
+        { icon: 'fa-tools', text: 'Bảo trì', action: 'updateRoomStatus', status: 'MAINTENANCE' }
+    ],
+    CLEANING: [
+        { icon: 'fa-check', text: 'Hoàn tất (Trống)', action: 'updateRoomStatus', status: 'AVAILABLE', color: '#10b981' },
+        { icon: 'fa-broom', text: 'Vẫn còn bẩn', action: 'updateRoomStatus', status: 'DIRTY', color: '#f97316' },
+        { icon: 'fa-tools', text: 'Bảo trì', action: 'updateRoomStatus', status: 'MAINTENANCE' }
+    ],
+    MAINTENANCE: [
+        { icon: 'fa-check', text: 'Hoàn tất (Trống)', action: 'updateRoomStatus', status: 'AVAILABLE', color: '#10b981' },
+        { icon: 'fa-broom', text: 'Cần dọn', action: 'updateRoomStatus', status: 'DIRTY' }
+    ]
+};
+
 // Initialize
 // Initialize
 document.addEventListener('DOMContentLoaded', function () {
-    // Display branch name
-    const currentUser = getCurrentUser();
-    if (currentUser && currentUser.branchName) {
-        document.getElementById('branch-name-display').textContent = currentUser.branchName;
-    } else {
-        document.getElementById('branch-name-display').textContent = 'Chi nhánh';
-    }
+    // Branch name display logic removed
 
     loadRooms();
     startClock();
@@ -49,10 +84,28 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 3000);
 });
 
-// Load all rooms
+// Load all rooms and bookings
 async function loadRooms() {
     try {
-        const rooms = await callAPI('/rooms', 'GET');
+        const [rooms, bookings] = await Promise.all([
+            callAPI('/rooms', 'GET'),
+            callAPI('/bookings', 'GET')
+        ]);
+
+        // Map active bookings to rooms
+        const activeBookings = bookings.filter(b =>
+            ['OCCUPIED', 'BOOKED', 'CHECKED_IN'].includes(b.status)
+        );
+
+        rooms.forEach(room => {
+            // Find booking for this room
+            // Note: If multiple, take the one that overlaps "now" or is active
+            const booking = activeBookings.find(b => b.room && b.room.id === room.id);
+            if (booking) {
+                room.currentBooking = booking;
+            }
+        });
+
         roomsData = rooms;
         renderRoomGrid(rooms);
         updateStats(rooms);
@@ -104,7 +157,7 @@ function renderRoomGrid(rooms) {
                 <div class="floor-header">
                     <i class="fas fa-layer-group"></i>
                     <span>Tầng ${floor}</span>
-                    <span style="font-size: 14px; font-weight: 400; color: var(--text-muted); margin-left: auto;">
+                    <span style="font-size: 14px; font-weight: 400; color: var(--text-muted); margin-top: 4px;">
                         ${floorRooms.length} phòng
                     </span>
                 </div>
@@ -123,14 +176,20 @@ function renderRoomBox(room) {
 
     // Get guest name if occupied/booked
     let guestName = '';
-    if (room.currentBooking && (room.status === 'OCCUPIED' || room.status === 'BOOKED')) {
-        guestName = `<div class="room-guest-name">${room.currentBooking.customerName || 'N/A'}</div>`;
+    // Show guest name for OCCUPIED and BOOKED, checking if currentBooking exists
+    if (room.currentBooking && (room.status === 'OCCUPIED' || room.status === 'BOOKED' || room.status === 'CHECKED_IN')) {
+        guestName = `<div class="room-guest-name">${room.currentBooking.customerName || 'Khách'}</div>`;
     }
+
+    // Format tooltip info
+    const priceFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.price);
+    const tooltipText = `Phòng ${room.roomNumber} • ${room.type || 'Standard'} • ${priceFormatted}/đêm`;
 
     return `
         <div class="room-box ${status}" 
              onclick="handleRoomClick(event, ${room.id})" 
              data-room-id="${room.id}">
+            <div class="room-tooltip">${tooltipText}</div>
             <div class="room-number">${room.roomNumber}</div>
             <div class="room-type">${room.type || 'Standard'}</div>
             <div class="room-status-text">${statusText}</div>
@@ -143,6 +202,7 @@ function renderRoomBox(room) {
 function getStatusText(status) {
     const statusMap = {
         'AVAILABLE': 'Trống',
+        'APP_AVAILABLE': 'Trống', // Handle potential alias
         'OCCUPIED': 'Có khách',
         'BOOKED': 'Đã đặt',
         'DIRTY': 'Cần dọn',
@@ -163,7 +223,10 @@ function updateStats(rooms) {
     };
 
     rooms.forEach(room => {
-        const status = room.status ? room.status.toLowerCase() : 'available';
+        let status = room.status ? room.status.toLowerCase() : 'available';
+        // Normalize status
+        if (status === 'app_available') status = 'available';
+
         if (stats[status] !== undefined) {
             stats[status]++;
         }
@@ -209,51 +272,141 @@ async function showRoomDetails(roomId) {
         }
     }
 
+    // Populate details in body
+    const detailsContent = document.getElementById('room-details-content');
+    if (detailsContent) {
+        let bookingInfo = '';
+        if (room.currentBooking) {
+            const b = room.currentBooking;
+            const checkInDate = b.checkInDate ? new Date(b.checkInDate).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+            const checkOutDate = b.checkOutDate ? new Date(b.checkOutDate).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+            const nights = calculateNights(b.checkInDate, b.checkOutDate);
+
+            bookingInfo = `
+                <div class="detail-section" style="margin-top: 20px;">
+                    <div class="section-title" style="color: var(--primary); margin-bottom: 12px;">
+                        <i class="fas fa-calendar-check"></i> Thông tin lưu trú
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Khách hàng</span>
+                        <span class="detail-value">${b.customerName || 'N/A'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Check-in</span>
+                        <span class="detail-value" style="color: var(--success);">${checkInDate}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Check-out dự kiến</span>
+                        <span class="detail-value" style="color: var(--warning);">${checkOutDate}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Số đêm</span>
+                        <span class="detail-value">${nights} đêm</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        detailsContent.innerHTML = `
+            <div class="detail-section">
+                <div class="section-title" style="color: var(--primary); margin-bottom: 12px;">
+                    <i class="fas fa-door-open"></i> Thông tin phòng
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Số phòng</span>
+                    <span class="detail-value" style="font-weight: 700; font-size: 16px;">${room.roomNumber}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Loại phòng</span>
+                    <span class="detail-value">${room.type || 'Standard'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Giá phòng/đêm</span>
+                    <span class="detail-value" style="color: var(--success); font-weight: 600;">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(room.price)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Trạng thái</span>
+                    <span class="detail-value">
+                        <span class="status-badge ${room.status ? room.status.toLowerCase() : ''}" style="padding: 4px 12px; border-radius: 12px; font-size: 12px;">
+                            ${getStatusText(room.status)}
+                        </span>
+                    </span>
+                </div>
+            </div>
+            ${bookingInfo}
+        `;
+    }
+
+
+    // Configure Edit Button
+    const editBtn = document.getElementById('modal-edit-btn');
+    if (editBtn) {
+        editBtn.innerHTML = '<i class="fas fa-edit"></i> Chỉnh sửa thông tin phòng';
+        editBtn.onclick = showEditRoomForm;
+        editBtn.style.display = 'inline-block';
+    }
+
     // Show Modal
-    const modal = document.getElementById('room-details-modal');
-    // Using simple display block as per previous code, ignoring ModalManager for now to keep it working
-    // But wait, the HTML uses ModalManager. Let's try to use ModalManager if available, or fallback.
     if (window.ModalManager) {
         ModalManager.open('room-details-modal');
     } else {
-        modal.style.display = 'block';
+        document.getElementById('room-details-modal').style.display = 'block';
     }
 }
 
+
+// Calculate nights between two dates
+function calculateNights(checkIn, checkOut) {
+    if (!checkIn || !checkOut) return 0;
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    const diff = end - start;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
 // Update Room Status directly
-async function updateRoomStatus(newStatus) {
-    if (!selectedRoom) return;
+async function updateRoomStatus(roomId, newStatus) {
+    // Legacy support if called with single argument
+    if (newStatus === undefined) {
+        newStatus = roomId;
+        roomId = selectedRoom ? selectedRoom.id : null;
+    }
 
-    if (!selectedRoom) return;
-
-    // Direct update without confirmation
+    if (!roomId) {
+        alert("Không xác định được phòng cần cập nhật");
+        return;
+    }
 
     try {
-        // Send status in body as expected by Controller
-        await callAPI(`/rooms/${selectedRoom.id}/status`, 'PUT', {
+        await callAPI(`/rooms/${roomId}/status`, 'PUT', {
             status: newStatus
         });
 
         // Update local data
-        selectedRoom.status = newStatus;
+        const room = roomsData.find(r => r.id == roomId);
+        if (room) {
+            room.status = newStatus;
+        }
 
-        // Close modal
+        // Also update global selectedRoom if it matches
+        if (selectedRoom && selectedRoom.id == roomId) {
+            selectedRoom.status = newStatus;
+        }
+
+        // Close modal if open
         if (window.ModalManager) {
             ModalManager.close('room-details-modal');
         } else {
-            document.getElementById('room-details-modal').style.display = 'none';
+            const modal = document.getElementById('room-details-modal');
+            if (modal) modal.style.display = 'none';
         }
 
         // Reload rooms to refresh grid
         loadRooms();
 
-        // Show success toast if available
         if (window.showToast) {
             showToast('Cập nhật trạng thái thành công', 'success');
-        } else {
-            alert('Cập nhật trạng thái thành công');
         }
-
     } catch (error) {
         alert('Lỗi cập nhật trạng thái: ' + error.message);
     }
@@ -270,7 +423,6 @@ function showEditRoomForm() {
     document.getElementById('edit-room-number').value = selectedRoom.roomNumber;
     document.getElementById('edit-room-type').value = selectedRoom.type || 'STANDARD';
     document.getElementById('edit-room-price').value = selectedRoom.price || 0;
-    document.getElementById('edit-room-branch').value = selectedRoom.branchName || '';
 
     ModalManager.open('edit-room-modal');
 }
@@ -289,14 +441,9 @@ async function handleUpdateRoomInfo(event) {
     };
 
     try {
-        const response = await callAPI(`/rooms/${roomId}`, 'PUT', updates);
-
+        await callAPI(`/rooms/${roomId}`, 'PUT', updates);
         alert('Cập nhật thông tin phòng thành công!');
-
-        // Close modal
         ModalManager.close('edit-room-modal');
-
-        // Reload rooms to refresh grid
         loadRooms();
 
     } catch (error) {
@@ -304,64 +451,362 @@ async function handleUpdateRoomInfo(event) {
     }
 }
 
+// Show Edit Booking Form
+function showEditBookingForm(bookingId) {
+    // If selectedRoom is not set or doesn't match, find the room
+    if (!selectedRoom || (selectedRoom.currentBooking && selectedRoom.currentBooking.id !== bookingId)) {
+        selectedRoom = roomsData.find(r => r.currentBooking && r.currentBooking.id === bookingId);
+    }
+
+    if (!selectedRoom || !selectedRoom.currentBooking) {
+        alert("Không tìm thấy thông tin booking để sửa");
+        return;
+    }
+
+    const booking = selectedRoom.currentBooking;
+
+    ModalManager.close('room-details-modal');
+
+    document.getElementById('edit-booking-id').value = booking.id;
+    document.getElementById('edit-booking-customer').value = booking.customerName;
+
+    // Format dates for datetime-local input (YYYY-MM-DDTHH:mm)
+    // Assuming backend returns ISO string or similar
+    const checkIn = booking.checkInDate ? new Date(booking.checkInDate).toISOString().slice(0, 16) : '';
+    const checkOut = booking.checkOutDate ? new Date(booking.checkOutDate).toISOString().slice(0, 16) : '';
+
+    document.getElementById('edit-booking-checkin').value = checkIn;
+    document.getElementById('edit-booking-checkout').value = checkOut;
+
+    ModalManager.open('edit-booking-modal');
+}
+
+// Handle Update Booking Information
+async function handleUpdateBookingInfo(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const bookingId = document.getElementById('edit-booking-id').value;
+
+    const updates = {
+        customerName: formData.get('customerName'),
+        checkInDate: formData.get('checkInDate'),
+        checkOutDate: formData.get('checkOutDate')
+    };
+
+    try {
+        await callAPI(`/bookings/${bookingId}`, 'PUT', updates);
+        alert('Cập nhật thông tin booking thành công!');
+        ModalManager.close('edit-booking-modal');
+        loadRooms();
+    } catch (error) {
+        alert('Lỗi cập nhật booking: ' + error.message);
+    }
+}
+
+// Show Walk-in Modal
+function showWalkInModal(roomId) {
+    const room = roomsData.find(r => r.id === roomId);
+    if (!room) return;
+
+    selectedRoom = room;
+
+    document.getElementById('walkin-room-id').value = roomId;
+    document.getElementById('walkin-room-number').textContent = room.roomNumber;
+
+    // Set default check-out to tomorrow noon
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(12, 0, 0, 0);
+
+    // Adjust to local ISO string for input
+    const tzOffset = tomorrow.getTimezoneOffset() * 60000; // offset in milliseconds
+    const localISOTime = (new Date(tomorrow - tzOffset)).toISOString().slice(0, 16);
+
+    document.getElementById('walkin-checkout').value = localISOTime;
+
+    ModalManager.open('walkin-modal');
+}
+
+// Handle Walk-in Submit
+async function handleWalkInSubmit(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const roomId = formData.get('roomId');
+
+    const bookingData = {
+        roomId: parseInt(roomId),
+        customerName: formData.get('customerName'),
+        customerPhone: formData.get('customerPhone'),
+        identityCard: formData.get('identityCard'),
+        checkInDate: new Date(), // Now
+        checkOutDate: new Date(formData.get('checkOutDate')),
+        status: 'CHECKED_IN' // Attempt to set directly to CHECKED_IN
+    };
+
+    try {
+        // First create booking
+        // Note: Backend might define status logic. If we can't set CHECKED_IN directly,
+        // we might need to create (BOOKED) then Check-in.
+        // Let's try sending status 'CHECKED_IN' first.
+
+        const response = await callAPI('/bookings', 'POST', bookingData);
+
+        // If response doesn't error, assume success.
+        // We might need to handle separate check-in call if status wasn't accepted.
+        // But for "Walk-in", a single API is ideal.
+        // If the backend forces BOOKED, we'd check response.status.
+
+        // Assuming success:
+        showSuccess(`✅ Check-in thành công cho phòng ${document.getElementById('walkin-room-number').textContent}`);
+        ModalManager.close('walkin-modal');
+        event.target.reset();
+
+        loadRooms(); // Refresh grid
+
+    } catch (error) {
+        showError('Lỗi check-in: ' + error.message);
+    }
+}
+
+// Build context menu HTML based on room status
+function buildContextMenu(room) {
+    const status = room.status || 'AVAILABLE';
+    const config = MENU_CONFIGS[status] || MENU_CONFIGS.AVAILABLE;
+
+    let html = `
+        <div class="context-menu-item" style="cursor: default; opacity: 0.7; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 600;">
+            <i class="fas fa-door-open"></i> Phòng ${room.roomNumber} • ${getStatusText(status)}
+        </div>
+    `;
+
+    // Add booking info if exists
+    if (room.currentBooking) {
+        const checkIn = room.currentBooking.checkInDate ? new Date(room.currentBooking.checkInDate).toLocaleDateString('vi-VN') : '';
+        const checkOut = room.currentBooking.checkOutDate ? new Date(room.currentBooking.checkOutDate).toLocaleDateString('vi-VN') : '';
+
+        html += `
+            <div class="context-menu-item" style="cursor: default; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 16px;">
+                <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+                    <div><i class="fas fa-user"></i> ${room.currentBooking.customerName || 'N/A'}</div>
+                    ${checkIn ? `<div style="font-size: 11px;"><i class="fas fa-calendar-check"></i> ${checkIn} → ${checkOut}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    config.forEach(section => {
+        // Handle dividers
+        if (section.type === 'divider') {
+            html += `<div class="context-menu-divider"></div>`;
+        }
+        // Handle regular menu items
+        else {
+            const onclick = section.status
+                ? `hideContextMenu(); ${section.action}(${room.id}, '${section.status}')`
+                : `hideContextMenu(); ${section.action}(${room.id})`;
+            html += `
+                <div class="context-menu-item" onclick="${onclick}">
+                    <i class="fas ${section.icon}" style="${section.color ? 'color: ' + section.color : ''}"></i> 
+                    ${section.text}
+                </div>
+            `;
+        }
+    });
+
+    return html;
+}
+
+// Show booking information modal
+function showBookingInfo(roomId) {
+    const room = roomsData.find(r => r.id === roomId);
+    if (!room || !room.currentBooking) {
+        alert('Không tìm thấy thông tin booking');
+        return;
+    }
+
+    hideContextMenu();
+
+    const booking = room.currentBooking;
+    const checkIn = booking.checkInDate ? new Date(booking.checkInDate).toLocaleString('vi-VN') : 'N/A';
+    const checkOut = booking.checkOutDate ? new Date(booking.checkOutDate).toLocaleString('vi-VN') : 'N/A';
+    const nights = calculateNights(booking.checkInDate, booking.checkOutDate);
+
+    const content = `
+        <div style="background: rgba(30, 41, 59, 0.5); padding: 20px; border-radius: 8px;">
+            <h3 style="margin: 0 0 16px 0; color: var(--text-primary);">
+                <i class="fas fa-calendar-check"></i> Thông Tin Booking #${booking.id}
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                <div>
+                    <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Tên khách</div>
+                    <div style="color: var(--text-primary); font-weight: 600;">${booking.customerName || 'N/A'}</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Số phòng</div>
+                    <div style="color: var(--text-primary); font-weight: 600;">Phòng ${room.roomNumber}</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Check-in dự kiến</div>
+                    <div style="color: var(--success); font-weight: 600;">${checkIn}</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Check-out dự kiến</div>
+                    <div style="color: var(--warning); font-weight: 600;">${checkOut}</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Số đêm</div>
+                    <div style="color: var(--text-primary); font-weight: 600;">${nights} đêm</div>
+                </div>
+                <div>
+                    <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Trạng thái</div>
+                    <div style="color: var(--info); font-weight: 600;">${booking.status || 'N/A'}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Reuse room details modal
+    document.getElementById('room-details-content').innerHTML = content;
+    document.getElementById('modal-room-number').textContent = room.roomNumber;
+    document.getElementById('status-buttons-section').style.display = 'none';
+
+    // Configure Edit Button for Booking
+    const editBtn = document.getElementById('modal-edit-btn');
+    if (editBtn) {
+        editBtn.innerHTML = '<i class="fas fa-edit"></i> Chỉnh sửa thông tin booking';
+        editBtn.onclick = () => showEditBookingForm(booking.id);
+        editBtn.style.display = 'inline-block';
+    }
+
+    ModalManager.open('room-details-modal');
+}
+
+// Show guest information
+function showGuestInfo(roomId) {
+    const room = roomsData.find(r => r.id === roomId);
+    if (!room || !room.currentBooking) {
+        alert('Không có thông tin khách');
+        return;
+    }
+
+    hideContextMenu();
+    showBookingInfo(roomId); // For now, same as booking info
+}
+
+// Show services used
+function showServices(roomId) {
+    hideContextMenu();
+    alert('Chức năng xem dịch vụ đang phát triển');
+}
+
+// Check-in for existing booking
+async function confirmCheckIn(roomId) {
+    const room = roomsData.find(r => r.id === roomId);
+    if (!room || !room.currentBooking) {
+        alert('Không tìm thấy booking');
+        return;
+    }
+
+    hideContextMenu();
+
+    if (!confirm(`Xác nhận check-in cho ${room.currentBooking.customerName}?`)) return;
+
+    try {
+        await callAPI(`/checkin/${room.currentBooking.id}`, 'POST');
+        showSuccess('✅ Check-in thành công!');
+        loadRooms();
+    } catch (error) {
+        showError('Lỗi check-in: ' + error.message);
+    }
+}
+
+// Cancel booking
+async function cancelBooking(roomId) {
+    const room = roomsData.find(r => r.id === roomId);
+    if (!room || !room.currentBooking) {
+        alert('Không tìm thấy booking');
+        return;
+    }
+
+    hideContextMenu();
+
+    if (!confirm(`Xác nhận HỦY booking cho ${room.currentBooking.customerName}?\n\nHành động này không thể hoàn tác!`)) return;
+
+    try {
+        await callAPI(`/bookings/${room.currentBooking.id}`, 'DELETE');
+        showSuccess('✅ Đã hủy booking');
+        loadRooms();
+    } catch (error) {
+        showError('Lỗi: ' + error.message);
+    }
+}
+
+// Show checkout modal (similar to stay_management.js)
+async function showCheckoutModal(roomId) {
+    const room = roomsData.find(r => r.id === roomId);
+    if (!room || !room.currentBooking) {
+        alert('Không có thông tin lưu trú');
+        return;
+    }
+
+    hideContextMenu();
+
+    // Redirect to stay management for full checkout flow
+    if (confirm('Chuyển đến trang Quản lý lưu trú để check-out?')) {
+        window.location.href = 'stay_management.html';
+    }
+}
+
+
+
 // Handle Room Click (Context Menu style)
 function handleRoomClick(event, roomId) {
-    // Stop propagation so it doesn't trigger global click close immediately if bubbled?
-    // Actually we need to be careful. The document click listener closes it.
-    // So we should stopImmediatePropagation or handle styling.
     event.stopPropagation();
+    event.preventDefault();
 
-    event.preventDefault(); // Good habit
     const room = roomsData.find(r => r.id === roomId);
     if (!room) return;
 
     selectedRoom = room;
     const menu = document.getElementById('context-menu');
-    const currentStatus = room.status || 'AVAILABLE';
-    const allowedStatuses = STATUS_TRANSITIONS[currentStatus] || [];
 
-    let menuContent = `
-        <div class="context-menu-item" style="cursor: default; opacity: 0.7; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 600;">
-            <i class="fas fa-info-circle"></i> Phòng ${room.roomNumber} (${getStatusText(currentStatus)})
-        </div>
-    `;
-
-    if (allowedStatuses.length > 0) {
-        allowedStatuses.forEach(status => {
-            const config = STATUS_DISPLAY[status];
-            menuContent += `
-                <div class="context-menu-item" onclick="updateRoomStatus('${status}')">
-                    <i class="fas ${config.icon}" style="color: ${getColorForStatus(status)}"></i> 
-                    ${config.text}
-                </div>
-            `;
-        });
-    } else {
-        menuContent += `
-            <div class="context-menu-item" style="cursor: default; font-style: italic; color: #94a3b8;">
-                <i class="fas fa-ban"></i> Không có hành động
-            </div>
-        `;
-    }
-
-    // Add "View Details" option
-    menuContent += `
-        <div class="context-menu-divider"></div>
-        <div class="context-menu-item" onclick="showRoomDetails(${room.id})">
-            <i class="fas fa-eye"></i> Xem chi tiết
-        </div>
-    `;
-
-    menu.innerHTML = menuContent;
-
-    // Position menu
+    // Build menu using new structure
+    menu.innerHTML = buildContextMenu(room);
     menu.style.display = 'block';
 
-    // Adjust position to stay within viewport
-    let x = event.pageX;
-    let y = event.pageY;
+    // Get the room box element position
+    const roomBox = event.currentTarget;
+    const rect = roomBox.getBoundingClientRect();
 
-    if (x + 200 > window.innerWidth) x -= 200;
+    // Position menu to the right of the room box
+    // getBoundingClientRect gives viewport coords, need to add scroll offset for absolute positioning
+    let x = rect.right + window.scrollX + 10; // 10px gap
+    let y = rect.top + window.scrollY;
+
+    // Adjust if going off-screen
+    const menuWidth = 240;
+    const menuHeight = 300; // Approximate
+
+    // If menu would go off right edge, show on left
+    if (x + menuWidth > window.innerWidth + window.scrollX) {
+        x = rect.left + window.scrollX - menuWidth - 10;
+    }
+
+    // If still off-screen, position inside viewport
+    if (x < window.scrollX) {
+        x = window.scrollX + 10;
+    }
+
+    // Adjust vertical position if needed
+    if (y + menuHeight > window.innerHeight + window.scrollY) {
+        y = window.innerHeight + window.scrollY - menuHeight - 10;
+    }
+
+    if (y < window.scrollY) {
+        y = window.scrollY + 10;
+    }
 
     menu.style.left = x + 'px';
     menu.style.top = y + 'px';

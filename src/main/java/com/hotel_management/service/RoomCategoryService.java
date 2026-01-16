@@ -15,13 +15,10 @@ public class RoomCategoryService {
     private RoomCategoryRepository roomCategoryRepository;
 
     /**
-     * Get all room categories by branch
+     * Get all room categories
      */
-    public List<RoomCategory> getAllCategoriesByBranch(String branchName) {
-        if (branchName == null || branchName.trim().isEmpty()) {
-            return roomCategoryRepository.findAll();
-        }
-        return roomCategoryRepository.findByBranchNameOrderByIdDesc(branchName);
+    public List<RoomCategory> getAllCategories() {
+        return roomCategoryRepository.findAll();
     }
 
     /**
@@ -47,12 +44,6 @@ public class RoomCategoryService {
         }
         if (category.getBasePrice() == null || category.getBasePrice().signum() < 0) {
             throw new IllegalArgumentException("Giá cơ bản không hợp lệ");
-        }
-        if (category.getBranchName() == null || category.getBranchName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Chi nhánh không được để trống");
-        }
-        if (category.getCity() == null || category.getCity().trim().isEmpty()) {
-            throw new IllegalArgumentException("Thành phố không được để trống");
         }
 
         // Set default values

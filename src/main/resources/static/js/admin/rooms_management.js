@@ -4,6 +4,7 @@
  */
 
 // Global variables
+// Global variables
 let allRooms = [];
 let currentFilters = {
     type: '',
@@ -12,10 +13,23 @@ let currentFilters = {
     maxPrice: null,
     roomNumber: ''
 };
+let roomToDeleteId = null;
+let currentOpenDropdown = null;
 
 // Load rooms when page loads
 document.addEventListener('DOMContentLoaded', () => {
     loadRooms();
+
+    // Setup delete confirmation handler
+    document.getElementById('confirm-delete-btn').addEventListener('click', handleDeleteRoom);
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (currentOpenDropdown && !e.target.closest('.action-menu-container')) {
+            currentOpenDropdown.classList.remove('show');
+            currentOpenDropdown = null;
+        }
+    });
 });
 
 /**
@@ -107,7 +121,7 @@ function displayRooms(rooms) {
         <tr>
             <td>${room.id}</td>
             <td><strong>${room.roomNumber}</strong></td>
-            <td>${getRoomTypeLabel(room.type)}</td>
+            <td>${room.type}</td>
             <td>${formatCurrency(room.price)}</td>
             <td>
                 <span class="status-badge ${getStatusClass(room.status)}">
@@ -117,13 +131,18 @@ function displayRooms(rooms) {
             <td>${room.city || '-'}</td>
             <td>${room.branchName || '-'}</td>
             <td>
-                <div class="action-buttons">
-                    <button class="btn-primary btn-sm" onclick="viewRoomDetails(${room.id})" title="Xem chi tiết">
-                        👁️
+                <div class="action-menu-container">
+                    <button class="action-menu-btn" onclick="toggleActionMenu(event, ${room.id})">
+                        ⋮
                     </button>
-                    <button class="btn-secondary btn-sm" onclick="editRoom(${room.id})" title="Sửa">
-                        ✏️
-                    </button>
+                    <div class="action-dropdown" id="dropdown-${room.id}">
+                        <button class="action-dropdown-item" onclick="editRoom(${room.id})">
+                            ✏️ Sửa
+                        </button>
+                        <button class="action-dropdown-item" onclick="confirmDeleteRoom(${room.id}, '${room.roomNumber}')">
+                            🗑️ Xóa
+                        </button>
+                    </div>
                 </div>
             </td>
         </tr>
@@ -131,28 +150,56 @@ function displayRooms(rooms) {
 }
 
 /**
- * View room details
+ * Toggle action dropdown menu
  */
-function viewRoomDetails(roomId) {
-    const room = allRooms.find(r => r.id === roomId);
-    if (!room) {
-        showError('Không tìm thấy phòng!');
-        return;
+function toggleActionMenu(event, roomId) {
+    event.stopPropagation();
+    const dropdown = document.getElementById(`dropdown-${roomId}`);
+
+    // Close current dropdown if exists
+    if (currentOpenDropdown && currentOpenDropdown !== dropdown) {
+        currentOpenDropdown.classList.remove('show');
     }
 
-    // Populate modal
-    document.getElementById('detail-room-id').textContent = room.id;
-    document.getElementById('detail-room-number').textContent = room.roomNumber;
-    document.getElementById('detail-room-type').textContent = getRoomTypeLabel(room.type);
-    document.getElementById('detail-room-price').textContent = formatCurrency(room.price);
-    document.getElementById('detail-room-status').innerHTML = 
-        `<span class="status-badge ${getStatusClass(room.status)}">${getRoomStatusLabel(room.status)}</span>`;
-    document.getElementById('detail-room-city').textContent = room.city || '-';
-    document.getElementById('detail-room-branch').textContent = room.branchName || '-';
-
-    // Open modal
-    ModalManager.open('room-details-modal');
+    // Toggle the clicked dropdown
+    dropdown.classList.toggle('show');
+    currentOpenDropdown = dropdown.classList.contains('show') ? dropdown : null;
 }
+
+/**
+ * Confirm delete room
+ */
+function confirmDeleteRoom(roomId, roomNumber) {
+    roomToDeleteId = roomId;
+    document.getElementById('delete-room-number').textContent = roomNumber;
+    ModalManager.open('confirm-delete-modal');
+}
+
+/**
+ * Handle delete room
+ */
+async function handleDeleteRoom() {
+    if (!roomToDeleteId) return;
+
+    try {
+        await callAPI(`/rooms/${roomToDeleteId}`, 'DELETE');
+        showSuccess('Xóa phòng thành công!');
+        ModalManager.close('confirm-delete-modal');
+
+        // Reload list
+        if (hasActiveFilters()) {
+            applyFilters();
+        } else {
+            loadRooms();
+        }
+    } catch (error) {
+        console.error('Error deleting room:', error);
+        showError(error.message || 'Không thể xóa phòng!');
+    } finally {
+        roomToDeleteId = null;
+    }
+}
+
 
 /**
  * Edit room - open modal with pre-filled data
@@ -168,7 +215,7 @@ function editRoom(roomId) {
     document.getElementById('edit-room-id').value = room.id;
     document.getElementById('edit-room-number').value = room.roomNumber;
     document.getElementById('edit-room-type').value = room.type;
-    document.getElementById('edit-room-price').value = room.price;
+    document.getElementById('edit-room-price').value = formatNumberWithDots(room.price);
 
     // Open modal
     ModalManager.open('edit-room-modal');
@@ -186,7 +233,7 @@ async function handleEditRoom(event) {
     const roomData = {
         roomNumber: formData.get('roomNumber'),
         type: formData.get('type'),
-        price: parseFloat(formData.get('price'))
+        price: parseNumberFromDots(formData.get('price'))
     };
 
     try {
@@ -197,7 +244,7 @@ async function handleEditRoom(event) {
         // Close modal and reload rooms
         ModalManager.close('edit-room-modal');
         event.target.reset();
-        
+
         // Reload with current filters
         if (hasActiveFilters()) {
             applyFilters();
@@ -215,9 +262,9 @@ async function handleEditRoom(event) {
  * Check if any filters are active
  */
 function hasActiveFilters() {
-    return currentFilters.type || currentFilters.status || 
-           currentFilters.minPrice || currentFilters.maxPrice || 
-           currentFilters.roomNumber;
+    return currentFilters.type || currentFilters.status ||
+        currentFilters.minPrice || currentFilters.maxPrice ||
+        currentFilters.roomNumber;
 }
 
 /**

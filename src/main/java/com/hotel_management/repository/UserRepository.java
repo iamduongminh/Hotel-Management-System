@@ -13,10 +13,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Check if username already exists
     boolean existsByUsername(String username);
 
-    // Count users by role and location (for restrictions)
-    long countByRoleAndCity(UserRole role, String city);
-
-    long countByRoleAndBranchName(UserRole role, String branchName);
-
+    // Count users by role
     long countByRole(UserRole role);
 }

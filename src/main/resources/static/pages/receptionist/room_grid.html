@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Phòng - Lễ Tân</title>
+    <title>Receptionist</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -82,7 +82,7 @@
             transition: all 0.2s ease;
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
-            overflow: hidden;
+            /* overflow: hidden; Removed to allow tooltip display */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
@@ -162,6 +162,43 @@
         .room-guest-name {
             display: none;
             /* Hide guest name by default for cleanest look, show in tooltip */
+        }
+
+        /* Room Info Tooltip - using child element instead of ::before */
+        .room-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            color: white;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .room-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(15, 23, 42, 0.95);
+        }
+
+        .room-box:hover .room-tooltip {
+            opacity: 1;
+            visibility: visible;
+            z-index: 1000;
         }
 
         /* Responsive: Scroll if screen too small, or reduce columns */
@@ -403,7 +440,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             min-width: 200px;
             padding: 8px 0;
-            overflow: hidden;
+            /* overflow: hidden; Removed to allow submenus to show */
         }
 
         .context-menu-item {
@@ -415,6 +452,7 @@
             color: var(--text-primary);
             font-size: 14px;
             transition: background 0.2s;
+            position: relative;
         }
 
         .context-menu-item:hover {
@@ -424,6 +462,55 @@
         .context-menu-item i {
             width: 20px;
             text-align: center;
+        }
+
+        /* Submenu styles */
+        .context-menu-item.has-submenu {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .context-menu-item.has-submenu>span {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .context-menu-item.has-submenu::after {
+            content: '▶';
+            font-size: 10px;
+            opacity: 0.6;
+            margin-left: 20px;
+        }
+
+        .context-submenu {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            margin-left: 5px;
+            min-width: 220px;
+            background: #1e293b;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            padding: 8px 0;
+            display: none;
+            z-index: 1002;
+        }
+
+        .context-menu-item.has-submenu:hover>.context-submenu {
+            display: block !important;
+        }
+
+        /* Prevent submenu from going off-screen */
+        .context-submenu.align-left {
+            left: auto;
+            right: 100%;
+            margin-left: 0;
+            margin-right: 5px;
         }
 
         .context-menu-divider {
@@ -451,7 +538,7 @@
         <div class="dashboard-header">
             <div>
                 <h1 style="margin: 0;"><i class="fas fa-bed"></i> Sơ Đồ Phòng</h1>
-                <p style="margin: 8px 0 0 0; opacity: 0.9;" id="branch-name-display">Đang tải...</p>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;">Hệ thống quản lý khách sạn</p>
             </div>
             <div class="user-info">
                 <i class="fas fa-clock"></i>
@@ -544,7 +631,7 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="showEditRoomForm()">
+                <button type="button" id="modal-edit-btn" class="btn btn-secondary" onclick="showEditRoomForm()">
                     <i class="fas fa-edit"></i> Chỉnh sửa thông tin
                 </button>
             </div>
@@ -581,17 +668,100 @@
                         <input type="number" id="edit-room-price" name="price" required min="0" step="1000"
                             placeholder="VD: 500000">
                     </div>
-
-                    <div class="form-group">
-                        <label>Chi nhánh</label>
-                        <input type="text" id="edit-room-branch" disabled style="background: rgba(100, 116, 139, 0.2);">
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary"
                         onclick="ModalManager.close('edit-room-modal')">Hủy</button>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Booking Modal -->
+    <div class="modal-backdrop" id="edit-booking-modal-backdrop">
+        <div class="modal small" id="edit-booking-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Chỉnh Sửa Booking</h2>
+                <button class="modal-close" onclick="ModalManager.close('edit-booking-modal')">&times;</button>
+            </div>
+            <form id="edit-booking-form" onsubmit="handleUpdateBookingInfo(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="edit-booking-id" name="bookingId">
+
+                    <div class="form-group">
+                        <label>Tên khách hàng *</label>
+                        <input type="text" id="edit-booking-customer" name="customerName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Check-in dự kiến</label>
+                        <input type="datetime-local" id="edit-booking-checkin" name="checkInDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Check-out dự kiến</label>
+                        <input type="datetime-local" id="edit-booking-checkout" name="checkOutDate" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('edit-booking-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Walk-in Modal -->
+    <div class="modal-backdrop" id="walkin-modal-backdrop">
+        <div class="modal small" id="walkin-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Khách Đến (Check-in)</h2>
+                <button class="modal-close" onclick="ModalManager.close('walkin-modal')">&times;</button>
+            </div>
+            <form id="walkin-form" onsubmit="handleWalkInSubmit(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="walkin-room-id" name="roomId">
+
+                    <div class="form-group">
+                        <label>Phòng số</label>
+                        <div id="walkin-room-number"
+                            style="font-weight: bold; font-size: 1.2em; color: var(--primary); padding: 8px 0;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tên khách hàng *</label>
+                        <input type="text" id="walkin-customer-name" name="customerName" required
+                            placeholder="Nhập tên khách hàng">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số điện thoại</label>
+                        <input type="text" id="walkin-customer-phone" name="customerPhone"
+                            placeholder="Nhập số điện thoại">
+                    </div>
+
+                    <div class="form-group">
+                        <label>CCCD/CMND</label>
+                        <input type="text" id="walkin-identity-card" name="identityCard"
+                            placeholder="Nhập số CCCD/CMND">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Check-out dự kiến *</label>
+                        <input type="datetime-local" id="walkin-checkout" name="checkOutDate" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('walkin-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Check-in Ngay
                     </button>
                 </div>
             </form>

@@ -70,7 +70,7 @@ function updatePriceDisplay() {
  */
 async function loadServices() {
     try {
-        const services = await callAPI('/api/services', 'GET');
+        const services = await callAPI('/services', 'GET');
         allServices = services;
         displayServices(services);
 
@@ -86,32 +86,47 @@ async function loadServices() {
 /**
  * Filter services via Backend API
  */
-async function filterServices() {
-    const searchTerm = document.getElementById('search-input').value;
-    const type = document.getElementById('filter-type').value;
+/**
+ * Filter services client-side for immediate response
+ * @param {string} source - 'price' if triggered by slider
+ */
+function filterServices(source) {
+    const searchInput = document.getElementById('search-input');
+    const typeSelect = document.getElementById('filter-type');
+
+    // If triggered by slider, we want immediate feedback but we DO want to respect other filters
+    // "vẫn bị ảnh hưởng" -> Combined filtering
+
+    const searchTerm = searchInput.value.toLowerCase();
+    const type = typeSelect.value;
 
     const minInput = document.getElementById('filter-min-price');
     const maxInput = document.getElementById('filter-max-price');
-    let minVal = parseInt(minInput.value);
-    let maxVal = parseInt(maxInput.value);
-    if (minVal > maxVal) [minVal, maxVal] = [maxVal, minVal];
+    let minVal = parseInt(minInput.value) || 0;
+    let maxVal = parseInt(maxInput.value) || 0;
 
-    // Build params
-    const params = new URLSearchParams();
-    if (searchTerm) params.append('name', searchTerm);
-    if (type) params.append('type', type);
-    params.append('minPrice', minVal);
-    params.append('maxPrice', maxVal);
-
-    try {
-        const queryString = params.toString();
-        const services = await callAPI(`/api/services/filter?${queryString}`, 'GET');
-        displayServices(services);
-    } catch (error) {
-        console.error('Error filtering services:', error);
-        // Fallback to client side if API fails? No, show error.
-        showError('Lỗi lọc dữ liệu: ' + error.message);
+    // Ensure min <= max
+    if (minVal > maxVal) {
+        [minVal, maxVal] = [maxVal, minVal];
     }
+
+    // Client-side filtering
+    const filtered = allServices.filter(service => {
+        // Name check
+        const matchesName = !searchTerm ||
+            service.name.toLowerCase().includes(searchTerm) ||
+            (service.description && service.description.toLowerCase().includes(searchTerm));
+
+        // Type check
+        const matchesType = !type || service.type === type;
+
+        // Price check
+        const matchesPrice = service.price >= minVal && service.price <= maxVal;
+
+        return matchesName && matchesType && matchesPrice;
+    });
+
+    displayServices(filtered);
 }
 
 /**
@@ -132,29 +147,51 @@ function displayServices(services) {
         <tr>
             <td>${service.id}</td>
             <td><strong>${escapeHtml(service.name)}</strong></td>
-            <td>${getServiceTypeLabel(service.type)}</td>
+            <td style="text-align: center;">${getServiceTypeLabel(service.type)}</td>
             <td>${formatCurrency(service.price)}</td>
             <td>${service.description ? escapeHtml(service.description) : '-'}</td>
-            <td>
+            <td style="text-align: center;">
                 <span class="status-badge ${service.active ? 'status-active' : 'status-inactive'}">
                     ${service.active ? 'Hoạt động' : 'Tạm ngưng'}
                 </span>
             </td>
             <td>
-                <div class="action-buttons">
-                    <button class="btn-primary btn-sm" onclick="editService(${service.id})" title="Sửa">
-                        ✏️
+                <div class="action-menu-container">
+                    <button class="action-menu-btn" onclick="toggleActionMenu(event, ${service.id})">
+                        ⋮
                     </button>
-                    <button class="btn-secondary btn-sm" onclick="toggleServiceStatus(${service.id})" title="Đổi trạng thái">
-                        🔄
-                    </button>
-                    <button class="btn-danger btn-sm" onclick="deleteService(${service.id}, '${escapeHtml(service.name)}')" title="Xóa">
-                        🗑️
-                    </button>
+                    <div class="action-dropdown" id="dropdown-${service.id}">
+                        <button class="action-dropdown-item" onclick="editService(${service.id})">
+                            ✏️ Sửa
+                        </button>
+                        <button class="action-dropdown-item" onclick="toggleServiceStatus(${service.id})">
+                            🔄 Đổi trạng thái
+                        </button>
+                        <button class="action-dropdown-item danger" onclick="deleteService(${service.id}, '${escapeHtml(service.name)}')">
+                            🗑️ Xóa
+                        </button>
+                    </div>
                 </div>
             </td>
         </tr>
     `).join('');
+}
+
+/**
+ * Toggle action dropdown menu
+ */
+function toggleActionMenu(event, serviceId) {
+    event.stopPropagation();
+    const dropdown = document.getElementById(`dropdown-${serviceId}`);
+
+    // Close current dropdown if exists
+    if (currentOpenDropdown && currentOpenDropdown !== dropdown) {
+        currentOpenDropdown.classList.remove('show');
+    }
+
+    // Toggle the clicked dropdown
+    dropdown.classList.toggle('show');
+    currentOpenDropdown = dropdown.classList.contains('show') ? dropdown : null;
 }
 
 /**
@@ -184,12 +221,12 @@ async function handleCreateService(event) {
         name: formData.get('name'),
         type: formData.get('type'),
         description: formData.get('description'),
-        price: parseFloat(formData.get('price')),
+        price: parseNumberFromDots(formData.get('price')),
         active: formData.get('active') === 'on'
     };
 
     try {
-        const response = await callAPI('/api/services', 'POST', serviceData);
+        const response = await callAPI('/services', 'POST', serviceData);
 
         showSuccess(response.message || 'Tạo dịch vụ thành công!');
 
@@ -215,14 +252,14 @@ async function editService(serviceId) {
     // Or just fetch detail to be safe.
 
     try {
-        const service = await callAPI(`/api/services/${serviceId}`, 'GET');
+        const service = await callAPI(`/services/${serviceId}`, 'GET');
 
         // Fill form with service data
         document.getElementById('edit-service-id').value = service.id;
         document.getElementById('edit-service-name').value = service.name;
         document.getElementById('edit-service-type').value = service.type || 'OTHER';
         document.getElementById('edit-service-description').value = service.description || '';
-        document.getElementById('edit-service-price').value = service.price;
+        document.getElementById('edit-service-price').value = formatNumberWithDots(service.price);
         document.getElementById('edit-service-active').checked = service.active;
 
         // Open modal
@@ -245,12 +282,12 @@ async function handleEditService(event) {
         name: formData.get('name'),
         type: formData.get('type'),
         description: formData.get('description'),
-        price: parseFloat(formData.get('price')),
+        price: parseNumberFromDots(formData.get('price')),
         active: formData.get('active') === 'on'
     };
 
     try {
-        const response = await callAPI(`/api/services/${serviceId}`, 'PUT', serviceData);
+        const response = await callAPI(`/services/${serviceId}`, 'PUT', serviceData);
 
         showSuccess(response.message || 'Cập nhật dịch vụ thành công!');
 
@@ -287,7 +324,7 @@ async function confirmDeleteService() {
     if (!serviceToDelete) return;
 
     try {
-        await callAPI(`/api/services/${serviceToDelete.id}`, 'DELETE');
+        await callAPI(`/services/${serviceToDelete.id}`, 'DELETE');
         showSuccess('Xóa dịch vụ thành công!');
         ModalManager.close('confirm-delete-modal');
         filterServices(); // Reload list
@@ -302,13 +339,32 @@ async function confirmDeleteService() {
  * Toggle service active status
  */
 async function toggleServiceStatus(serviceId) {
+    // 1. Find service in local state
+    const service = allServices.find(s => s.id === serviceId);
+    if (!service) return;
+
+    // 2. Optimistic Update: Toggle immediately in local state
+    const originalStatus = service.active;
+    service.active = !service.active;
+
+    // 3. Re-render UI immediately
+    // We pass 'keep-search' or just a dummy string to ensure we don't clear filters if we were in that mode,
+    // although filterServices('price') clears them. Standard filterServices() keeps them.
+    // Just calling filterServices() without 'price' will keep existing search/type filters.
+    filterServices();
+
     try {
-        const response = await callAPI(`/api/services/${serviceId}/toggle-status`, 'PATCH');
+        // 4. Call API in background
+        const response = await callAPI(`/services/${serviceId}/toggle-status`, 'PATCH');
         showSuccess(response.message || 'Cập nhật trạng thái thành công!');
-        filterServices(); // Reload list
+        // No need to reload list if successful, our local state is already correct.
     } catch (error) {
         console.error('Error toggling service status:', error);
         showError('Không thể cập nhật trạng thái: ' + error.message);
+
+        // 5. Revert on failure
+        service.active = originalStatus;
+        filterServices();
     }
 }
 
@@ -339,253 +395,3 @@ function escapeHtml(text) {
 
 
 
-/**
- * Load all services from API
- */
-async function loadServices() {
-    try {
-        const services = await callAPI('/services', 'GET');
-        allServices = services;
-        displayServices();
-    } catch (error) {
-        console.error('Error loading services:', error);
-        showError('Không thể tải danh sách dịch vụ: ' + error.message);
-    }
-}
-
-/**
- * Display services in table
- */
-function displayServices() {
-    const tbody = document.getElementById('services-tbody');
-
-    if (!allServices || allServices.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Chưa có dịch vụ nào</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = allServices.map(service => `
-        <tr>
-            <td>${service.id}</td>
-            <td>${service.name}</td>
-            <td>${service.description || '-'}</td>
-            <td>${formatCurrency(service.price)}</td>
-            <td>
-                <span class="status-badge ${service.active ? 'status-active' : 'status-inactive'}">
-                    ${service.active ? 'Hoạt động' : 'Tạm ngưng'}
-                </span>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-primary btn-sm" onclick="editService(${service.id})" title="Sửa">
-                        ✏️
-                    </button>
-                    <button class="btn-secondary btn-sm" onclick="toggleServiceStatus(${service.id})" title="Đổi trạng thái">
-                        🔄
-                    </button>
-                    <button class="btn-danger btn-sm" onclick="deleteService(${service.id}, '${escapeHtml(service.name)}')" title="Xóa">
-                        🗑️
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-/**
- * Filter services based on search input
- */
-function filterServices() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-
-    const filteredServices = allServices.filter(service => {
-        return service.name.toLowerCase().includes(searchTerm) ||
-            (service.description && service.description.toLowerCase().includes(searchTerm));
-    });
-
-    const tbody = document.getElementById('services-tbody');
-
-    if (filteredServices.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Không tìm thấy dịch vụ</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = filteredServices.map(service => `
-        <tr>
-            <td>${service.id}</td>
-            <td>${service.name}</td>
-            <td>${service.description || '-'}</td>
-            <td>${formatCurrency(service.price)}</td>
-            <td>
-                <span class="status-badge ${service.active ? 'status-active' : 'status-inactive'}">
-                    ${service.active ? 'Hoạt động' : 'Tạm ngưng'}
-                </span>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn-primary btn-sm" onclick="editService(${service.id})">✏️</button>
-                    <button class="btn-secondary btn-sm" onclick="toggleServiceStatus(${service.id})">🔄</button>
-                    <button class="btn-danger btn-sm" onclick="deleteService(${service.id}, '${escapeHtml(service.name)}')">🗑️</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-/**
- * Handle create service form submission
- */
-async function handleCreateService(event) {
-    event.preventDefault();
-
-    const formData = new FormData(event.target);
-
-    const serviceData = {
-        name: formData.get('name'),
-        description: formData.get('description'),
-        price: parseFloat(formData.get('price')),
-        active: formData.get('active') === 'on'
-    };
-
-    try {
-        const response = await callAPI('/services', 'POST', serviceData);
-
-        showSuccess(response.message || 'Tạo dịch vụ thành công!');
-
-        // Close modal and reload services
-        ModalManager.close('create-service-modal');
-        event.target.reset();
-        loadServices();
-
-    } catch (error) {
-        console.error('Error creating service:', error);
-        showError(error.message || 'Không thể tạo dịch vụ!');
-    }
-}
-
-/**
- * Edit service - open modal with pre-filled data
- */
-async function editService(serviceId) {
-    const service = allServices.find(s => s.id === serviceId);
-    if (!service) {
-        showError('Không tìm thấy dịch vụ!');
-        return;
-    }
-
-    // Fill form with service data
-    document.getElementById('edit-service-id').value = service.id;
-    document.getElementById('edit-service-name').value = service.name;
-    document.getElementById('edit-service-description').value = service.description || '';
-    document.getElementById('edit-service-price').value = service.price;
-    document.getElementById('edit-service-active').checked = service.active;
-
-    // Open modal
-    ModalManager.open('edit-service-modal');
-}
-
-/**
- * Handle edit service form submission
- */
-async function handleEditService(event) {
-    event.preventDefault();
-
-    const formData = new FormData(event.target);
-    const serviceId = formData.get('id');
-
-    const serviceData = {
-        name: formData.get('name'),
-        description: formData.get('description'),
-        price: parseFloat(formData.get('price')),
-        active: formData.get('active') === 'on'
-    };
-
-    try {
-        const response = await callAPI(`/services/${serviceId}`, 'PUT', serviceData);
-
-        showSuccess(response.message || 'Cập nhật dịch vụ thành công!');
-
-        // Close modal and reload services
-        ModalManager.close('edit-service-modal');
-        event.target.reset();
-        loadServices();
-
-    } catch (error) {
-        console.error('Error updating service:', error);
-        showError(error.message || 'Không thể cập nhật dịch vụ!');
-    }
-}
-
-/**
- * Delete service - show confirm modal
- */
-function deleteService(serviceId, serviceName) {
-    // Store service info for deletion
-    serviceToDelete = { id: serviceId, name: serviceName };
-
-    // Update modal content
-    document.getElementById('delete-service-name').textContent = serviceName;
-
-    // Set up confirm button click handler
-    const confirmBtn = document.getElementById('confirm-delete-btn');
-    confirmBtn.onclick = confirmDeleteService;
-
-    // Show confirm modal
-    ModalManager.open('confirm-delete-modal');
-}
-
-/**
- * Confirm and execute delete
- */
-async function confirmDeleteService() {
-    if (!serviceToDelete) return;
-
-    try {
-        await callAPI(`/services/${serviceToDelete.id}`, 'DELETE');
-        showSuccess('Xóa dịch vụ thành công!');
-        ModalManager.close('confirm-delete-modal');
-        loadServices();
-        serviceToDelete = null;
-    } catch (error) {
-        console.error('Error deleting service:', error);
-        showError('Không thể xóa dịch vụ: ' + error.message);
-    }
-}
-
-/**
- * Toggle service active status
- */
-async function toggleServiceStatus(serviceId) {
-    try {
-        const response = await callAPI(`/services/${serviceId}/toggle-status`, 'PATCH');
-        showSuccess(response.message || 'Cập nhật trạng thái thành công!');
-        loadServices();
-    } catch (error) {
-        console.error('Error toggling service status:', error);
-        showError('Không thể cập nhật trạng thái: ' + error.message);
-    }
-}
-
-/**
- * Format currency in VND
- */
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-    }).format(amount);
-}
-
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}

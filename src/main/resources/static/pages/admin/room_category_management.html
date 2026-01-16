@@ -3,11 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý Danh mục Phòng - Admin</title>
+    <title>Admin</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="../../css/modal.css">
@@ -16,15 +18,15 @@
 
 <body>
     <div class="sidebar">
-        <h3>Quản trị hệ thống</h3>
-        <a href="dashboard.html">Quản lý người dùng</a>
-        <a href="service_management.html">Quản lý dịch vụ</a>
-        <a href="room_category_management.html" class="active">Quản lý danh mục phòng</a>
-        <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
+        <h3><i class="fas fa-user-shield"></i> Quản trị hệ thống</h3>
+        <a href="dashboard.html"><i class="fas fa-users-cog"></i> Quản lý người dùng</a>
+        <a href="service_management.html"><i class="fas fa-concierge-bell"></i> Quản lý dịch vụ</a>
+        <a href="room_category_management.html" class="active"><i class="fas fa-bed"></i> Quản lý phòng</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
     </div>
 
     <div class="main-content">
-        <h1 id="page-title" style="text-align: center; margin-bottom: 30px;">Danh mục phòng</h1>
+        <h1 id="page-title" style="text-align: center; margin-bottom: 30px;">Danh sách phòng</h1>
 
         <!-- Rooms List Table with Compact Filter -->
         <div class="card" style="padding: 0; overflow: visible;">
@@ -40,7 +42,7 @@
                     <input type="text" id="filter-room-number" placeholder="Số phòng" onchange="applyFilters()"
                         class="search-input-compact">
                     <select id="filter-type" onchange="applyFilters()" class="filter-select-compact">
-                        <option value="">Loại phòng</option>
+                        <option value="">Tất cả loại phòng</option>
                         <option value="SINGLE">Single</option>
                         <option value="DOUBLE">Double</option>
                         <option value="DORM">Dorm</option>
@@ -71,10 +73,8 @@
                         <th>ID</th>
                         <th>Số phòng</th>
                         <th>Loại phòng</th>
-                        <th>Giá (VNĐ)</th>
+                        <th>Giá</th>
                         <th>Trạng thái</th>
-                        <th>Thành phố</th>
-                        <th>Chi nhánh</th>
                         <th style="width: 100px;">Hành động</th>
                     </tr>
                 </thead>
@@ -104,7 +104,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Loại phòng *</label>
-                            <select name="type" required>
+                            <select name="type" id="create-room-type" required onchange="updateRoomPrice('create')">
                                 <option value="">-- Chọn loại phòng --</option>
                                 <option value="SINGLE">Single</option>
                                 <option value="DOUBLE">Double</option>
@@ -116,8 +116,9 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Giá (VNĐ) *</label>
-                            <input type="number" name="price" required min="0" step="10000" placeholder="VD: 1000000">
+                            <label>Giá (VNĐ)</label>
+                            <input type="number" name="price" id="create-room-price" required min="0" readonly
+                                style="background-color: rgba(15, 23, 42, 0.5); cursor: not-allowed; opacity: 0.7;">
                         </div>
                     </div>
                 </div>
@@ -148,7 +149,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Loại phòng *</label>
-                            <select name="type" id="edit-room-type" required>
+                            <select name="type" id="edit-room-type" required onchange="updateRoomPrice('edit')">
                                 <option value="SINGLE">Single</option>
                                 <option value="DOUBLE">Double</option>
                                 <option value="DORM">Dorm</option>
@@ -159,8 +160,9 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Giá (VNĐ) *</label>
-                            <input type="number" name="price" id="edit-room-price" required min="0" step="10000">
+                            <label>Giá (VNĐ)</label>
+                            <input type="number" name="price" id="edit-room-price" required min="0" readonly
+                                style="background-color: rgba(15, 23, 42, 0.5); cursor: not-allowed; opacity: 0.7;">
                         </div>
                     </div>
                 </div>
@@ -173,46 +175,27 @@
         </div>
     </div>
 
-    <!-- Modal: Room Details -->
-    <div class="modal-backdrop" id="room-details-modal-backdrop">
-        <div class="modal" id="room-details-modal">
+    <!-- Confirm Delete Modal -->
+    <div class="modal-backdrop" id="confirm-delete-modal-backdrop">
+        <div class="modal confirm-modal" id="confirm-delete-modal">
             <div class="modal-header">
-                <h2>Chi tiết phòng</h2>
-                <button class="modal-close" onclick="ModalManager.close('room-details-modal')">&times;</button>
+                <h2>Xác nhận xóa</h2>
+                <button class="modal-close" onclick="ModalManager.close('confirm-delete-modal')">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="detail-row">
-                    <strong>ID:</strong>
-                    <span id="detail-room-id">-</span>
-                </div>
-                <div class="detail-row">
-                    <strong>Số phòng:</strong>
-                    <span id="detail-room-number">-</span>
-                </div>
-                <div class="detail-row">
-                    <strong>Loại phòng:</strong>
-                    <span id="detail-room-type">-</span>
-                </div>
-                <div class="detail-row">
-                    <strong>Giá:</strong>
-                    <span id="detail-room-price">-</span>
-                </div>
-                <div class="detail-row">
-                    <strong>Trạng thái:</strong>
-                    <span id="detail-room-status">-</span>
-                </div>
-                <div class="detail-row">
-                    <strong>Thành phố:</strong>
-                    <span id="detail-room-city">-</span>
-                </div>
-                <div class="detail-row">
-                    <strong>Chi nhánh:</strong>
-                    <span id="detail-room-branch">-</span>
+                <div class="modal-icon delete">🗑️</div>
+                <div class="modal-message">Bạn có chắc muốn xóa phòng này?</div>
+                <div class="modal-detail" id="confirm-delete-detail">
+                    Phòng số "<span id="delete-room-number"></span>" sẽ bị xóa vĩnh viễn.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary"
-                    onclick="ModalManager.close('room-details-modal')">Đóng</button>
+                <button type="button" class="btn btn-secondary" onclick="ModalManager.close('confirm-delete-modal')">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+                    Xóa phòng
+                </button>
             </div>
         </div>
     </div>

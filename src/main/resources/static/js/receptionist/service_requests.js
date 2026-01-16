@@ -77,46 +77,63 @@ function renderRequestsTable(requests) {
 
     tbody.innerHTML = requests.map(req => {
         const time = new Date(req.createdAt).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
-        const statusClass = req.status.toLowerCase();
+        const statusClass = req.status;
         const statusText = getStatusText(req.status);
         const isPending = req.status === 'PENDING';
 
+        const serviceTypeClass = getServiceTypeClass(req.serviceType);
+
         return `
             <tr ${isPending ? 'style="background: rgba(245, 158, 11, 0.05);"' : ''}>
-                <td>${time}</td>
+                <td style="white-space: nowrap;">${time}</td>
                 <td><strong>P.${req.roomNumber}</strong></td>
                 <td>${req.guestName}</td>
-                <td>
-                    <span style="display: inline-block; padding: 4px 8px; background: rgba(59, 130, 246, 0.1); border-radius: 4px; font-size: 12px;">
+                <td style="text-align: center;">
+                    <span class="badge ${serviceTypeClass}">
                         ${req.serviceType}
                     </span>
                 </td>
                 <td>${req.content}</td>
-                <td><span class="status ${statusClass}">${statusText}</span></td>
-                <td>
-                    ${req.status !== 'COMPLETED' && req.status !== 'CANCELLED' ? `
-                        <select onchange="updateRequestStatus(${req.id}, this.value)" class="search-box" style="width: 140px; padding: 6px 8px; font-size: 12px;">
-                            <option value="">-- Cập nhật --</option>
-                            ${req.status !== 'PROCESSING' ? '<option value="PROCESSING">Đang xử lý</option>' : ''}
-                            ${req.status !== 'COMPLETED' ? '<option value="COMPLETED">Hoàn thành</option>' : ''}
-                            <option value="CANCELLED">Hủy yêu cầu</option>
-                        </select>
-                    ` : `
-                        <span style="color: var(--text-muted); font-size: 13px;">--</span>
-                    `}
+                <td style="text-align: center;"><span class="status ${statusClass}">${statusText}</span></td>
+                <td style="text-align: center;">
+                    <div class="action-menu-container">
+                        <button class="action-menu-btn" onclick="toggleActionMenu(event, ${req.id})">
+                            ⋮
+                        </button>
+                        <div class="action-dropdown" id="dropdown-${req.id}">
+                            <button class="action-dropdown-item" onclick="openUpdateStatusModal(${req.id})">
+                                ✏️ Cập nhật
+                            </button>
+                            ${req.status !== 'CANCELLED' ? `
+                            <button class="action-dropdown-item danger" onclick="updateRequestStatus(${req.id}, 'CANCELLED')">
+                                ❌ Hủy yêu cầu
+                            </button>` : ''}
+                        </div>
+                    </div>
                 </td>
             </tr>
         `;
     }).join('');
 }
 
+// Get Service Type Class
+function getServiceTypeClass(type) {
+    if (!type) return 'type-other';
+    const lower = type.toLowerCase();
+    if (lower.includes('f&b') || lower.includes('food')) return 'type-fnb';
+    if (lower.includes('housekeeping') || lower.includes('clean')) return 'type-housekeeping';
+    if (lower.includes('laundry')) return 'type-laundry';
+    if (lower.includes('maintenance') || lower.includes('repair')) return 'type-maintenance';
+    return 'type-other';
+}
+
 // Get status text
 function getStatusText(status) {
     const map = {
-        'PENDING': '⏳ Chờ xử lý',
-        'PROCESSING': '⚙️ Đang xử lý',
-        'COMPLETED': '✅ Hoàn thành',
-        'CANCELLED': '❌ Đã hủy'
+        'PENDING': 'Chờ xử lý',
+        'PROCESSING': 'Đang xử lý',
+        'COMPLETED': 'Hoàn thành',
+        'CANCELLED': 'Đã hủy'
     };
     return map[status] || status;
 }
@@ -134,7 +151,52 @@ function updateStats(requests) {
     document.getElementById('stat-completed').textContent = stats.completed;
 }
 
-// Update request status
+// Toggle action dropdown menu
+let currentOpenDropdown = null;
+function toggleActionMenu(event, reqId) {
+    event.stopPropagation();
+    const dropdown = document.getElementById(`dropdown-${reqId}`);
+
+    // Close current dropdown if exists
+    if (currentOpenDropdown && currentOpenDropdown !== dropdown) {
+        currentOpenDropdown.classList.remove('show');
+    }
+
+    // Toggle the clicked dropdown
+    dropdown.classList.toggle('show');
+    currentOpenDropdown = dropdown.classList.contains('show') ? dropdown : null;
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (currentOpenDropdown && !e.target.closest('.action-menu-container')) {
+        currentOpenDropdown.classList.remove('show');
+        currentOpenDropdown = null;
+    }
+});
+
+// Open Update Status Modal
+function openUpdateStatusModal(reqId) {
+    const request = requestsData.find(r => r.id === reqId);
+    if (!request) return;
+
+    document.getElementById('update-request-id').value = reqId;
+    document.getElementById('update-request-status').value = request.status;
+    ModalManager.open('update-status-modal');
+}
+
+// Submit Update Status
+function submitUpdateStatus() {
+    const reqId = parseInt(document.getElementById('update-request-id').value);
+    const newStatus = document.getElementById('update-request-status').value;
+
+    if (reqId && newStatus) {
+        updateRequestStatus(reqId, newStatus);
+        ModalManager.close('update-status-modal');
+    }
+}
+
+// Update request status (Backend logic)
 async function updateRequestStatus(requestId, newStatus) {
     if (!newStatus) return;
 

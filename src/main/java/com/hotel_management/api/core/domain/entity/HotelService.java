@@ -29,12 +29,6 @@ public class HotelService {
     @Column(nullable = false)
     private Boolean active = true;
 
-    @Column(nullable = false, length = 100)
-    private String city;
-
-    @Column(nullable = false, length = 100)
-    private String branchName;
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

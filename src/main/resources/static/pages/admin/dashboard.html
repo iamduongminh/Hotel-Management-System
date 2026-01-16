@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="../../css/modal.css">
@@ -16,11 +18,11 @@
 
 <body>
     <div class="sidebar">
-        <h3>Quản trị hệ thống</h3>
-        <a href="dashboard.html" class="active">Quản lý người dùng</a>
-        <a href="service_management.html">Quản lý dịch vụ</a>
-        <a href="room_category_management.html">Quản lý danh mục phòng</a>
-        <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
+        <h3><i class="fas fa-user-shield"></i> Quản trị hệ thống</h3>
+        <a href="dashboard.html" class="active"><i class="fas fa-users-cog"></i> Quản lý người dùng</a>
+        <a href="service_management.html"><i class="fas fa-concierge-bell"></i> Quản lý dịch vụ</a>
+        <a href="room_category_management.html"><i class="fas fa-bed"></i> Quản lý phòng</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
     </div>
 
     <div class="main-content">
@@ -40,23 +42,11 @@
                 <div class="search-filter-compact">
                     <input type="text" id="search-input" placeholder="Nhập họ và tên" onkeyup="filterUsers()"
                         class="search-input-compact">
-                    <select id="role-filter" onchange="handleRoleFilterChange()" class="filter-select-compact">
-                        <option value="">Vai trò</option>
-                        <option value="REGIONAL_MANAGER">Quản lý khu vực</option>
-                        <option value="BRANCH_MANAGER">Quản lý chi nhánh</option>
-                        <option value="ADMIN">Quản trị hệ thống</option>
-                        <option value="RECEPTIONIST">Lễ tân</option>
-                        <option value="HOUSEKEEPER">Buồng phòng</option>
-                    </select>
-                    <select id="city-filter" onchange="handleCityFilterChange()" class="filter-select-compact">
-                        <option value="">Thành phố</option>
-                        <option value="Hà Nội">Hà Nội</option>
-                        <option value="Hồ Chí Minh">Hồ Chí Minh</option>
-                        <option value="Đà Nẵng">Đà Nẵng</option>
-                        <option value="Phú Quốc">Phú Quốc</option>
-                    </select>
-                    <select id="branch-filter" onchange="filterUsers()" class="filter-select-compact">
-                        <option value="">Chi nhánh</option>
+                    <select id="role-filter" onchange="filterUsers()" class="filter-select-compact">
+                        <option value="">Tất cả vai trò</option>
+                        <option value="ADMIN">Quản trị hệ thống (Admin)</option>
+                        <option value="MANAGER">Quản lý khách sạn (Manager)</option>
+                        <option value="RECEPTIONIST">Lễ tân (Receptionist)</option>
                     </select>
                 </div>
             </div>
@@ -67,14 +57,12 @@
                         <th>Tên đăng nhập</th>
                         <th>Họ tên</th>
                         <th>Vai trò</th>
-                        <th>Thành phố</th>
-                        <th>Chi nhánh</th>
-                        <th style="width: 50px;"></th>
+                        <th style="width: 100px; text-align: center;">Hành động</th>
                     </tr>
                 </thead>
                 <tbody id="users-tbody">
                     <tr>
-                        <td colspan="7" style="text-align: center;">Đang tải dữ liệu...</td>
+                        <td colspan="5" style="text-align: center;">Đang tải dữ liệu...</td>
                     </tr>
                 </tbody>
             </table>
@@ -118,32 +106,12 @@
                         </div>
                         <div class="form-group">
                             <label>Vai trò *</label>
-                            <select name="role" id="role-select" required onchange="handleRoleChange()">
+                            <select name="role" id="role-select" required>
                                 <option value="">-- Chọn vai trò --</option>
-                                <option value="REGIONAL_MANAGER">Lãnh đạo khu vực (Regional Manager)</option>
-                                <option value="BRANCH_MANAGER">Quản lý chi nhánh (Branch Manager)</option>
                                 <option value="ADMIN">Quản trị hệ thống (Admin)</option>
+                                <option value="MANAGER">Quản lý khách sạn (Manager)</option>
                                 <option value="RECEPTIONIST">Lễ tân (Receptionist)</option>
-                                <option value="HOUSEKEEPER">Buồng phòng (Housekeeper)</option>
                             </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group" id="city-group">
-                            <label>Thành phố *</label>
-                            <select name="city">
-                                <option value="">-- Chọn thành phố --</option>
-                                <option value="Hà Nội">Hà Nội</option>
-                                <option value="Hồ Chí Minh">Hồ Chí Minh</option>
-                                <option value="Đà Nẵng">Đà Nẵng</option>
-                                <option value="Đà Lạt">Đà Lạt</option>
-                                <option value="Phú Quốc">Phú Quốc</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="branch-group">
-                            <label>Chi nhánh</label>
-                            <input type="text" name="branchName" placeholder="VD: Ba Đình Hotel">
                         </div>
                     </div>
 
@@ -197,38 +165,18 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>Vai trò *</label>
-                            <select id="edit-role" name="role" required onchange="handleEditRoleChange()">
+                            <select id="edit-role" name="role" required>
                                 <option value="">-- Chọn vai trò --</option>
-                                <option value="REGIONAL_MANAGER">Lãnh đạo khu vực</option>
-                                <option value="BRANCH_MANAGER">Quản lý chi nhánh</option>
-                                <option value="ADMIN">Quản trị hệ thống</option>
-                                <option value="RECEPTIONIST">Lễ tân</option>
-                                <option value="HOUSEKEEPER">Buồng phòng</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="edit-city-group">
-                            <label>Thành phố *</label>
-                            <select id="edit-city" name="city">
-                                <option value="">-- Chọn thành phố --</option>
-                                <option value="Hà Nội">Hà Nội</option>
-                                <option value="Hồ Chí Minh">Hồ Chí Minh</option>
-                                <option value="Đà Nẵng">Đà Nẵng</option>
-                                <option value="Phú Quốc">Phú Quốc</option>
+                                <option value="ADMIN">Quản trị hệ thống (Admin)</option>
+                                <option value="MANAGER">Quản lý khách sạn (Manager)</option>
+                                <option value="RECEPTIONIST">Lễ tân (Receptionist)</option>
                             </select>
                         </div>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group" id="edit-branch-group">
-                            <label>Chi nhánh</label>
-                            <input type="text" id="edit-branchName" name="branchName" placeholder="VD: Ba Đình Hotel">
-                        </div>
-                        <div class="form-group">
-                            <label>Ngày sinh</label>
-                            <input type="date" id="edit-birthday" name="birthday">
-                        </div>
+                    <div class="form-group">
+                        <label>Ngày sinh</label>
+                        <input type="date" id="edit-birthday" name="birthday">
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <label>Số điện thoại</label>

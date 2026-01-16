@@ -40,13 +40,28 @@ public class BookingService {
 
         Booking booking = new Booking();
         booking.setCustomerName(request.getCustomerName());
+        booking.setCustomerPhone(request.getCustomerPhone());
+        booking.setIdentityCard(request.getIdentityCard());
         booking.setRoom(room);
         booking.setCheckInDate(request.getCheckInDate());
         booking.setCheckOutDate(request.getCheckOutDate());
-        booking.setStatus(BookingStatus.BOOKED.name());
+
+        // Set status from request or default to BOOKED
+        String status = request.getStatus();
+        if (status != null && !status.isEmpty()) {
+            booking.setStatus(status);
+        } else {
+            booking.setStatus(BookingStatus.BOOKED.name());
+        }
+
         booking.setTotalAmount(0.0);
 
-        room.setStatus(RoomStatus.OCCUPIED);
+        // Update room status based on booking status
+        if (BookingStatus.CHECKED_IN.name().equals(booking.getStatus())) {
+            room.setStatus(RoomStatus.OCCUPIED);
+        } else {
+            room.setStatus(RoomStatus.BOOKED);
+        }
         roomRepository.save(room);
         return bookingRepository.save(booking);
     }
@@ -68,31 +83,31 @@ public class BookingService {
     }
 
     /**
-     * Get bookings scheduled to check in today for a specific branch
+     * Get bookings scheduled to check in today
      */
-    public List<Booking> getTodayCheckIns(String branchName) {
-        return bookingRepository.findTodayCheckIns(branchName);
+    public List<Booking> getTodayCheckIns() {
+        return bookingRepository.findTodayCheckIns();
     }
 
     /**
-     * Get bookings scheduled to check out today for a specific branch
+     * Get bookings scheduled to check out today
      */
-    public List<Booking> getTodayCheckOuts(String branchName) {
-        return bookingRepository.findTodayCheckOuts(branchName);
+    public List<Booking> getTodayCheckOuts() {
+        return bookingRepository.findTodayCheckOuts();
     }
 
     /**
      * Get current stays ordered by check-out date (overdue first, then nearest)
      */
-    public List<Booking> getCurrentStays(String branchName) {
-        return bookingRepository.findCurrentStaysOrderedByCheckOut(branchName);
+    public List<Booking> getCurrentStays() {
+        return bookingRepository.findCurrentStaysOrderedByCheckOut();
     }
 
     /**
      * Get booking history (checked out and cancelled)
      */
-    public List<Booking> getBookingHistory(String branchName) {
-        return bookingRepository.findBookingHistory(branchName);
+    public List<Booking> getBookingHistory() {
+        return bookingRepository.findBookingHistory();
     }
 
     /**
@@ -122,6 +137,23 @@ public class BookingService {
             roomRepository.save(room);
         }
 
+        return bookingRepository.save(booking);
+    }
+
+    public Booking updateBooking(Long id, BookingRequest request) {
+        Long safeId = Objects.requireNonNull(id, "Booking ID cannot be null");
+        Booking booking = bookingRepository.findById(safeId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found with ID: " + safeId));
+
+        if (request.getCustomerName() != null) {
+            booking.setCustomerName(request.getCustomerName());
+        }
+        if (request.getCheckInDate() != null) {
+            booking.setCheckInDate(request.getCheckInDate());
+        }
+        if (request.getCheckOutDate() != null) {
+            booking.setCheckOutDate(request.getCheckOutDate());
+        }
         return bookingRepository.save(booking);
     }
 }

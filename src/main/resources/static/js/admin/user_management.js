@@ -36,7 +36,6 @@ async function loadUsers() {
         filteredUsers = users; // Initialize filtered list
         currentPage = 1; // Reset page
         displayUsers(); // Display first page
-        updateBranchFilterOptions();
     } catch (error) {
         console.error('Error loading users:', error);
         showError('Không thể tải danh sách user: ' + error.message);
@@ -51,7 +50,7 @@ function displayUsers() {
     const paginationContainer = document.getElementById('pagination-container');
 
     if (!filteredUsers || filteredUsers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Chưa có tài khoản nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Chưa có tài khoản nào</td></tr>';
         paginationContainer.style.display = 'none';
         return;
     }
@@ -67,10 +66,8 @@ function displayUsers() {
             <td>${user.id}</td>
             <td>${user.username}</td>
             <td>${user.fullName}</td>
-            <td>${getRoleDisplay(user.role)}</td>
-            <td>${user.city || '-'}</td>
-            <td>${user.branchName || '-'}</td>
-            <td>
+            <td style="text-align: center;">${getRoleDisplay(user.role)}</td>
+            <td style="text-align: center;">
                 <div class="action-menu-container">
                     <button class="action-menu-btn" onclick="toggleActionMenu(event, ${user.id})">
                         ⋮
@@ -166,11 +163,9 @@ function changePage(newPage) {
  */
 function getRoleDisplay(role) {
     const roleMap = {
-        'REGIONAL_MANAGER': '🌟 Regional Manager',
-        'BRANCH_MANAGER': '🏨 Branch Manager',
-        'ADMIN': '💻 IT Admin',
-        'RECEPTIONIST': '👔 Lễ tân',
-        'HOUSEKEEPER': '🧹 Dọn phòng'
+        'MANAGER': '🏨 Quản lý khách sạn',
+        'ADMIN': '💻 Admin',
+        'RECEPTIONIST': '👔 Lễ tân'
     };
     return roleMap[role] || role;
 }
@@ -178,38 +173,7 @@ function getRoleDisplay(role) {
 /**
  * Handle role change to show/hide conditional fields
  */
-function handleRoleChange() {
-    const roleSelect = document.getElementById('role-select');
-    const selectedRole = roleSelect.value;
-
-    const cityGroup = document.getElementById('city-group');
-    const branchGroup = document.getElementById('branch-group');
-
-    // Show city for Regional Managers
-    if (selectedRole === 'REGIONAL_MANAGER') {
-        cityGroup.style.display = 'block';
-        branchGroup.style.display = 'none';
-        cityGroup.querySelector('select').required = true;
-        branchGroup.querySelector('input').required = false;
-    }
-    // Show branch for Branch Managers, Admins, and Staff
-    else if (selectedRole === 'BRANCH_MANAGER' || selectedRole === 'ADMIN' ||
-        selectedRole === 'RECEPTIONIST' || selectedRole === 'HOUSEKEEPER') {
-        cityGroup.style.display = 'block';
-        branchGroup.style.display = 'block';
-        if (selectedRole === 'BRANCH_MANAGER' || selectedRole === 'ADMIN') {
-            branchGroup.querySelector('input').required = true;
-        } else {
-            branchGroup.querySelector('input').required = false;
-        }
-    }
-    else {
-        cityGroup.style.display = 'none';
-        branchGroup.style.display = 'none';
-        cityGroup.querySelector('select').required = false;
-        branchGroup.querySelector('input').required = false;
-    }
-}
+// function handleRoleChange() removed
 
 /**
  * Handle create user form submission
@@ -224,8 +188,6 @@ async function handleCreateUser(event) {
         password: formData.get('password'),  // Will be auto-encrypted by backend
         fullName: formData.get('fullName'),
         role: formData.get('role'),
-        city: formData.get('city'),
-        branchName: formData.get('branchName'),
         birthday: formData.get('birthday') || null,
         phoneNumber: formData.get('phoneNumber'),
         email: formData.get('email')
@@ -309,85 +271,20 @@ function toggleActionMenu(event, userId) {
 function filterUsers() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
     const roleFilter = document.getElementById('role-filter').value;
-    const cityFilter = document.getElementById('city-filter').value;
-    const branchFilter = document.getElementById('branch-filter').value;
 
     filteredUsers = allUsers.filter(user => {
         const matchesSearch = user.fullName.toLowerCase().includes(searchTerm) ||
             user.username.toLowerCase().includes(searchTerm);
         const matchesRole = !roleFilter || user.role === roleFilter;
-        const matchesCity = !cityFilter || user.city === cityFilter;
-        const matchesBranch = !branchFilter || user.branchName === branchFilter;
 
-        return matchesSearch && matchesRole && matchesCity && matchesBranch;
+        return matchesSearch && matchesRole;
     });
 
     currentPage = 1; // Reset to first page when filtering
     displayUsers();
 }
 
-/**
- * Handle role filter change
- * Hides branch filter if Regional Manager is selected
- */
-function handleRoleFilterChange() {
-    const roleFilter = document.getElementById('role-filter');
-    const branchFilter = document.getElementById('branch-filter');
-
-    if (roleFilter.value === 'REGIONAL_MANAGER') {
-        branchFilter.style.display = 'none';
-        branchFilter.value = ''; // Reset value so it doesn't affect filtering
-    } else {
-        branchFilter.style.display = 'block';
-    }
-
-    filterUsers();
-}
-
-/**
- * Handle city filter change
- * Updates branch options and triggers filtering
- */
-function handleCityFilterChange() {
-    updateBranchFilterOptions();
-    filterUsers();
-}
-
-/**
- * Update branch filter options based on selected city
- */
-function updateBranchFilterOptions() {
-    const cityFilter = document.getElementById('city-filter').value;
-    const branchSelect = document.getElementById('branch-filter');
-    const currentBranch = branchSelect.value; // Store current selection
-
-    // Filter branches based on city
-    let availableBranches = [];
-    if (cityFilter) {
-        // If city is selected, only show branches in that city
-        availableBranches = [...new Set(allUsers
-            .filter(u => u.city === cityFilter && u.branchName)
-            .map(u => u.branchName))];
-    } else {
-        // If no city selected, show all unique branches
-        availableBranches = [...new Set(allUsers
-            .filter(u => u.branchName)
-            .map(u => u.branchName))];
-    }
-
-    availableBranches.sort(); // Sort branches alphabetically
-
-    // Update dropdown
-    branchSelect.innerHTML = '<option value="">Chi nhánh</option>' +
-        availableBranches.map(branch => `<option value="${branch}">${branch}</option>`).join('');
-
-    // Restore selection if still valid (e.g. user selected a branch then selected its city)
-    if (currentBranch && availableBranches.includes(currentBranch)) {
-        branchSelect.value = currentBranch;
-    } else {
-        branchSelect.value = ""; // Reset if current branch doesn't belong to new city
-    }
-}
+// Removed handleRoleFilterChange, handleCityFilterChange, updateBranchFilterOptions
 
 /**
  * Edit user - open modal with pre-filled data
@@ -404,54 +301,18 @@ async function editUser(userId) {
     document.getElementById('edit-username').value = user.username;
     document.getElementById('edit-fullName').value = user.fullName;
     document.getElementById('edit-role').value = user.role;
-    document.getElementById('edit-city').value = user.city || '';
-    document.getElementById('edit-branchName').value = user.branchName || '';
+    // Removed city and branch fields population
     document.getElementById('edit-birthday').value = user.birthday || '';
     document.getElementById('edit-phoneNumber').value = user.phoneNumber || '';
     document.getElementById('edit-email').value = user.email || '';
 
-    // Trigger role change to show/hide conditional fields
-    handleEditRoleChange();
+    // No need to trigger handleEditRoleChange as logic is removed
 
     // Open modal
     ModalManager.open('edit-user-modal');
 }
 
-/**
- * Handle role change in edit modal
- */
-function handleEditRoleChange() {
-    const roleSelect = document.getElementById('edit-role');
-    const selectedRole = roleSelect.value;
-
-    const cityGroup = document.getElementById('edit-city-group');
-    const branchGroup = document.getElementById('edit-branch-group');
-
-    // Show city for Regional Managers
-    if (selectedRole === 'REGIONAL_MANAGER') {
-        cityGroup.style.display = 'block';
-        branchGroup.style.display = 'none';
-        cityGroup.querySelector('select').required = true;
-        branchGroup.querySelector('input').required = false;
-    }
-    // Show branch for Branch Managers, Admins, and Staff
-    else if (selectedRole === 'BRANCH_MANAGER' || selectedRole === 'ADMIN' ||
-        selectedRole === 'RECEPTIONIST' || selectedRole === 'HOUSEKEEPER') {
-        cityGroup.style.display = 'block';
-        branchGroup.style.display = 'block';
-        if (selectedRole === 'BRANCH_MANAGER' || selectedRole === 'ADMIN') {
-            branchGroup.querySelector('input').required = true;
-        } else {
-            branchGroup.querySelector('input').required = false;
-        }
-    }
-    else {
-        cityGroup.style.display = 'none';
-        branchGroup.style.display = 'none';
-        cityGroup.querySelector('select').required = false;
-        branchGroup.querySelector('input').required = false;
-    }
-}
+// function handleEditRoleChange() removed
 
 /**
  * Handle edit user form submission
@@ -466,8 +327,6 @@ async function handleEditUser(event) {
         username: formData.get('username'),
         fullName: formData.get('fullName'),
         role: formData.get('role'),
-        city: formData.get('city'),
-        branchName: formData.get('branchName'),
         birthday: formData.get('birthday') || null,
         phoneNumber: formData.get('phoneNumber'),
         email: formData.get('email')

@@ -27,9 +27,6 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
-    // Organizational fields
-    private String city; // Thành phố: "Hà Nội", "HCM", etc.
-    private String branchName; // Tên chi nhánh: "Ba Đình Hotel", "Quận 1 Hotel", etc.
     private LocalDate birthday; // Ngày sinh (dùng cho mật khẩu)
 
     // Optional contact info

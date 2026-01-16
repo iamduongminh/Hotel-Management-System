@@ -15,26 +15,22 @@ public class HotelServiceManagementService {
     private HotelServiceRepository hotelServiceRepository;
 
     /**
-     * Get all services by branch
+     * Get all services
      */
-    public List<HotelService> getAllServicesByBranch(String branchName) {
-        if (branchName == null || branchName.trim().isEmpty()) {
-            return hotelServiceRepository.findAll();
-        }
-        return hotelServiceRepository.findByBranchNameOrderByIdDesc(branchName);
+    public List<HotelService> getAllServices() {
+        return hotelServiceRepository.findAll();
     }
 
     /**
      * Get filtered services
      */
     public List<HotelService> getFilteredServices(
-            String branchName,
             String name,
             com.hotel_management.api.core.domain.enums.ServiceType type,
             java.math.BigDecimal minPrice,
             java.math.BigDecimal maxPrice) {
 
-        return hotelServiceRepository.filterServices(branchName, name, type, minPrice, maxPrice);
+        return hotelServiceRepository.filterServices(name, type, minPrice, maxPrice);
     }
 
     /**
@@ -60,12 +56,6 @@ public class HotelServiceManagementService {
         }
         if (service.getPrice() == null || service.getPrice().signum() < 0) {
             throw new IllegalArgumentException("Giá dịch vụ không hợp lệ");
-        }
-        if (service.getBranchName() == null || service.getBranchName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Chi nhánh không được để trống");
-        }
-        if (service.getCity() == null || service.getCity().trim().isEmpty()) {
-            throw new IllegalArgumentException("Thành phố không được để trống");
         }
 
         // Set default values

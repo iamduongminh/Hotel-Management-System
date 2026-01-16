@@ -28,17 +28,9 @@ public class RoomController {
      * Get all rooms
      */
     @GetMapping
-    public ResponseEntity<List<Room>> getAllRooms(HttpSession session) {
-        // Get current user to determine branch
-        User currentUser = (User) session.getAttribute("currentUser");
-        String branchName = null;
-
-        if (currentUser != null) {
-            branchName = currentUser.getBranchName();
-            System.out.println("DEBUG: Filtering rooms for branch: " + branchName);
-        }
-
-        return ResponseEntity.ok(roomService.getRoomsByBranch(branchName));
+    public ResponseEntity<List<Room>> getAllRooms() {
+        // Single-branch system - return all rooms
+        return ResponseEntity.ok(roomService.getAllRooms());
     }
 
     /**
@@ -114,28 +106,14 @@ public class RoomController {
      * Returns error message if not allowed, null if allowed
      */
     private String validateStatusChangePermission(UserRole userRole, RoomStatus currentStatus, RoomStatus newStatus) {
-        switch (userRole) {
-            case HOUSEKEEPER:
-                // Housekeeper can only change DIRTY -> AVAILABLE
-                if (currentStatus != RoomStatus.DIRTY || newStatus != RoomStatus.AVAILABLE) {
-                    return "Nhân viên dọn phòng chỉ có thể chuyển phòng DIRTY sang AVAILABLE";
-                }
-                break;
-
-            case RECEPTIONIST:
-                // Receptionist can change to AVAILABLE, BOOKED, OCCUPIED, DIRTY, MAINTENANCE
-                // (Constraint removed to allow flexibility)
-                break;
-
-            case BRANCH_MANAGER:
-            case REGIONAL_MANAGER:
-            case ADMIN:
-                // Managers and admins can change to any status
-                // No restriction
-                break;
-
-            default:
-                return "Bạn không có quyền thay đổi trạng thái phòng";
+        if (userRole == UserRole.RECEPTIONIST) {
+            // Receptionist can change to AVAILABLE, BOOKED, OCCUPIED, DIRTY, MAINTENANCE
+            // (Constraint removed to allow flexibility)
+        } else if (userRole == UserRole.MANAGER || userRole == UserRole.ADMIN) {
+            // Managers and admins can change to any status
+            // No restriction
+        } else {
+            return "Bạn không có quyền thay đổi trạng thái phòng";
         }
 
         return null; // Permission granted
@@ -170,23 +148,17 @@ public class RoomController {
 
             // 2. Check permission - Only ADMIN and MANAGER can create rooms
             UserRole userRole = currentUser.getRole();
-            if (userRole != UserRole.ADMIN &&
-                    userRole != UserRole.BRANCH_MANAGER &&
-                    userRole != UserRole.REGIONAL_MANAGER) {
+            if (userRole != UserRole.ADMIN && userRole != UserRole.MANAGER) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(createErrorResponse("Bạn không có quyền tạo phòng mới"));
             }
 
-            // 3. Set branch info from current user
-            room.setCity(currentUser.getCity());
-            room.setBranchName(currentUser.getBranchName());
-
-            // 4. Set default status if not provided
+            // 3. Set default status if not provided
             if (room.getStatus() == null) {
                 room.setStatus(RoomStatus.AVAILABLE);
             }
 
-            // 5. Create room via service
+            // 4. Create room via service
             Room createdRoom = roomService.createRoom(room);
 
             Map<String, Object> response = new HashMap<>();
@@ -213,14 +185,6 @@ public class RoomController {
             HttpSession session) {
 
         try {
-            // Get current user to determine branch
-            User currentUser = (User) session.getAttribute("currentUser");
-            String branchName = null;
-
-            if (currentUser != null) {
-                branchName = currentUser.getBranchName();
-            }
-
             // Parse enum values
             com.hotel_management.api.core.domain.enums.RoomType roomType = null;
             if (type != null && !type.isEmpty()) {
@@ -242,9 +206,9 @@ public class RoomController {
                 }
             }
 
-            // Get filtered rooms
+            // Get filtered rooms (single-branch system)
             List<Room> filteredRooms = roomService.getFilteredRooms(
-                    branchName, roomType, roomStatus, minPrice, maxPrice, roomNumber);
+                    roomType, roomStatus, minPrice, maxPrice, roomNumber);
 
             return ResponseEntity.ok(filteredRooms);
 
@@ -274,9 +238,7 @@ public class RoomController {
 
         // 2. Check permission - Only ADMIN and MANAGER can edit room info
         UserRole userRole = currentUser.getRole();
-        if (userRole != UserRole.ADMIN &&
-                userRole != UserRole.BRANCH_MANAGER &&
-                userRole != UserRole.REGIONAL_MANAGER) {
+        if (userRole != UserRole.ADMIN && userRole != UserRole.MANAGER) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(createErrorResponse("Bạn không có quyền chỉnh sửa thông tin phòng"));
         }

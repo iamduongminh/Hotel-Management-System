@@ -1,26 +1,18 @@
 // Manager Dashboard Logic
 document.addEventListener('DOMContentLoaded', async () => {
-    await checkAuth();
+    // await checkAuth(); // Common auth should handle this
     await loadManagerInfo();
     await loadStatistics();
 });
 
 async function loadManagerInfo() {
     try {
-        const response = await apiCall('/api/auth/me');
-        if (response.success) {
-            const user = response.data;
+        const user = getCurrentUser(); // Get from localStorage/common auth
+        if (user) {
             // Update UI
             document.getElementById('manager-name').textContent = user.fullName || user.username;
             document.getElementById('manager-role').textContent = getRoleDisplayName(user.role);
-
-            let location = '';
-            if (user.city) location += user.city;
-            if (user.branchName) location += (location ? ' - ' : '') + user.branchName;
-            document.getElementById('manager-location').textContent = location || 'N/A';
-
-            // Sync with localStorage so other pages (sidebar) see the correct role immediately
-            saveCurrentUser(user);
+            // Location logic removed
         }
     } catch (error) {
         console.error('Error loading manager info:', error);
@@ -29,11 +21,9 @@ async function loadManagerInfo() {
 
 function getRoleDisplayName(role) {
     const roleMap = {
-        'REGIONAL_MANAGER': 'Quản Lý Khu Vực',
-        'BRANCH_MANAGER': 'Quản Lý Chi Nhánh',
+        'MANAGER': 'Quản Lý Khách Sạn',
         'ADMIN': 'IT Admin',
-        'RECEPTIONIST': 'Lễ Tân',
-        'HOUSEKEEPER': 'Nhân Viên Dọn Phòng'
+        'RECEPTIONIST': 'Lễ Tân'
     };
     return roleMap[role] || role;
 }
@@ -42,12 +32,14 @@ async function loadStatistics() {
     // Placeholder - would connect to real API endpoints
     try {
         // These would be real API calls in production
-        document.getElementById('monthly-revenue').textContent = '125,500,000 VNĐ';
-        document.getElementById('total-bookings').textContent = '142';
-        document.getElementById('staff-count').textContent = '28';
-        document.getElementById('avg-rating').textContent = '4.7';
+        // Updated IDs to match HTML
+        const totalRevenue = document.getElementById('total-revenue');
+        if (totalRevenue) totalRevenue.textContent = '125,500,000 VNĐ';
 
-        showSuccess('Dashboard đã tải thành công');
+        const occupancyRate = document.getElementById('occupancy-rate');
+        if (occupancyRate) occupancyRate.textContent = '85%';
+
+        // showSuccess('Dashboard đã tải thành công'); // Optional
     } catch (error) {
         console.error('Error loading statistics:', error);
         showError('Không thể tải thống kê');

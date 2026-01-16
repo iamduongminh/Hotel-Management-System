@@ -22,7 +22,7 @@ public class DashboardService {
     public DashboardData getDashboardMetrics() {
         DashboardData data = new DashboardData();
 
-        // Get today's date range
+        // Get today's range
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
@@ -35,14 +35,12 @@ public class DashboardService {
         Double dailyRevenue = bookingRepository.sumDailyRevenue(startOfDay, endOfDay);
         long checkInsToday = bookingRepository.countCheckInsToday(startOfDay, endOfDay);
         long checkOutsToday = bookingRepository.countCheckOutsToday(startOfDay, endOfDay);
-        long pendingApprovals = bookingRepository.countByStatus("BOOKED");
 
         data.setTotalRooms((int) totalRooms);
         data.setOccupiedRooms((int) occupiedRooms);
         data.setDailyRevenue(dailyRevenue);
         data.setCheckInsToday((int) checkInsToday);
         data.setCheckOutsToday((int) checkOutsToday);
-        data.setPendingApprovals((int) pendingApprovals);
 
         return data;
     }

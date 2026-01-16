@@ -28,7 +28,7 @@ public class BookingController {
     }
 
     /**
-     * Get today's check-ins for the current user's branch
+     * Get today's check-ins
      */
     @GetMapping("/today/check-ins")
     public ResponseEntity<List<Booking>> getTodayCheckIns(jakarta.servlet.http.HttpSession session) {
@@ -39,11 +39,11 @@ public class BookingController {
             return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.ok(bookingService.getTodayCheckIns(currentUser.getBranchName()));
+        return ResponseEntity.ok(bookingService.getTodayCheckIns());
     }
 
     /**
-     * Get today's check-outs for the current user's branch
+     * Get today's check-outs
      */
     @GetMapping("/today/check-outs")
     public ResponseEntity<List<Booking>> getTodayCheckOuts(jakarta.servlet.http.HttpSession session) {
@@ -54,7 +54,7 @@ public class BookingController {
             return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.ok(bookingService.getTodayCheckOuts(currentUser.getBranchName()));
+        return ResponseEntity.ok(bookingService.getTodayCheckOuts());
     }
 
     /**
@@ -69,7 +69,7 @@ public class BookingController {
             return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.ok(bookingService.getCurrentStays(currentUser.getBranchName()));
+        return ResponseEntity.ok(bookingService.getCurrentStays());
     }
 
     /**
@@ -84,7 +84,7 @@ public class BookingController {
             return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.ok(bookingService.getBookingHistory(currentUser.getBranchName()));
+        return ResponseEntity.ok(bookingService.getBookingHistory());
     }
 
     /**
@@ -101,5 +101,10 @@ public class BookingController {
     @PostMapping("/{id}/check-out")
     public ResponseEntity<Booking> checkOut(@PathVariable Long id) {
         return ResponseEntity.ok(bookingService.checkOut(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Booking> updateBooking(@PathVariable Long id, @RequestBody BookingRequest req) {
+        return ResponseEntity.ok(bookingService.updateBooking(id, req));
     }
 }

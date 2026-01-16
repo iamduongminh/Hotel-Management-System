@@ -13,6 +13,8 @@ public class Booking {
     private Long id;
 
     private String customerName;
+    private String customerPhone;
+    private String identityCard;
     private LocalDateTime checkInDate;
     private LocalDateTime checkOutDate;
     private Double totalAmount;

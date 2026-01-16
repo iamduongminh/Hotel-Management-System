@@ -47,17 +47,11 @@ async function handleLogin(e) {
             case 'ADMIN':
                 window.location.href = "/pages/admin/dashboard.html";
                 break;
-            case 'REGIONAL_MANAGER':
-                window.location.href = "/pages/regional_manager/dashboard.html";
-                break;
-            case 'BRANCH_MANAGER':
-                window.location.href = "/pages/branch_manager/dashboard.html";
+            case 'MANAGER':
+                window.location.href = "/pages/manager/dashboard.html";
                 break;
             case 'RECEPTIONIST':
                 window.location.href = "/pages/receptionist/room_grid.html";
-                break;
-            case 'HOUSEKEEPER':
-                window.location.href = "/pages/housekeeper/dashboard.html";
                 break;
             default:
                 console.warn("Unknown role:", response.role);

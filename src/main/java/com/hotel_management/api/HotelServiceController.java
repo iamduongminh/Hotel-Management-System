@@ -21,7 +21,7 @@ public class HotelServiceController {
     private HotelServiceManagementService hotelServiceManagementService;
 
     /**
-     * Get all services filtered by user's branch
+     * Get all services
      */
     @GetMapping
     public ResponseEntity<?> getAllServices(HttpSession session) {
@@ -32,8 +32,7 @@ public class HotelServiceController {
                         .body(createErrorResponse("Vui lòng đăng nhập"));
             }
 
-            String branchName = currentUser.getBranchName();
-            List<HotelService> services = hotelServiceManagementService.getAllServicesByBranch(branchName);
+            List<HotelService> services = hotelServiceManagementService.getAllServices();
             return ResponseEntity.ok(services);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -58,8 +57,7 @@ public class HotelServiceController {
                         .body(createErrorResponse("Vui lòng đăng nhập"));
             }
 
-            String branchName = currentUser.getBranchName();
-            List<HotelService> services = hotelServiceManagementService.getFilteredServices(branchName, name, type,
+            List<HotelService> services = hotelServiceManagementService.getFilteredServices(name, type,
                     minPrice, maxPrice);
             return ResponseEntity.ok(services);
         } catch (Exception e) {
@@ -81,13 +79,6 @@ public class HotelServiceController {
             }
 
             HotelService service = hotelServiceManagementService.getServiceById(id);
-
-            // Check if service belongs to user's branch
-            if (!service.getBranchName().equals(currentUser.getBranchName())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("Bạn không có quyền xem dịch vụ này"));
-            }
-
             return ResponseEntity.ok(service);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -109,10 +100,6 @@ public class HotelServiceController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(createErrorResponse("Vui lòng đăng nhập"));
             }
-
-            // Set branch info from current user
-            service.setCity(currentUser.getCity());
-            service.setBranchName(currentUser.getBranchName());
 
             HotelService createdService = hotelServiceManagementService.createService(service);
 
@@ -144,13 +131,6 @@ public class HotelServiceController {
                         .body(createErrorResponse("Vui lòng đăng nhập"));
             }
 
-            // Check if service belongs to user's branch
-            HotelService existingService = hotelServiceManagementService.getServiceById(id);
-            if (!existingService.getBranchName().equals(currentUser.getBranchName())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("Bạn không có quyền sửa dịch vụ này"));
-            }
-
             HotelService updatedService = hotelServiceManagementService.updateService(id, service);
 
             Map<String, Object> response = new HashMap<>();
@@ -178,13 +158,6 @@ public class HotelServiceController {
                         .body(createErrorResponse("Vui lòng đăng nhập"));
             }
 
-            // Check if service belongs to user's branch
-            HotelService existingService = hotelServiceManagementService.getServiceById(id);
-            if (!existingService.getBranchName().equals(currentUser.getBranchName())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("Bạn không có quyền xóa dịch vụ này"));
-            }
-
             hotelServiceManagementService.deleteService(id);
 
             Map<String, String> response = new HashMap<>();
@@ -209,13 +182,6 @@ public class HotelServiceController {
             if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(createErrorResponse("Vui lòng đăng nhập"));
-            }
-
-            // Check if service belongs to user's branch
-            HotelService existingService = hotelServiceManagementService.getServiceById(id);
-            if (!existingService.getBranchName().equals(currentUser.getBranchName())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(createErrorResponse("Bạn không có quyền thay đổi trạng thái dịch vụ này"));
             }
 
             HotelService updatedService = hotelServiceManagementService.toggleServiceStatus(id);

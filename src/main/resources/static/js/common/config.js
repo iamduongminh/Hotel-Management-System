@@ -137,3 +137,32 @@ function getRoleDisplayName(role) {
     };
     return roleMap[role] || role;
 }
+
+// 8. Tiện ích định dạng số có dấu chấm (cho ô input)
+function formatNumberWithDots(num) {
+    if (num === null || num === undefined || num === '') return '';
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+// 9. Tiện ích parse số từ chuỗi có dấu chấm
+function parseNumberFromDots(str) {
+    if (!str) return 0;
+    // Chuyển thành chuỗi nếu chưa phải, sau đó xóa dấu chấm
+    const cleanStr = String(str).replace(/\./g, '');
+    return parseInt(cleanStr, 10) || 0;
+}
+
+// 10. Handler cho sự kiện oninput của ô giá tiền
+function formatPriceInput(input) {
+    // Xóa tất cả ký tự không phải số
+    let value = input.value.replace(/[^\d]/g, '');
+
+    // Nếu có giá trị, định dạng lại
+    if (value) {
+        // Chuyển thành số int để bỏ số 0 ở đầu (VD: 01 -> 1)
+        const intVal = parseInt(value, 10);
+        input.value = formatNumberWithDots(intVal);
+    } else {
+        input.value = '';
+    }
+}

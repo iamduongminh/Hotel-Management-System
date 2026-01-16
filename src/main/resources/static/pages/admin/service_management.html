@@ -3,11 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý Dịch vụ - Admin</title>
+    <title>Admin</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="../../css/modal.css">
@@ -16,15 +18,15 @@
 
 <body>
     <div class="sidebar">
-        <h3>Quản trị hệ thống</h3>
-        <a href="dashboard.html">Quản lý người dùng</a>
-        <a href="service_management.html" class="active">Quản lý dịch vụ</a>
-        <a href="room_category_management.html">Quản lý danh mục phòng</a>
-        <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
+        <h3><i class="fas fa-user-shield"></i> Quản trị hệ thống</h3>
+        <a href="dashboard.html"><i class="fas fa-users-cog"></i> Quản lý người dùng</a>
+        <a href="service_management.html" class="active"><i class="fas fa-concierge-bell"></i> Quản lý dịch vụ</a>
+        <a href="room_category_management.html"><i class="fas fa-bed"></i> Quản lý phòng</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
     </div>
 
     <div class="main-content">
-        <h1 style="text-align: center; margin-bottom: 30px;">Quản lý Dịch vụ</h1>
+        <h1 style="text-align: center; margin-bottom: 30px;">Danh sách dịch vụ</h1>
 
         <!-- Service List Table -->
         <div class="card" style="padding: 0; overflow: visible;">
@@ -59,9 +61,11 @@
                         <div class="range-slider-container">
                             <div class="slider-track"></div>
                             <input type="range" id="filter-min-price" min="0" max="2000000" value="0" step="10000"
-                                oninput="updatePriceDisplay()" onchange="filterServices()">
+                                oninput="updatePriceDisplay(); filterServices('price')"
+                                onchange="filterServices('price')">
                             <input type="range" id="filter-max-price" min="0" max="2000000" value="2000000" step="10000"
-                                oninput="updatePriceDisplay()" onchange="filterServices()">
+                                oninput="updatePriceDisplay(); filterServices('price')"
+                                onchange="filterServices('price')">
                         </div>
                     </div>
                 </div>
@@ -72,7 +76,7 @@
                         <th>ID</th>
                         <th>Tên dịch vụ</th>
                         <th>Loại</th>
-                        <th>Giá (VNĐ)</th>
+                        <th>Giá</th>
                         <th>Mô tả</th>
                         <th>Trạng thái</th>
                         <th style="width: 100px;">Hành động</th>
@@ -120,7 +124,8 @@
 
                     <div class="form-group">
                         <label>Giá (VNĐ) *</label>
-                        <input type="number" name="price" required min="0" step="1000" placeholder="VD: 50000">
+                        <input type="text" name="price" required placeholder="VD: 50.000"
+                            oninput="formatPriceInput(this)">
                     </div>
 
                     <div class="form-group">
@@ -172,7 +177,8 @@
 
                     <div class="form-group">
                         <label>Giá (VNĐ) *</label>
-                        <input type="number" name="price" id="edit-service-price" required min="0" step="1000">
+                        <input type="text" name="price" id="edit-service-price" required
+                            oninput="formatPriceInput(this)">
                     </div>
 
                     <div class="form-group">
