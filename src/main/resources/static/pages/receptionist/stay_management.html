@@ -164,12 +164,22 @@
 
         <!-- BOOKED Tab -->
         <div class="tab-content active" id="booked-tab">
-            <div class="filter-bar">
-                <input type="text" class="search-box" placeholder="Tìm theo số phòng, tên khách..." id="search-booked"
-                    style="flex: 1; max-width: 400px;">
-            </div>
-
-            <div class="table-container">
+            <div class="card" style="padding: 0; overflow: visible;">
+                <div class="table-header-sticky">
+                    <div class="search-filter-compact">
+                        <input type="text" class="search-input-compact" placeholder="Tìm theo tên khách, ID booking..."
+                            id="search-booked" style="flex: 1; min-width: 250px;">
+                        <input type="text" id="booked-room-filter" class="filter-select-compact"
+                            placeholder="Số phòng (VD: 101 102 103)" style="width: 200px;"
+                            title="Nhập số phòng, cách nhau bởi dấu cách">
+                        <input type="date" id="booked-date-from" class="filter-select-compact" style="width: 140px;"
+                            title="Từ ngày check-in">
+                        <span
+                            style="display: flex; align-items: center; color: var(--text-muted); padding: 0 4px;">đến</span>
+                        <input type="date" id="booked-date-to" class="filter-select-compact" style="width: 140px;"
+                            title="Đến ngày check-in">
+                    </div>
+                </div>
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -193,12 +203,22 @@
 
         <!-- OCCUPIED Tab -->
         <div class="tab-content" id="occupied-tab">
-            <div class="filter-bar">
-                <input type="text" class="search-box" placeholder="Tìm theo số phòng, tên khách..." id="search-occupied"
-                    style="flex: 1; max-width: 400px;">
-            </div>
-
-            <div class="table-container">
+            <div class="card" style="padding: 0; overflow: visible;">
+                <div class="table-header-sticky">
+                    <div class="search-filter-compact">
+                        <input type="text" class="search-input-compact" placeholder="Tìm theo tên khách, ID booking..."
+                            id="search-occupied" style="flex: 1; min-width: 250px;">
+                        <input type="text" id="occupied-room-filter" class="filter-select-compact"
+                            placeholder="Số phòng (VD: 101 102 103)" style="width: 200px;"
+                            title="Nhập số phòng, cách nhau bởi dấu cách">
+                        <input type="date" id="occupied-date-from" class="filter-select-compact" style="width: 140px;"
+                            title="Từ ngày check-out">
+                        <span
+                            style="display: flex; align-items: center; color: var(--text-muted); padding: 0 4px;">đến</span>
+                        <input type="date" id="occupied-date-to" class="filter-select-compact" style="width: 140px;"
+                            title="Đến ngày check-out">
+                    </div>
+                </div>
                 <table class="data-table">
                     <thead>
                         <tr>

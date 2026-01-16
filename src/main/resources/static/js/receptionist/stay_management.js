@@ -26,6 +26,9 @@ async function loadBookings() {
         renderBookedTable(bookedData);
         renderOccupiedTable(occupiedData);
         updateStats(bookedData, occupiedData);
+
+        // Populate room filters
+        populateRoomFilters(bookings);
     } catch (error) {
         console.error('Error loading bookings:', error);
         document.getElementById('booked-tbody').innerHTML = `
@@ -335,27 +338,86 @@ async function confirmCheckOut(event) {
     }
 }
 
-// Setup search
+// Setup search and filters
 function setupSearch() {
-    document.getElementById('search-booked').addEventListener('input', function (e) {
-        const query = e.target.value.toLowerCase();
-        const filtered = bookedData.filter(b =>
-            b.customerName?.toLowerCase().includes(query) ||
-            b.room?.roomNumber?.toString().includes(query) ||
-            b.id?.toString().includes(query)
-        );
-        renderBookedTable(filtered);
+    document.getElementById('search-booked').addEventListener('input', applyBookedFilters);
+    document.getElementById('search-occupied').addEventListener('input', applyOccupiedFilters);
+}
+
+// Populate room filters
+function populateRoomFilters(bookings) {
+    const roomNumbers = [...new Set(bookings.map(b => b.room?.roomNumber).filter(r => r))].sort((a, b) => a - b);
+
+    const bookedSelect = document.getElementById('booked-room-filter');
+    const occupiedSelect = document.getElementById('occupied-room-filter');
+
+    roomNumbers.forEach(roomNum => {
+        const option1 = document.createElement('option');
+        option1.value = roomNum;
+        option1.textContent = `Phòng ${roomNum}`;
+        bookedSelect.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = roomNum;
+        option2.textContent = `Phòng ${roomNum}`;
+        occupiedSelect.appendChild(option2);
+    });
+}
+
+// Apply Booked filters
+function applyBookedFilters() {
+    const searchQuery = document.getElementById('search-booked').value.toLowerCase();
+    const dateFrom = document.getElementById('booked-date-from').value;
+    const dateTo = document.getElementById('booked-date-to').value;
+    const roomFilter = document.getElementById('booked-room-filter').value;
+
+    let filtered = bookedData.filter(b => {
+        // Search filter
+        const matchesSearch = !searchQuery ||
+            b.customerName?.toLowerCase().includes(searchQuery) ||
+            b.room?.roomNumber?.toString().includes(searchQuery) ||
+            b.id?.toString().includes(searchQuery);
+
+        // Date range filter (check-in date)
+        const checkInDate = b.checkInDate ? new Date(b.checkInDate).toISOString().split('T')[0] : null;
+        const matchesDateFrom = !dateFrom || !checkInDate || checkInDate >= dateFrom;
+        const matchesDateTo = !dateTo || !checkInDate || checkInDate <= dateTo;
+
+        // Room filter
+        const matchesRoom = !roomFilter || b.room?.roomNumber?.toString() === roomFilter;
+
+        return matchesSearch && matchesDateFrom && matchesDateTo && matchesRoom;
     });
 
-    document.getElementById('search-occupied').addEventListener('input', function (e) {
-        const query = e.target.value.toLowerCase();
-        const filtered = occupiedData.filter(b =>
-            b.customerName?.toLowerCase().includes(query) ||
-            b.room?.roomNumber?.toString().includes(query) ||
-            b.id?.toString().includes(query)
-        );
-        renderOccupiedTable(filtered);
+    renderBookedTable(filtered);
+}
+
+// Apply Occupied filters
+function applyOccupiedFilters() {
+    const searchQuery = document.getElementById('search-occupied').value.toLowerCase();
+    const dateFrom = document.getElementById('occupied-date-from').value;
+    const dateTo = document.getElementById('occupied-date-to').value;
+    const roomFilter = document.getElementById('occupied-room-filter').value;
+
+    let filtered = occupiedData.filter(b => {
+        // Search filter
+        const matchesSearch = !searchQuery ||
+            b.customerName?.toLowerCase().includes(searchQuery) ||
+            b.room?.roomNumber?.toString().includes(searchQuery) ||
+            b.id?.toString().includes(searchQuery);
+
+        // Date range filter (check-out date)
+        const checkOutDate = b.checkOutDate ? new Date(b.checkOutDate).toISOString().split('T')[0] : null;
+        const matchesDateFrom = !dateFrom || !checkOutDate || checkOutDate >= dateFrom;
+        const matchesDateTo = !dateTo || !checkOutDate || checkOutDate <= dateTo;
+
+        // Room filter
+        const matchesRoom = !roomFilter || b.room?.roomNumber?.toString() === roomFilter;
+
+        return matchesSearch && matchesDateFrom && matchesDateTo && matchesRoom;
     });
+
+    renderOccupiedTable(filtered);
 }
 
 // Start clock

@@ -151,4 +151,65 @@ public class RoomService {
         // Save and return
         return roomRepo.save(room);
     }
+
+    /**
+     * Create a new room
+     * 
+     * @param room Room entity to create
+     * @return Created room
+     */
+    @NonNull
+    public Room createRoom(Room room) {
+        // Validate required fields
+        if (room.getRoomNumber() == null || room.getRoomNumber().isEmpty()) {
+            throw new IllegalArgumentException("Số phòng không được để trống");
+        }
+        if (room.getType() == null) {
+            throw new IllegalArgumentException("Loại phòng không được để trống");
+        }
+        if (room.getPrice() == null) {
+            throw new IllegalArgumentException("Giá phòng không được để trống");
+        }
+
+        // Set default status if not provided
+        if (room.getStatus() == null) {
+            room.setStatus(RoomStatus.AVAILABLE);
+        }
+
+        // Save and return
+        return roomRepo.save(room);
+    }
+
+    /**
+     * Get filtered rooms based on multiple criteria
+     * 
+     * @param branchName Branch to filter by
+     * @param type       Room type filter (optional)
+     * @param status     Room status filter (optional)
+     * @param minPrice   Minimum price filter (optional)
+     * @param maxPrice   Maximum price filter (optional)
+     * @param roomNumber Room number search (optional)
+     * @return List of rooms matching the criteria
+     */
+    public List<Room> getFilteredRooms(
+            String branchName,
+            RoomType type,
+            RoomStatus status,
+            java.math.BigDecimal minPrice,
+            java.math.BigDecimal maxPrice,
+            String roomNumber) {
+
+        // Start with rooms by branch
+        List<Room> rooms = getRoomsByBranch(branchName);
+
+        // Apply filters
+        return rooms.stream()
+                .filter(room -> type == null || room.getType() == type)
+                .filter(room -> status == null || room.getStatus() == status)
+                .filter(room -> minPrice == null || room.getPrice().compareTo(minPrice) >= 0)
+                .filter(room -> maxPrice == null || room.getPrice().compareTo(maxPrice) <= 0)
+                .filter(room -> roomNumber == null || roomNumber.isEmpty()
+                        || room.getRoomNumber().toLowerCase().contains(roomNumber.toLowerCase()))
+                .toList();
+    }
 }

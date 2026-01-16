@@ -6,10 +6,47 @@
 let roomsData = [];
 let selectedRoom = null;
 
+// Status Transitions Map
+// Status Transitions Map
+const STATUS_TRANSITIONS = {
+    'AVAILABLE': ['OCCUPIED', 'BOOKED', 'DIRTY', 'CLEANING', 'MAINTENANCE'],
+    'OCCUPIED': ['AVAILABLE', 'BOOKED', 'DIRTY', 'CLEANING', 'MAINTENANCE'],
+    'BOOKED': ['AVAILABLE', 'OCCUPIED', 'DIRTY', 'CLEANING', 'MAINTENANCE'],
+    'DIRTY': ['AVAILABLE', 'OCCUPIED', 'BOOKED', 'CLEANING', 'MAINTENANCE'],
+    'CLEANING': ['AVAILABLE', 'OCCUPIED', 'BOOKED', 'DIRTY', 'MAINTENANCE'],
+    'MAINTENANCE': ['AVAILABLE', 'OCCUPIED', 'BOOKED', 'DIRTY', 'CLEANING']
+};
+
+const STATUS_DISPLAY = {
+    'AVAILABLE': { text: 'Trống', class: 'available', icon: 'fa-check' },
+    'OCCUPIED': { text: 'Có khách', class: 'occupied', icon: 'fa-user' },
+    'BOOKED': { text: 'Đã đặt', class: 'booked', icon: 'fa-calendar-check' },
+    'DIRTY': { text: 'Cần dọn', class: 'dirty', icon: 'fa-broom' },
+    'CLEANING': { text: 'Đang dọn', class: 'cleaning', icon: 'fa-soap' },
+    'MAINTENANCE': { text: 'Bảo trì', class: 'maintenance', icon: 'fa-tools' }
+};
+
+// Initialize
 // Initialize
 document.addEventListener('DOMContentLoaded', function () {
+    // Display branch name
+    const currentUser = getCurrentUser();
+    if (currentUser && currentUser.branchName) {
+        document.getElementById('branch-name-display').textContent = currentUser.branchName;
+    } else {
+        document.getElementById('branch-name-display').textContent = 'Chi nhánh';
+    }
+
     loadRooms();
     startClock();
+
+    // Auto-refresh every 3 seconds
+    setInterval(() => {
+        // Silent update (pass true to indicate background reload if needed, 
+        // though loadRooms implementation replaces innerHTML so it might flicker slightly. 
+        // Ideally we'd diff, but for now just reload is requested.)
+        loadRooms();
+    }, 3000);
 });
 
 // Load all rooms
@@ -91,7 +128,9 @@ function renderRoomBox(room) {
     }
 
     return `
-        <div class="room-box ${status}" onclick="showRoomDetails(${room.id})" data-room-id="${room.id}">
+        <div class="room-box ${status}" 
+             onclick="handleRoomClick(event, ${room.id})" 
+             data-room-id="${room.id}">
             <div class="room-number">${room.roomNumber}</div>
             <div class="room-type">${room.type || 'Standard'}</div>
             <div class="room-status-text">${statusText}</div>
@@ -119,6 +158,7 @@ function updateStats(rooms) {
         occupied: 0,
         booked: 0,
         dirty: 0,
+        cleaning: 0,
         maintenance: 0
     };
 
@@ -133,6 +173,7 @@ function updateStats(rooms) {
     document.getElementById('stat-occupied').textContent = stats.occupied;
     document.getElementById('stat-booked').textContent = stats.booked;
     document.getElementById('stat-dirty').textContent = stats.dirty;
+    document.getElementById('stat-cleaning').textContent = stats.cleaning;
     document.getElementById('stat-maintenance').textContent = stats.maintenance;
 }
 
@@ -146,26 +187,46 @@ async function showRoomDetails(roomId) {
     // Update Modal Title
     document.getElementById('modalRoomTitle').textContent = `Phòng ${room.roomNumber} - ${room.type}`;
 
-    // Show Modal
-    const modal = document.getElementById('roomModal');
-    modal.style.display = 'block';
+    // Dynamic Status Buttons
+    const buttonsContainer = document.getElementById('status-transition-buttons');
+    if (buttonsContainer) {
+        buttonsContainer.innerHTML = '';
+        const currentStatus = room.status || 'AVAILABLE';
+        const allowedStatuses = STATUS_TRANSITIONS[currentStatus] || [];
 
-    // Setup close button
-    const span = modal.querySelector('.close-modal');
-    span.onclick = function () {
-        modal.style.display = 'none';
+        if (allowedStatuses.length > 0) {
+            allowedStatuses.forEach(status => {
+                const config = STATUS_DISPLAY[status];
+                const btn = document.createElement('button');
+                btn.className = `status-btn ${config.class}`;
+                btn.innerHTML = `<i class="fas ${config.icon}"></i>${config.text}`;
+                btn.onclick = () => updateRoomStatus(status);
+                buttonsContainer.appendChild(btn);
+            });
+            document.getElementById('status-buttons-section').style.display = 'block';
+        } else {
+            document.getElementById('status-buttons-section').style.display = 'none';
+        }
     }
 
-    window.onclick = function (event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
+    // Show Modal
+    const modal = document.getElementById('room-details-modal');
+    // Using simple display block as per previous code, ignoring ModalManager for now to keep it working
+    // But wait, the HTML uses ModalManager. Let's try to use ModalManager if available, or fallback.
+    if (window.ModalManager) {
+        ModalManager.open('room-details-modal');
+    } else {
+        modal.style.display = 'block';
     }
 }
 
 // Update Room Status directly
 async function updateRoomStatus(newStatus) {
     if (!selectedRoom) return;
+
+    if (!confirm(`Bạn có chắc chắn muốn chuyển trạng thái phòng sang ${STATUS_DISPLAY[newStatus].text}?`)) {
+        return;
+    }
 
     try {
         // Send status in body as expected by Controller
@@ -177,10 +238,21 @@ async function updateRoomStatus(newStatus) {
         selectedRoom.status = newStatus;
 
         // Close modal
-        document.getElementById('roomModal').style.display = 'none';
+        if (window.ModalManager) {
+            ModalManager.close('room-details-modal');
+        } else {
+            document.getElementById('room-details-modal').style.display = 'none';
+        }
 
         // Reload rooms to refresh grid
         loadRooms();
+
+        // Show success toast if available
+        if (window.showToast) {
+            showToast('Cập nhật trạng thái thành công', 'success');
+        } else {
+            alert('Cập nhật trạng thái thành công');
+        }
 
     } catch (error) {
         alert('Lỗi cập nhật trạng thái: ' + error.message);
@@ -230,6 +302,87 @@ async function handleUpdateRoomInfo(event) {
     } catch (error) {
         alert('Lỗi cập nhật thông tin phòng: ' + error.message);
     }
+}
+
+// Handle Room Click (Context Menu style)
+function handleRoomClick(event, roomId) {
+    // Stop propagation so it doesn't trigger global click close immediately if bubbled?
+    // Actually we need to be careful. The document click listener closes it.
+    // So we should stopImmediatePropagation or handle styling.
+    event.stopPropagation();
+
+    event.preventDefault(); // Good habit
+    const room = roomsData.find(r => r.id === roomId);
+    if (!room) return;
+
+    selectedRoom = room;
+    const menu = document.getElementById('context-menu');
+    const currentStatus = room.status || 'AVAILABLE';
+    const allowedStatuses = STATUS_TRANSITIONS[currentStatus] || [];
+
+    let menuContent = `
+        <div class="context-menu-item" style="cursor: default; opacity: 0.7; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 600;">
+            <i class="fas fa-info-circle"></i> Phòng ${room.roomNumber} (${getStatusText(currentStatus)})
+        </div>
+    `;
+
+    if (allowedStatuses.length > 0) {
+        allowedStatuses.forEach(status => {
+            const config = STATUS_DISPLAY[status];
+            menuContent += `
+                <div class="context-menu-item" onclick="updateRoomStatus('${status}')">
+                    <i class="fas ${config.icon}" style="color: ${getColorForStatus(status)}"></i> 
+                    ${config.text}
+                </div>
+            `;
+        });
+    } else {
+        menuContent += `
+            <div class="context-menu-item" style="cursor: default; font-style: italic; color: #94a3b8;">
+                <i class="fas fa-ban"></i> Không có hành động
+            </div>
+        `;
+    }
+
+    // Add "View Details" option
+    menuContent += `
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="showRoomDetails(${room.id})">
+            <i class="fas fa-eye"></i> Xem chi tiết
+        </div>
+    `;
+
+    menu.innerHTML = menuContent;
+
+    // Position menu
+    menu.style.display = 'block';
+
+    // Adjust position to stay within viewport
+    let x = event.pageX;
+    let y = event.pageY;
+
+    if (x + 200 > window.innerWidth) x -= 200;
+
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+}
+
+function hideContextMenu() {
+    const menu = document.getElementById('context-menu');
+    if (menu) menu.style.display = 'none';
+}
+
+// Helper to get color for icon
+function getColorForStatus(status) {
+    const map = {
+        'AVAILABLE': '#10b981',
+        'OCCUPIED': '#ef4444',
+        'BOOKED': '#3b82f6',
+        'DIRTY': '#f97316',
+        'CLEANING': '#eab308',
+        'MAINTENANCE': '#6b7280'
+    };
+    return map[status] || '#fff';
 }
 
 // Start clock

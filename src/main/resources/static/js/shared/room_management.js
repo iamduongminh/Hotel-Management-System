@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (document.getElementById('user-role-display')) {
         document.getElementById('user-role-display').textContent = getRoleDisplayName(currentUser.role) + ' - ' + (currentUser.fullName || currentUser.username);
     }
+    if (document.getElementById('branch-name-display') && currentUser.branchName) {
+        document.getElementById('branch-name-display').textContent = '📍 Chi nhánh: ' + currentUser.branchName;
+    }
 
     // Update Sidebar Navigation based on Role
     // Note: pages/common/room_management.html needs to have the sidebar container
@@ -214,6 +217,7 @@ function getStatusText(status) {
         'BOOKED': 'Đã đặt',
         'OCCUPIED': 'Đang có khách',
         'DIRTY': 'Cần dọn dẹp',
+        'CLEANING': 'Đang dọn dẹp',
         'MAINTENANCE': 'Bảo trì'
     };
     return map[status] || status;

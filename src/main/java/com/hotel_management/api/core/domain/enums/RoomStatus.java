@@ -5,5 +5,6 @@ public enum RoomStatus {
     BOOKED, // Phòng đã được đặt nhưng chưa check-in
     OCCUPIED, // Phòng đang có khách
     DIRTY, // Phòng cần dọn dẹp
+    CLEANING, // Phòng đang được dọn dẹp
     MAINTENANCE // Phòng đang bảo trì
 }

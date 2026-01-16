@@ -56,25 +56,30 @@
             </div>
         </div>
 
-        <!-- Filters -->
-        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-            <input type="date" id="date-from" class="search-box" style="width: 180px;">
-            <span style="display: flex; align-items: center; color: var(--text-muted);">đến</span>
-            <input type="date" id="date-to" class="search-box" style="width: 180px;">
-            <select id="status-filter" class="search-box" style="width: 180px;" onchange="applyFilters()">
-                <option value="">Tất cả</option>
-                <option value="CHECKED_OUT">Đã check-out</option>
-                <option value="CANCELLED">Đã hủy</option>
-            </select>
-            <input type="text" id="search-input" class="search-box" placeholder="Tìm theo tên, phòng..."
-                style="flex: 1; max-width: 300px;">
-            <button class="btn btn-primary" onclick="applyFilters()">
-                <i class="fas fa-search"></i> Tìm Kiếm
-            </button>
-        </div>
-
         <!-- History Table -->
-        <div class="table-container">
+        <div class="card" style="padding: 0; overflow: visible;">
+            <div class="table-header-sticky">
+                <div class="table-title-section">
+                    <button class="btn-primary btn-sm" onclick="applyFilters()"
+                        style="min-width: 150px; min-height: 50px;">
+                        <i class="fas fa-search"></i> Tìm Kiếm
+                    </button>
+                </div>
+                <div class="search-filter-compact">
+                    <input type="date" id="date-from" class="filter-select-compact" style="width: 180px;">
+                    <span
+                        style="display: flex; align-items: center; color: var(--text-muted); padding: 0 8px;">đến</span>
+                    <input type="date" id="date-to" class="filter-select-compact" style="width: 180px;">
+                    <select id="status-filter" class="filter-select-compact" style="width: 180px;"
+                        onchange="applyFilters()">
+                        <option value="">Tất cả</option>
+                        <option value="CHECKED_OUT">Đã check-out</option>
+                        <option value="CANCELLED">Đã hủy</option>
+                    </select>
+                    <input type="text" id="search-input" class="search-input-compact"
+                        placeholder="Tìm theo tên, phòng...">
+                </div>
+            </div>
             <table class="data-table">
                 <thead>
                     <tr>

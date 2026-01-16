@@ -151,6 +151,110 @@ public class RoomController {
     }
 
     /**
+     * Create new room
+     * Only ADMIN and MANAGER roles allowed
+     */
+    @PostMapping
+    public ResponseEntity<?> createRoom(
+            @RequestBody Room room,
+            HttpSession session) {
+
+        try {
+            // 1. Get current user from session
+            User currentUser = (User) session.getAttribute("currentUser");
+
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(createErrorResponse("Vui lòng đăng nhập để thực hiện thao tác này"));
+            }
+
+            // 2. Check permission - Only ADMIN and MANAGER can create rooms
+            UserRole userRole = currentUser.getRole();
+            if (userRole != UserRole.ADMIN &&
+                    userRole != UserRole.BRANCH_MANAGER &&
+                    userRole != UserRole.REGIONAL_MANAGER) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(createErrorResponse("Bạn không có quyền tạo phòng mới"));
+            }
+
+            // 3. Set branch info from current user
+            room.setCity(currentUser.getCity());
+            room.setBranchName(currentUser.getBranchName());
+
+            // 4. Set default status if not provided
+            if (room.getStatus() == null) {
+                room.setStatus(RoomStatus.AVAILABLE);
+            }
+
+            // 5. Create room via service
+            Room createdRoom = roomService.createRoom(room);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Tạo phòng mới thành công");
+            response.put("room", createdRoom);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse("Lỗi: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get filtered rooms with multiple criteria
+     */
+    @GetMapping("/filter")
+    public ResponseEntity<?> getFilteredRooms(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) java.math.BigDecimal minPrice,
+            @RequestParam(required = false) java.math.BigDecimal maxPrice,
+            @RequestParam(required = false) String roomNumber,
+            HttpSession session) {
+
+        try {
+            // Get current user to determine branch
+            User currentUser = (User) session.getAttribute("currentUser");
+            String branchName = null;
+
+            if (currentUser != null) {
+                branchName = currentUser.getBranchName();
+            }
+
+            // Parse enum values
+            com.hotel_management.api.core.domain.enums.RoomType roomType = null;
+            if (type != null && !type.isEmpty()) {
+                try {
+                    roomType = com.hotel_management.api.core.domain.enums.RoomType.valueOf(type.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest()
+                            .body(createErrorResponse("Loại phòng không hợp lệ: " + type));
+                }
+            }
+
+            RoomStatus roomStatus = null;
+            if (status != null && !status.isEmpty()) {
+                try {
+                    roomStatus = RoomStatus.valueOf(status.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest()
+                            .body(createErrorResponse("Trạng thái không hợp lệ: " + status));
+                }
+            }
+
+            // Get filtered rooms
+            List<Room> filteredRooms = roomService.getFilteredRooms(
+                    branchName, roomType, roomStatus, minPrice, maxPrice, roomNumber);
+
+            return ResponseEntity.ok(filteredRooms);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Lỗi khi lọc phòng: " + e.getMessage()));
+        }
+    }
+
+    /**
      * Update room information (price, type, room number)
      * Only ADMIN and MANAGER roles allowed
      */

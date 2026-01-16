@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Danh mục Phòng - Admin</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/modal.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <h3>Quản trị hệ thống</h3>
+        <a href="dashboard.html">Quản lý người dùng</a>
+        <a href="service_management.html">Quản lý dịch vụ</a>
+        <a href="room_category_management.html" class="active">Quản lý danh mục phòng</a>
+        <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
+    </div>
+
+    <div class="main-content">
+        <h1 id="page-title" style="text-align: center; margin-bottom: 30px;">Danh mục phòng</h1>
+
+        <!-- Rooms List Table with Compact Filter -->
+        <div class="card" style="padding: 0; overflow: visible;">
+            <div class="table-header-sticky">
+                <div class="table-title-section">
+                    <button class="btn-primary btn-sm" onclick="ModalManager.open('create-room-modal')"
+                        style="min-width: 180px; min-height: 50px;">
+                        + Tạo phòng mới
+                    </button>
+                    <span id="room-count" class="badge" style="margin-left: 10px;">0 phòng</span>
+                </div>
+                <div class="search-filter-compact">
+                    <input type="text" id="filter-room-number" placeholder="Số phòng" onchange="applyFilters()"
+                        class="search-input-compact">
+                    <select id="filter-type" onchange="applyFilters()" class="filter-select-compact">
+                        <option value="">Loại phòng</option>
+                        <option value="SINGLE">Single</option>
+                        <option value="DOUBLE">Double</option>
+                        <option value="DORM">Dorm</option>
+                        <option value="STANDARD">Standard</option>
+                        <option value="DELUXE">Deluxe</option>
+                        <option value="SUITE">Suite</option>
+                        <option value="VIP">VIP</option>
+                    </select>
+                    <div class="price-range-filter">
+                        <div class="range-display">
+                            <span id="price-min-display">0</span>
+                            -
+                            <span id="price-max-display">5.000.000</span>
+                        </div>
+                        <div class="range-slider-container">
+                            <div class="slider-track"></div>
+                            <input type="range" id="filter-min-price" min="0" max="5000000" value="0" step="100000"
+                                oninput="updatePriceDisplay()" onchange="applyFilters()">
+                            <input type="range" id="filter-max-price" min="0" max="5000000" value="5000000"
+                                step="100000" oninput="updatePriceDisplay()" onchange="applyFilters()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Số phòng</th>
+                        <th>Loại phòng</th>
+                        <th>Giá (VNĐ)</th>
+                        <th>Trạng thái</th>
+                        <th>Thành phố</th>
+                        <th>Chi nhánh</th>
+                        <th style="width: 100px;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="rooms-tbody">
+                    <tr>
+                        <td colspan="8" style="text-align: center;">Đang tải dữ liệu...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal: Create Room -->
+    <div class="modal-backdrop" id="create-room-modal-backdrop">
+        <div class="modal" id="create-room-modal">
+            <div class="modal-header">
+                <h2>Tạo phòng mới</h2>
+                <button class="modal-close" onclick="ModalManager.close('create-room-modal')">&times;</button>
+            </div>
+            <form id="create-room-form" onsubmit="handleCreateRoom(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Số phòng *</label>
+                        <input type="text" name="roomNumber" required placeholder="VD: 301">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Loại phòng *</label>
+                            <select name="type" required>
+                                <option value="">-- Chọn loại phòng --</option>
+                                <option value="SINGLE">Single</option>
+                                <option value="DOUBLE">Double</option>
+                                <option value="DORM">Dorm</option>
+                                <option value="STANDARD">Standard</option>
+                                <option value="DELUXE">Deluxe</option>
+                                <option value="SUITE">Suite</option>
+                                <option value="VIP">VIP</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Giá (VNĐ) *</label>
+                            <input type="number" name="price" required min="0" step="10000" placeholder="VD: 1000000">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('create-room-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Tạo phòng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Room -->
+    <div class="modal-backdrop" id="edit-room-modal-backdrop">
+        <div class="modal" id="edit-room-modal">
+            <div class="modal-header">
+                <h2>Chỉnh sửa thông tin phòng</h2>
+                <button class="modal-close" onclick="ModalManager.close('edit-room-modal')">&times;</button>
+            </div>
+            <form id="edit-room-form" onsubmit="handleEditRoom(event)">
+                <input type="hidden" name="id" id="edit-room-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Số phòng *</label>
+                        <input type="text" name="roomNumber" id="edit-room-number" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Loại phòng *</label>
+                            <select name="type" id="edit-room-type" required>
+                                <option value="SINGLE">Single</option>
+                                <option value="DOUBLE">Double</option>
+                                <option value="DORM">Dorm</option>
+                                <option value="STANDARD">Standard</option>
+                                <option value="DELUXE">Deluxe</option>
+                                <option value="SUITE">Suite</option>
+                                <option value="VIP">VIP</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Giá (VNĐ) *</label>
+                            <input type="number" name="price" id="edit-room-price" required min="0" step="10000">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('edit-room-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Room Details -->
+    <div class="modal-backdrop" id="room-details-modal-backdrop">
+        <div class="modal" id="room-details-modal">
+            <div class="modal-header">
+                <h2>Chi tiết phòng</h2>
+                <button class="modal-close" onclick="ModalManager.close('room-details-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row">
+                    <strong>ID:</strong>
+                    <span id="detail-room-id">-</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Số phòng:</strong>
+                    <span id="detail-room-number">-</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Loại phòng:</strong>
+                    <span id="detail-room-type">-</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Giá:</strong>
+                    <span id="detail-room-price">-</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Trạng thái:</strong>
+                    <span id="detail-room-status">-</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Thành phố:</strong>
+                    <span id="detail-room-city">-</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Chi nhánh:</strong>
+                    <span id="detail-room-branch">-</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                    onclick="ModalManager.close('room-details-modal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/common/modal.js"></script>
+    <script src="../../js/admin/room_category_management.js"></script>
+</body>
+
+</html>

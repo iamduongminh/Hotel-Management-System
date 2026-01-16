@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Dịch vụ - Admin</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/modal.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <h3>Quản trị hệ thống</h3>
+        <a href="dashboard.html">Quản lý người dùng</a>
+        <a href="service_management.html" class="active">Quản lý dịch vụ</a>
+        <a href="room_category_management.html">Quản lý danh mục phòng</a>
+        <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
+    </div>
+
+    <div class="main-content">
+        <h1 style="text-align: center; margin-bottom: 30px;">Quản lý Dịch vụ</h1>
+
+        <!-- Service List Table -->
+        <div class="card" style="padding: 0; overflow: visible;">
+            <div class="table-header-sticky">
+                <div class="table-title-section">
+                    <button class="btn-primary btn-sm" onclick="ModalManager.open('create-service-modal')"
+                        style="min-width: 180px; min-height: 50px;">
+                        + Thêm dịch vụ mới
+                    </button>
+                    <span id="service-count" class="badge" style="margin-left: 10px;">0 dịch vụ</span>
+                </div>
+                <div class="search-filter-compact">
+                    <input type="text" id="search-input" placeholder="Tìm kiếm dịch vụ..." onkeyup="filterServices()"
+                        style="min-width: 200px;">
+
+                    <select id="filter-type" onchange="filterServices()" class="filter-select-compact">
+                        <option value="">Tất cả loại dịch vụ</option>
+                        <option value="FOOD_BEVERAGE">Ẩm thực</option>
+                        <option value="LAUNDRY">Giặt ủi</option>
+                        <option value="SPA_WELLNESS">Spa & Sức khỏe</option>
+                        <option value="TRANSPORTATION">Di chuyển</option>
+                        <option value="ENTERTAINMENT">Giải trí</option>
+                        <option value="OTHER">Khác</option>
+                    </select>
+
+                    <div class="price-range-filter">
+                        <div class="range-display">
+                            <span id="price-min-display">0 đ</span>
+                            -
+                            <span id="price-max-display">5.000.000 đ</span>
+                        </div>
+                        <div class="range-slider-container">
+                            <div class="slider-track"></div>
+                            <input type="range" id="filter-min-price" min="0" max="5000000" value="0" step="50000"
+                                oninput="updatePriceDisplay()" onchange="filterServices()">
+                            <input type="range" id="filter-max-price" min="0" max="5000000" value="5000000" step="50000"
+                                oninput="updatePriceDisplay()" onchange="filterServices()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">ID</th>
+                        <th>Tên dịch vụ</th>
+                        <th style="width: 120px;">Loại</th>
+                        <th style="width: 200px;">Mô tả</th>
+                        <th>Giá (VNĐ)</th>
+                        <th style="width: 120px;">Trạng thái</th>
+                        <th style="width: 120px;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="services-tbody">
+                    <tr>
+                        <td colspan="7" style="text-align: center;">Đang tải dữ liệu...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal: Create Service -->
+    <div class="modal-backdrop" id="create-service-modal-backdrop">
+        <div class="modal" id="create-service-modal">
+            <div class="modal-header">
+                <h2>Thêm dịch vụ mới</h2>
+                <button class="modal-close" onclick="ModalManager.close('create-service-modal')">&times;</button>
+            </div>
+            <form id="create-service-form" onsubmit="handleCreateService(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Tên dịch vụ *</label>
+                        <input type="text" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Loại dịch vụ *</label>
+                        <select name="type" required class="form-control">
+                            <option value="FOOD_BEVERAGE">Ẩm thực</option>
+                            <option value="LAUNDRY">Giặt ủi</option>
+                            <option value="SPA_WELLNESS">Spa & Sức khỏe</option>
+                            <option value="TRANSPORTATION">Di chuyển</option>
+                            <option value="ENTERTAINMENT">Giải trí</option>
+                            <option value="OTHER">Khác</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả</label>
+                        <textarea name="description" rows="3" placeholder="Mô tả chi tiết về dịch vụ"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Giá (VNĐ) *</label>
+                        <input type="number" name="price" required min="0" step="1000" placeholder="VD: 50000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="active" checked> Kích hoạt dịch vụ
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('create-service-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Tạo dịch vụ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Service -->
+    <div class="modal-backdrop" id="edit-service-modal-backdrop">
+        <div class="modal" id="edit-service-modal">
+            <div class="modal-header">
+                <h2>Chỉnh sửa dịch vụ</h2>
+                <button class="modal-close" onclick="ModalManager.close('edit-service-modal')">&times;</button>
+            </div>
+            <form id="edit-service-form" onsubmit="handleEditService(event)">
+                <input type="hidden" name="id" id="edit-service-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Tên dịch vụ *</label>
+                        <input type="text" name="name" id="edit-service-name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Loại dịch vụ *</label>
+                        <select name="type" id="edit-service-type" required class="form-control">
+                            <option value="FOOD_BEVERAGE">Ẩm thực</option>
+                            <option value="LAUNDRY">Giặt ủi</option>
+                            <option value="SPA_WELLNESS">Spa & Sức khỏe</option>
+                            <option value="TRANSPORTATION">Di chuyển</option>
+                            <option value="ENTERTAINMENT">Giải trí</option>
+                            <option value="OTHER">Khác</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mô tả</label>
+                        <textarea name="description" id="edit-service-description" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Giá (VNĐ) *</label>
+                        <input type="number" name="price" id="edit-service-price" required min="0" step="1000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="active" id="edit-service-active"> Kích hoạt dịch vụ
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('edit-service-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Confirm Delete -->
+    <div class="modal-backdrop" id="confirm-delete-modal-backdrop">
+        <div class="modal confirm-modal" id="confirm-delete-modal">
+            <div class="modal-header">
+                <h2>Xác nhận xóa</h2>
+                <button class="modal-close" onclick="ModalManager.close('confirm-delete-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-message">Bạn có chắc muốn xóa dịch vụ này?</div>
+                <div class="modal-detail" id="confirm-delete-detail">
+                    Dịch vụ "<span id="delete-service-name"></span>" sẽ bị xóa vĩnh viễn.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="ModalManager.close('confirm-delete-modal')">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+                    Xóa dịch vụ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/common/modal.js"></script>
+    <script src="../../js/admin/service_management.js"></script>
+</body>
+
+</html>

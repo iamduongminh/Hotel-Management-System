@@ -118,8 +118,13 @@
         }
 
         .status-badge.DIRTY {
-            background: #fee2e2;
-            color: #991b1b;
+            background: #ffedd5;
+            color: #c2410c;
+        }
+
+        .status-badge.CLEANING {
+            background: #fef9c3;
+            color: #a16207;
         }
 
         .status-badge.MAINTENANCE {
@@ -166,7 +171,12 @@
         }
 
         .status-btn.dirty {
-            background: #ef4444;
+            background: #f97316;
+            color: white;
+        }
+
+        .status-btn.cleaning {
+            background: #eab308;
             color: white;
         }
 
@@ -288,8 +298,22 @@
             color: #991b1b;
         }
 
+        .status-badge-btn.DIRTY {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+
         .status-badge-btn.DIRTY:hover {
-            background: #fecaca;
+            background: #fed7aa;
+        }
+
+        .status-badge-btn.CLEANING {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        .status-badge-btn.CLEANING:hover {
+            background: #fde047;
         }
 
         .status-badge-btn.MAINTENANCE {
@@ -423,6 +447,8 @@
             <div>
                 <h1 style="margin: 0;">Quản lý phòng</h1>
                 <p id="user-role-display" style="margin: 5px 0 0; color: #666; font-size: 0.9em;"></p>
+                <p id="branch-name-display" style="margin: 5px 0 0; color: #667eea; font-size: 1em; font-weight: 600;">
+                </p>
             </div>
         </header>
 

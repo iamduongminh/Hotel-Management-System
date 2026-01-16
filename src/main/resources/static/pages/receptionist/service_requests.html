@@ -56,25 +56,27 @@
             </div>
         </div>
 
-        <!-- Filter & Actions -->
-        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-            <select id="status-filter" class="search-box" style="width: 200px;" onchange="applyFilter()">
-                <option value="">Tất cả trạng thái</option>
-                <option value="PENDING">⏳ Chờ xử lý</option>
-                <option value="PROCESSING">⚙️ Đang xử lý</option>
-                <option value="COMPLETED">✅ Hoàn thành</option>
-                <option value="CANCELLED">❌ Đã hủy</option>
-            </select>
-            <input type="text" id="search-input" class="search-box" placeholder="Tìm theo phòng, khách..."
-                style="flex: 1; max-width: 350px;">
-            <button class="btn btn-primary" onclick="ModalManager.open('create-request-modal')"
-                style="margin-left: auto;">
-                <i class="fas fa-plus-circle"></i> Tạo Yêu Cầu Mới
-            </button>
-        </div>
-
         <!-- Requests Table -->
-        <div class="table-container">
+        <div class="card" style="padding: 0; overflow: visible;">
+            <div class="table-header-sticky">
+                <div class="table-title-section">
+                    <button class="btn-primary btn-sm" onclick="ModalManager.open('create-request-modal')"
+                        style="min-width: 180px; min-height: 50px;">
+                        <i class="fas fa-plus-circle"></i> Tạo Yêu Cầu Mới
+                    </button>
+                </div>
+                <div class="search-filter-compact">
+                    <input type="text" id="search-input" class="search-input-compact"
+                        placeholder="Tìm theo phòng, khách...">
+                    <select id="status-filter" class="filter-select-compact" onchange="applyFilter()">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="PENDING">⏳ Chờ xử lý</option>
+                        <option value="PROCESSING">⚙️ Đang xử lý</option>
+                        <option value="COMPLETED">✅ Hoàn thành</option>
+                        <option value="CANCELLED">❌ Đã hủy</option>
+                    </select>
+                </div>
+            </div>
             <table class="data-table">
                 <thead>
                     <tr>
