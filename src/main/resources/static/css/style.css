@@ -532,6 +532,11 @@ select {
     border-bottom: 1px solid var(--border-light);
 }
 
+.data-table.complex-header th {
+    top: 92px;
+    /* Adjusted for taller filter header */
+}
+
 .data-table td {
     padding: 16px 20px;
     color: var(--text-primary);

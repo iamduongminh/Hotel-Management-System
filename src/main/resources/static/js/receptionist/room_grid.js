@@ -224,9 +224,9 @@ async function showRoomDetails(roomId) {
 async function updateRoomStatus(newStatus) {
     if (!selectedRoom) return;
 
-    if (!confirm(`Bạn có chắc chắn muốn chuyển trạng thái phòng sang ${STATUS_DISPLAY[newStatus].text}?`)) {
-        return;
-    }
+    if (!selectedRoom) return;
+
+    // Direct update without confirmation
 
     try {
         // Send status in body as expected by Controller

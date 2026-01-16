@@ -133,8 +133,8 @@ function displayServices(services) {
             <td>${service.id}</td>
             <td><strong>${escapeHtml(service.name)}</strong></td>
             <td>${getServiceTypeLabel(service.type)}</td>
-            <td>${service.description ? escapeHtml(service.description) : '-'}</td>
             <td>${formatCurrency(service.price)}</td>
+            <td>${service.description ? escapeHtml(service.description) : '-'}</td>
             <td>
                 <span class="status-badge ${service.active ? 'status-active' : 'status-inactive'}">
                     ${service.active ? 'Hoạt động' : 'Tạm ngưng'}

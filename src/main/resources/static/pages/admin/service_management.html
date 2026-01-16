@@ -54,28 +54,28 @@
                         <div class="range-display">
                             <span id="price-min-display">0 đ</span>
                             -
-                            <span id="price-max-display">5.000.000 đ</span>
+                            <span id="price-max-display">2.000.000 đ</span>
                         </div>
                         <div class="range-slider-container">
                             <div class="slider-track"></div>
-                            <input type="range" id="filter-min-price" min="0" max="5000000" value="0" step="50000"
+                            <input type="range" id="filter-min-price" min="0" max="2000000" value="0" step="10000"
                                 oninput="updatePriceDisplay()" onchange="filterServices()">
-                            <input type="range" id="filter-max-price" min="0" max="5000000" value="5000000" step="50000"
+                            <input type="range" id="filter-max-price" min="0" max="2000000" value="2000000" step="10000"
                                 oninput="updatePriceDisplay()" onchange="filterServices()">
                         </div>
                     </div>
                 </div>
             </div>
-            <table class="data-table">
+            <table class="data-table complex-header">
                 <thead>
                     <tr>
-                        <th style="width: 50px;">ID</th>
+                        <th>ID</th>
                         <th>Tên dịch vụ</th>
-                        <th style="width: 120px;">Loại</th>
-                        <th style="width: 200px;">Mô tả</th>
+                        <th>Loại</th>
                         <th>Giá (VNĐ)</th>
-                        <th style="width: 120px;">Trạng thái</th>
-                        <th style="width: 120px;">Hành động</th>
+                        <th>Mô tả</th>
+                        <th>Trạng thái</th>
+                        <th style="width: 100px;">Hành động</th>
                     </tr>
                 </thead>
                 <tbody id="services-tbody">

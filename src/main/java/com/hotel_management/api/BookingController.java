@@ -24,9 +24,82 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<Booking> create(@RequestBody BookingRequest req) {
-        // Lưu ý: Bạn cần cập nhật BookingService để có hàm createBooking nhận các tham
-        // số này
-        // Hoặc truyền thẳng BookingRequest vào service
         return ResponseEntity.ok(bookingService.createBooking(req));
+    }
+
+    /**
+     * Get today's check-ins for the current user's branch
+     */
+    @GetMapping("/today/check-ins")
+    public ResponseEntity<List<Booking>> getTodayCheckIns(jakarta.servlet.http.HttpSession session) {
+        com.hotel_management.api.core.domain.entity.User currentUser = (com.hotel_management.api.core.domain.entity.User) session
+                .getAttribute("currentUser");
+
+        if (currentUser == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        return ResponseEntity.ok(bookingService.getTodayCheckIns(currentUser.getBranchName()));
+    }
+
+    /**
+     * Get today's check-outs for the current user's branch
+     */
+    @GetMapping("/today/check-outs")
+    public ResponseEntity<List<Booking>> getTodayCheckOuts(jakarta.servlet.http.HttpSession session) {
+        com.hotel_management.api.core.domain.entity.User currentUser = (com.hotel_management.api.core.domain.entity.User) session
+                .getAttribute("currentUser");
+
+        if (currentUser == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        return ResponseEntity.ok(bookingService.getTodayCheckOuts(currentUser.getBranchName()));
+    }
+
+    /**
+     * Get current stays ordered by check-out date (overdue first)
+     */
+    @GetMapping("/current-stays")
+    public ResponseEntity<List<Booking>> getCurrentStays(jakarta.servlet.http.HttpSession session) {
+        com.hotel_management.api.core.domain.entity.User currentUser = (com.hotel_management.api.core.domain.entity.User) session
+                .getAttribute("currentUser");
+
+        if (currentUser == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        return ResponseEntity.ok(bookingService.getCurrentStays(currentUser.getBranchName()));
+    }
+
+    /**
+     * Get booking history (checked out and cancelled)
+     */
+    @GetMapping("/history")
+    public ResponseEntity<List<Booking>> getBookingHistory(jakarta.servlet.http.HttpSession session) {
+        com.hotel_management.api.core.domain.entity.User currentUser = (com.hotel_management.api.core.domain.entity.User) session
+                .getAttribute("currentUser");
+
+        if (currentUser == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        return ResponseEntity.ok(bookingService.getBookingHistory(currentUser.getBranchName()));
+    }
+
+    /**
+     * Check in a booking
+     */
+    @PostMapping("/{id}/check-in")
+    public ResponseEntity<Booking> checkIn(@PathVariable Long id) {
+        return ResponseEntity.ok(bookingService.checkIn(id));
+    }
+
+    /**
+     * Check out a booking (handles overdue charges)
+     */
+    @PostMapping("/{id}/check-out")
+    public ResponseEntity<Booking> checkOut(@PathVariable Long id) {
+        return ResponseEntity.ok(bookingService.checkOut(id));
     }
 }

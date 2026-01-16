@@ -16,7 +16,16 @@ public class Booking {
     private LocalDateTime checkInDate;
     private LocalDateTime checkOutDate;
     private Double totalAmount;
-    private String status; // BOOKED, CHECKED_IN, CHECKED_OUT
+    private String status; // BOOKED, CHECKED_IN, CHECKED_OUT, CANCELLED
+
+    @Column(nullable = false)
+    private Boolean isOverdue = false;
+
+    @Column(precision = 10, scale = 2)
+    private java.math.BigDecimal extraCharges = java.math.BigDecimal.ZERO;
+
+    @Column(length = 500)
+    private String overdueNotes;
 
     @ManyToOne
     @JoinColumn(name = "room_id")

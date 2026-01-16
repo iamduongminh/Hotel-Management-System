@@ -29,4 +29,41 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     // dynamically
     @Query("SELECT b FROM Booking b WHERE b.status IN ('BOOKED', 'CHECKED_IN')")
     java.util.List<Booking> findActiveBookings();
+
+    // Find today's check-ins (bookings scheduled to check in today)
+    @Query("SELECT b FROM Booking b WHERE b.room.branchName = :branchName " +
+            "AND b.status = 'BOOKED' " +
+            "AND DATE(b.checkInDate) = CURRENT_DATE " +
+            "ORDER BY b.checkInDate ASC")
+    java.util.List<Booking> findTodayCheckIns(@Param("branchName") String branchName);
+
+    // Find today's check-outs (bookings scheduled to check out today)
+    @Query("SELECT b FROM Booking b WHERE b.room.branchName = :branchName " +
+            "AND b.status = 'CHECKED_IN' " +
+            "AND DATE(b.checkOutDate) = CURRENT_DATE " +
+            "ORDER BY b.checkOutDate ASC")
+    java.util.List<Booking> findTodayCheckOuts(@Param("branchName") String branchName);
+
+    // Find current stays ordered by check-out date (nearest first)
+    @Query("SELECT b FROM Booking b WHERE b.room.branchName = :branchName " +
+            "AND b.status = 'CHECKED_IN' " +
+            "ORDER BY b.isOverdue DESC, b.checkOutDate ASC")
+    java.util.List<Booking> findCurrentStaysOrderedByCheckOut(@Param("branchName") String branchName);
+
+    // Find booking history (checked out and cancelled)
+    @Query("SELECT b FROM Booking b WHERE b.room.branchName = :branchName " +
+            "AND b.status IN ('CHECKED_OUT', 'CANCELLED') " +
+            "ORDER BY b.checkOutDate DESC")
+    java.util.List<Booking> findBookingHistory(@Param("branchName") String branchName);
+
+    // Find bookings to auto-cancel (not checked in after 1 day)
+    @Query("SELECT b FROM Booking b WHERE b.status = 'BOOKED' " +
+            "AND b.checkInDate < :cutoffDate")
+    java.util.List<Booking> findBookingsToAutoCancel(@Param("cutoffDate") LocalDateTime cutoffDate);
+
+    // Find overdue check-outs
+    @Query("SELECT b FROM Booking b WHERE b.status = 'CHECKED_IN' " +
+            "AND b.checkOutDate < :currentDate " +
+            "AND b.isOverdue = false")
+    java.util.List<Booking> findOverdueCheckOuts(@Param("currentDate") LocalDateTime currentDate);
 }
