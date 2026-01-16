@@ -24,4 +24,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     // Sum total amount for today's bookings (revenue from bookings made today)
     @Query("SELECT COALESCE(SUM(b.totalAmount), 0.0) FROM Booking b WHERE b.checkInDate >= :startOfDay AND b.checkInDate < :endOfDay")
     Double sumDailyRevenue(@Param("startOfDay") LocalDateTime startOfDay, @Param("endOfDay") LocalDateTime endOfDay);
+
+    // Find active bookings (OCCUPIED or BOOKED) to calculate room status
+    // dynamically
+    @Query("SELECT b FROM Booking b WHERE b.status IN ('BOOKED', 'CHECKED_IN')")
+    java.util.List<Booking> findActiveBookings();
 }

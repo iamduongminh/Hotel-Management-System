@@ -38,7 +38,8 @@ async function handleLogin(e) {
         // Lưu thông tin user vào sessionStorage (riêng biệt cho từng tab)
         sessionStorage.setItem(CONFIG.STORAGE_USER_KEY, JSON.stringify(response));
 
-        showSuccess(`Xin chào, ${response.fullName}!`);
+        // Show success message
+        showSuccess('Đăng nhập thành công');
 
         // Điều hướng dựa trên quyền
         // Điều hướng dựa trên quyền
@@ -53,14 +54,14 @@ async function handleLogin(e) {
                 window.location.href = "/pages/branch_manager/dashboard.html";
                 break;
             case 'RECEPTIONIST':
-                window.location.href = "/pages/receptionist/dashboard.html";
+                window.location.href = "/pages/receptionist/room_grid.html";
                 break;
             case 'HOUSEKEEPER':
                 window.location.href = "/pages/housekeeper/dashboard.html";
                 break;
             default:
                 console.warn("Unknown role:", response.role);
-                window.location.href = "/pages/receptionist/dashboard.html"; // Fallback
+                window.location.href = "/pages/auth/login.html"; // Redirect back to login on error
         }
 
     } catch (error) {

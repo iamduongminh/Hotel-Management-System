@@ -48,16 +48,16 @@
 
             if (role === 'REGIONAL_MANAGER') {
                 sidebar.innerHTML = `
-                    <h3><i class="fas fa-globe"></i> Lãnh Đạo Khu Vực</h3>
-                    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Tổng Quan</a>
-                    <a href="branch_management.html"><i class="fas fa-building"></i> Quản Lý Chi Nhánh</a>
-                    <a href="regional_report.html" class="active"><i class="fas fa-chart-bar"></i> Báo Cáo Tổng Hợp</a>
-                    <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                    <h3>Lãnh đạo khu vực</h3>
+                    <a href="dashboard.html">Tổng quan</a>
+                    <a href="branch_management.html">Quản lý chi nhánh</a>
+                    <a href="regional_report.html" class="active">Báo cáo tổng hợp</a>
+                    <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
                 `;
             } else {
                 sidebar.innerHTML = `
-                    <h3><i class="fas fa-ban"></i> Truy cập bị từ chối</h3>
-                    <p>Trang này chỉ dành cho Lãnh Đạo Khu Vực</p>
+                    <h3>Truy cập bị từ chối</h3>
+                    <p>Trang này chỉ dành cho Lãnh đạo khu vực</p>
                     <a href="../auth/login.html" style="color: white; text-decoration: underline;">Quay lại đăng nhập</a>
                 `;
             }

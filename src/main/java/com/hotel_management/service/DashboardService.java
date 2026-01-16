@@ -1,6 +1,5 @@
 package com.hotel_management.service;
 
-import com.hotel_management.api.core.domain.enums.RoomStatus;
 import com.hotel_management.dto.DashboardData;
 import com.hotel_management.repository.BookingRepository;
 import com.hotel_management.repository.RoomRepository;
@@ -30,7 +29,7 @@ public class DashboardService {
 
         // Calculate room metrics
         long totalRooms = roomRepository.count();
-        long occupiedRooms = roomRepository.countByStatus(RoomStatus.OCCUPIED);
+        long occupiedRooms = bookingRepository.countByStatus("CHECKED_IN");
 
         // Calculate booking metrics
         Double dailyRevenue = bookingRepository.sumDailyRevenue(startOfDay, endOfDay);

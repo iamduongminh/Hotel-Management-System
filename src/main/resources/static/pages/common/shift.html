@@ -18,31 +18,35 @@
     </div>
 
     <div class="main-content">
-        <h1>⏰ Quản Lý Ca Làm Việc</h1>
-
-        <div class="welcome-card" style="margin-bottom: 20px;">
-            <p>Xin chào, <strong><span id="user-fullname">...</span></strong> (<span id="user-role-display">...</span>)
-            </p>
-        </div>
-
-        <div class="card" style="margin-bottom: 20px;">
-            <h3>Bắt Đầu Ca (Check-in)</h3>
-            <div class="form-group">
-                <label>Tiền mặt đầu ca (VND):</label>
-                <input type="number" id="startCash" value="0">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <h1 style="margin: 0;">Quản lý ca làm việc</h1>
+                <p id="user-role-display" style="margin: 5px 0 0; color: #666; font-size: 0.9em;">Xin chào, ...</p>
             </div>
-            <button onclick="startShift()" class="btn-primary">Bắt Đầu Ca</button>
-            <div id="start-status"></div>
-        </div>
+        </header>
 
-        <div class="card">
-            <h3>Kết Thúc Ca (Check-out)</h3>
-            <div class="form-group">
-                <label>Tiền mặt cuối ca (VND):</label>
-                <input type="number" id="endCash" value="0">
+        <div class="shift-container">
+            <!-- Start Shift Card -->
+            <div class="shift-card">
+                <h2>Bắt đầu ca (Check-in)</h2>
+                <div class="form-group">
+                    <label>Tiền mặt đầu ca (VNĐ):</label>
+                    <input type="number" id="startCash" placeholder="0">
+                </div>
+                <button class="shift-btn start" onclick="startShift()">Bắt đầu ca</button>
+                <div id="start-status" style="margin-top: 10px;"></div>
             </div>
-            <button onclick="endShift()" class="btn-primary" style="background: #dc3545;">Kết Thúc Ca</button>
-            <div id="shift-status"></div>
+
+            <!-- End Shift Card -->
+            <div class="shift-card">
+                <h2>Kết thúc ca (Check-out)</h2>
+                <div class="form-group">
+                    <label>Tiền mặt cuối ca (VNĐ):</label>
+                    <input type="number" id="endCash" placeholder="0">
+                </div>
+                <button class="shift-btn end" onclick="endShift()">Kết thúc ca</button>
+                <div id="shift-status" style="margin-top: 10px;"></div>
+            </div>
         </div>
     </div>
 

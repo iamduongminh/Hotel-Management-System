@@ -32,6 +32,7 @@ public class AuthController {
         response.put("username", user.getUsername());
         response.put("fullName", user.getFullName());
         response.put("role", user.getRole());
+        response.put("branchName", user.getBranchName()); // Add branchName for room filtering
 
         return ResponseEntity.ok(response);
     }

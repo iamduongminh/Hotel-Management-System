@@ -9,22 +9,22 @@
 
 <body>
     <div class="sidebar">
-        <h3>👔 Quản Lý</h3>
-        <a href="dashboard.html">📊 Tổng quan</a>
-        <a href="approvals.html">✅ Duyệt đơn</a>
-        <a href="reports.html">📄 Báo cáo</a>
-        <a href="comparison.html" class="active">🔍 So sánh</a>
-        <a href="#" onclick="handleLogout(); return false;">🚪 Đăng xuất</a>
+        <h3>Quản lý</h3>
+        <a href="dashboard.html">Tổng quan</a>
+        <a href="approvals.html">Duyệt đơn</a>
+        <a href="reports.html">Báo cáo</a>
+        <a href="comparison.html" class="active">So sánh</a>
+        <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
     </div>
 
     <div class="main-content">
-        <h1>So Sánh Hiệu Quả Chi Nhánh</h1>
+        <h1>So sánh hiệu quả chi nhánh</h1>
         <div class="card">
             <div class="form-group">
                 <label>Nhập ID các chi nhánh (phân cách bằng dấu phẩy):</label>
                 <input type="text" id="branchIds" placeholder="Ví dụ: 1, 2, 5">
             </div>
-            <button onclick="compareBranches()" class="btn-primary" style="width: auto;">So Sánh Ngay</button>
+            <button onclick="compareBranches()" class="btn-primary" style="width: auto;">So sánh ngay</button>
         </div>
 
         <div id="comparisonResult" style="margin-top: 20px; padding: 20px; background: white; border-radius: 5px;">

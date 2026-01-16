@@ -18,30 +18,30 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <h3><i class="fas fa-broom"></i> Buồng Phòng</h3>
-        <a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="../common/room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-        <a href="../common/shift.html"><i class="fas fa-clock"></i> Ca Làm Việc</a>
-        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
+        <h3>Buồng phòng</h3>
+        <a href="dashboard.html" class="active">Tổng quan</a>
+        <a href="../common/room_management.html">Trạng thái phòng</a>
+        <a href="../common/shift.html">Ca làm việc</a>
+        <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
     </div>
 
     <div class="main-content">
-        <h1>🧹 Dashboard Buồng Phòng</h1>
+        <h1>Tổng quan</h1>
 
         <div class="welcome-card">
-            <h2>Chào mừng, <span id="user-fullname">Nhân viên</span></h2>
-            <p><strong>Vai trò:</strong> BUỒNG PHÒNG (HOUSEKEEPER)</p>
+            <h2>Xin chào, <span id="user-fullname">Nhân viên</span></h2>
+            <p><strong>Vai trò:</strong> BUỒNG PHÒNG</p>
         </div>
 
         <div
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 24px 0;">
             <div class="card">
-                <h3>🔴 Phòng Cần Dọn</h3>
+                <h3>Phòng cần dọn</h3>
                 <p style="font-size: 2em; color: #f44336; margin: 10px 0;">3</p>
                 <p style="font-size: 0.9em; color: #666;">(Dữ liệu mẫu)</p>
             </div>
             <div class="card">
-                <h3>🟢 Phòng Sạch Sẵn Sàng</h3>
+                <h3>Phòng sạch sẵn sàng</h3>
                 <p style="font-size: 2em; color: #4CAF50; margin: 10px 0;">12</p>
                 <p style="font-size: 0.9em; color: #666;">(Dữ liệu mẫu)</p>
             </div>

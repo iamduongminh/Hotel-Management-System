@@ -419,45 +419,42 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Dashboard Header -->
-        <div class="dashboard-header">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
             <div>
-                <h1 style="margin: 0;">Quản Lý Phòng</h1>
-                <p style="margin: 8px 0 0 0; opacity: 0.9;" id="user-role-display">...</p>
+                <h1 style="margin: 0;">Quản lý phòng</h1>
+                <p id="user-role-display" style="margin: 5px 0 0; color: #666; font-size: 0.9em;"></p>
             </div>
-            <div>
-                <span id="user-fullname">...</span>
-            </div>
-        </div>
+        </header>
 
-        <!-- Filter Bar -->
-        <div class="filter-bar">
+        <!-- Filters -->
+        <div class="filters-container">
             <div class="filter-group">
-                <label><i class="fas fa-filter"></i> Trạng thái:</label>
-                <select class="filter-select" id="status-filter" onchange="filterRooms()">
+                <i class="fas fa-filter"></i>
+                <label>Trạng thái:</label>
+                <select id="status-filter" onchange="filterRooms()">
                     <option value="">Tất cả</option>
-                    <option value="AVAILABLE">Phòng trống</option>
-                    <option value="BOOKED">Đã đặt</option>
-                    <option value="OCCUPIED">Đang có khách</option>
-                    <option value="DIRTY">Cần dọn dẹp</option>
+                    <option value="AVAILABLE">Trống</option>
+                    <option value="OCCUPIED">Có khách</option>
+                    <option value="DIRTY">Cần dọn</option>
                     <option value="MAINTENANCE">Bảo trì</option>
+                    <option value="BOOKED">Đã đặt</option>
                 </select>
             </div>
 
             <div class="filter-group">
-                <label><i class="fas fa-bed"></i> Loại phòng:</label>
-                <select class="filter-select" id="type-filter" onchange="filterRooms()">
+                <i class="fas fa-bed"></i>
+                <label>Loại phòng:</label>
+                <select id="type-filter" onchange="filterRooms()">
                     <option value="">Tất cả</option>
+                    <option value="SINGLE">Đơn</option>
+                    <option value="DOUBLE">Đôi</option>
                     <option value="VIP">VIP</option>
-                    <option value="DELUXE">Deluxe</option>
-                    <option value="STANDARD">Standard</option>
                 </select>
             </div>
 
-            <div class="filter-group" style="margin-left: auto;">
-                <label><i class="fas fa-search"></i></label>
-                <input type="text" class="search-input" id="search-input" placeholder="Tìm số phòng..."
-                    oninput="filterRooms()">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Tìm số phòng..." oninput="filterRooms()">
             </div>
         </div>
 

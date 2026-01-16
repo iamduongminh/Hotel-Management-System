@@ -48,17 +48,17 @@
 
             if (role === 'BRANCH_MANAGER') {
                 sidebar.innerHTML = `
-                    <h3><i class="fas fa-user-tie"></i> Quản Lý Chi Nhánh</h3>
-                    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
-                    <a href="../common/room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-                    <a href="branch_report.html" class="active"><i class="fas fa-file-alt"></i> Báo Cáo</a>
-                    <a href="../common/shift.html"><i class="fas fa-clock"></i> Ca Làm Việc</a>
-                    <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                    <h3>Quản lý chi nhánh</h3>
+                    <a href="dashboard.html">Tổng quan</a>
+                    <a href="../common/room_management.html">Quản lý phòng</a>
+                    <a href="branch_report.html" class="active">Báo cáo</a>
+                    <a href="../common/shift.html">Ca làm việc</a>
+                    <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
                 `;
             } else {
                 sidebar.innerHTML = `
-                    <h3><i class="fas fa-ban"></i> Truy cập bị từ chối</h3>
-                    <p>Trang này chỉ dành cho Quản Lý Chi Nhánh</p>
+                    <h3>Truy cập bị từ chối</h3>
+                    <p>Trang này chỉ dành cho Quản lý chi nhánh</p>
                     <a href="../auth/login.html" style="color: white; text-decoration: underline;">Quay lại đăng nhập</a>
                 `;
             }

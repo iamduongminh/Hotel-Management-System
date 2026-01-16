@@ -28,8 +28,17 @@ public class RoomController {
      * Get all rooms
      */
     @GetMapping
-    public ResponseEntity<List<Room>> getAllRooms() {
-        return ResponseEntity.ok(roomService.getAllRooms());
+    public ResponseEntity<List<Room>> getAllRooms(HttpSession session) {
+        // Get current user to determine branch
+        User currentUser = (User) session.getAttribute("currentUser");
+        String branchName = null;
+
+        if (currentUser != null) {
+            branchName = currentUser.getBranchName();
+            System.out.println("DEBUG: Filtering rooms for branch: " + branchName);
+        }
+
+        return ResponseEntity.ok(roomService.getRoomsByBranch(branchName));
     }
 
     /**
@@ -114,11 +123,8 @@ public class RoomController {
                 break;
 
             case RECEPTIONIST:
-                // Receptionist can change to AVAILABLE, BOOKED, OCCUPIED, DIRTY (NOT
-                // MAINTENANCE)
-                if (newStatus == RoomStatus.MAINTENANCE) {
-                    return "Lễ tân không có quyền chuyển phòng sang trạng thái BẢO TRÌ";
-                }
+                // Receptionist can change to AVAILABLE, BOOKED, OCCUPIED, DIRTY, MAINTENANCE
+                // (Constraint removed to allow flexibility)
                 break;
 
             case BRANCH_MANAGER:
@@ -142,5 +148,46 @@ public class RoomController {
         Map<String, String> error = new HashMap<>();
         error.put("error", message);
         return error;
+    }
+
+    /**
+     * Update room information (price, type, room number)
+     * Only ADMIN and MANAGER roles allowed
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateRoom(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> request,
+            HttpSession session) {
+
+        // 1. Get current user from session
+        User currentUser = (User) session.getAttribute("currentUser");
+
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(createErrorResponse("Vui lòng đăng nhập để thực hiện thao tác này"));
+        }
+
+        // 2. Check permission - Only ADMIN and MANAGER can edit room info
+        UserRole userRole = currentUser.getRole();
+        if (userRole != UserRole.ADMIN &&
+                userRole != UserRole.BRANCH_MANAGER &&
+                userRole != UserRole.REGIONAL_MANAGER) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(createErrorResponse("Bạn không có quyền chỉnh sửa thông tin phòng"));
+        }
+
+        // 3. Update room via service
+        try {
+            Room updatedRoom = roomService.updateRoom(id, request);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Cập nhật thông tin phòng thành công");
+            response.put("room", updatedRoom);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(createErrorResponse("Lỗi: " + e.getMessage()));
+        }
     }
 }

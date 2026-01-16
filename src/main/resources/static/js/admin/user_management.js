@@ -4,8 +4,14 @@
  */
 
 // Global variables
+// Global variables
 let allUsers = []; // Store all users for filtering
 let currentOpenDropdown = null;
+
+// Pagination configuration
+let currentPage = 1;
+const rowsPerPage = 20;
+let filteredUsers = []; // Store filtered users for pagination
 
 // Load users when page loads
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,8 +33,10 @@ async function loadUsers() {
     try {
         const users = await callAPI('/users', 'GET');
         allUsers = users; // Store globally for filtering
-        displayUsers(users);
-        populateBranchFilter(users);
+        filteredUsers = users; // Initialize filtered list
+        currentPage = 1; // Reset page
+        displayUsers(); // Display first page
+        updateBranchFilterOptions();
     } catch (error) {
         console.error('Error loading users:', error);
         showError('Không thể tải danh sách user: ' + error.message);
@@ -36,17 +44,25 @@ async function loadUsers() {
 }
 
 /**
- * Display users in table with 3-dot menu
+ * Display users in table with 3-dot menu and pagination
  */
-function displayUsers(users) {
+function displayUsers() {
     const tbody = document.getElementById('users-tbody');
+    const paginationContainer = document.getElementById('pagination-container');
 
-    if (!users || users.length === 0) {
+    if (!filteredUsers || filteredUsers.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Chưa có tài khoản nào</td></tr>';
+        paginationContainer.style.display = 'none';
         return;
     }
 
-    tbody.innerHTML = users.map(user => `
+    // Calculate pagination bounds
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, filteredUsers.length);
+    const usersToShow = filteredUsers.slice(startIndex, endIndex);
+
+    // Update table content
+    tbody.innerHTML = usersToShow.map(user => `
         <tr data-user-id="${user.id}">
             <td>${user.id}</td>
             <td>${user.username}</td>
@@ -71,6 +87,77 @@ function displayUsers(users) {
             </td>
         </tr>
     `).join('');
+
+    // Update pagination controls
+    updatePaginationControls(startIndex, endIndex, filteredUsers.length);
+}
+
+/**
+ * Update pagination UI
+ */
+function updatePaginationControls(startIndex, endIndex, totalItems) {
+    const container = document.getElementById('pagination-container');
+    const info = document.getElementById('pagination-info');
+    const controls = document.getElementById('pagination-controls');
+
+    container.style.display = 'flex';
+    info.textContent = `Hiển thị kết quả từ ${startIndex + 1} tới ${endIndex} trong số ${totalItems} tài khoản`;
+
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+
+    let buttonsHtml = `
+        <button class="pagination-btn" onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>
+            &laquo;
+        </button>
+        <button class="pagination-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+            &lt;
+        </button>
+    `;
+
+    // Smart pagination: show limited page numbers
+    let startPage = Math.max(1, currentPage - 1);
+    let endPage = Math.min(totalPages, currentPage + 1);
+
+    if (startPage > 1) {
+        buttonsHtml += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
+        if (startPage > 2) buttonsHtml += `<span style="color: var(--text-muted)">...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        buttonsHtml += `
+            <button class="pagination-btn ${currentPage === i ? 'active' : ''}" 
+                onclick="changePage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) buttonsHtml += `<span style="color: var(--text-muted)">...</span>`;
+        buttonsHtml += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+    }
+
+    buttonsHtml += `
+        <button class="pagination-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+            &gt;
+        </button>
+        <button class="pagination-btn" onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>
+            &raquo;
+        </button>
+    `;
+
+    controls.innerHTML = buttonsHtml;
+}
+
+/**
+ * Change current page
+ */
+function changePage(newPage) {
+    const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        displayUsers();
+    }
 }
 
 
@@ -225,7 +312,7 @@ function filterUsers() {
     const cityFilter = document.getElementById('city-filter').value;
     const branchFilter = document.getElementById('branch-filter').value;
 
-    const filteredUsers = allUsers.filter(user => {
+    filteredUsers = allUsers.filter(user => {
         const matchesSearch = user.fullName.toLowerCase().includes(searchTerm) ||
             user.username.toLowerCase().includes(searchTerm);
         const matchesRole = !roleFilter || user.role === roleFilter;
@@ -235,19 +322,71 @@ function filterUsers() {
         return matchesSearch && matchesRole && matchesCity && matchesBranch;
     });
 
-    displayUsers(filteredUsers);
+    currentPage = 1; // Reset to first page when filtering
+    displayUsers();
 }
 
 /**
- * Populate branch filter dropdown with unique branches
+ * Handle role filter change
+ * Hides branch filter if Regional Manager is selected
  */
-function populateBranchFilter(users) {
-    const branchSelect = document.getElementById('branch-filter');
-    const uniqueBranches = [...new Set(users.map(u => u.branchName).filter(b => b))];
+function handleRoleFilterChange() {
+    const roleFilter = document.getElementById('role-filter');
+    const branchFilter = document.getElementById('branch-filter');
 
-    // Keep the default option and add unique branches
-    branchSelect.innerHTML = '<option value="">Tất cả chi nhánh</option>' +
-        uniqueBranches.map(branch => `<option value="${branch}">${branch}</option>`).join('');
+    if (roleFilter.value === 'REGIONAL_MANAGER') {
+        branchFilter.style.display = 'none';
+        branchFilter.value = ''; // Reset value so it doesn't affect filtering
+    } else {
+        branchFilter.style.display = 'block';
+    }
+
+    filterUsers();
+}
+
+/**
+ * Handle city filter change
+ * Updates branch options and triggers filtering
+ */
+function handleCityFilterChange() {
+    updateBranchFilterOptions();
+    filterUsers();
+}
+
+/**
+ * Update branch filter options based on selected city
+ */
+function updateBranchFilterOptions() {
+    const cityFilter = document.getElementById('city-filter').value;
+    const branchSelect = document.getElementById('branch-filter');
+    const currentBranch = branchSelect.value; // Store current selection
+
+    // Filter branches based on city
+    let availableBranches = [];
+    if (cityFilter) {
+        // If city is selected, only show branches in that city
+        availableBranches = [...new Set(allUsers
+            .filter(u => u.city === cityFilter && u.branchName)
+            .map(u => u.branchName))];
+    } else {
+        // If no city selected, show all unique branches
+        availableBranches = [...new Set(allUsers
+            .filter(u => u.branchName)
+            .map(u => u.branchName))];
+    }
+
+    availableBranches.sort(); // Sort branches alphabetically
+
+    // Update dropdown
+    branchSelect.innerHTML = '<option value="">Chi nhánh</option>' +
+        availableBranches.map(branch => `<option value="${branch}">${branch}</option>`).join('');
+
+    // Restore selection if still valid (e.g. user selected a branch then selected its city)
+    if (currentBranch && availableBranches.includes(currentBranch)) {
+        branchSelect.value = currentBranch;
+    } else {
+        branchSelect.value = ""; // Reset if current branch doesn't belong to new city
+    }
 }
 
 /**

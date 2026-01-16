@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yêu Cầu Dịch Vụ - Lễ Tân</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/modal.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-hotel"></i> Lễ Tân</h3>
+        <a href="room_grid.html"><i class="fas fa-bed"></i> Quản Lý Phòng</a>
+        <a href="stay_management.html"><i class="fas fa-key"></i> Quản Lý Lưu Trú</a>
+        <a href="service_requests.html" class="active"><i class="fas fa-concierge-bell"></i> Yêu Cầu Dịch Vụ</a>
+        <a href="stay_history.html"><i class="fas fa-history"></i> Lịch Sử Lưu Trú</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1 style="margin: 0;"><i class="fas fa-concierge-bell"></i> Yêu Cầu Dịch Vụ</h1>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;">Quản lý yêu cầu dịch vụ từ khách hàng</p>
+            </div>
+            <div class="user-info">
+                <i class="fas fa-sync-alt"></i>
+                <span id="last-update">--:--</span>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 24px;">
+            <div class="stat-card" style="border-left-color: var(--warning);">
+                <h3>Chờ xử lý</h3>
+                <div class="value" id="stat-pending">0</div>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--info);">
+                <h3>Đang xử lý</h3>
+                <div class="value" id="stat-processing">0</div>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--success);">
+                <h3>Hoàn thành</h3>
+                <div class="value" id="stat-completed">0</div>
+            </div>
+        </div>
+
+        <!-- Filter & Actions -->
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+            <select id="status-filter" class="search-box" style="width: 200px;" onchange="applyFilter()">
+                <option value="">Tất cả trạng thái</option>
+                <option value="PENDING">⏳ Chờ xử lý</option>
+                <option value="PROCESSING">⚙️ Đang xử lý</option>
+                <option value="COMPLETED">✅ Hoàn thành</option>
+                <option value="CANCELLED">❌ Đã hủy</option>
+            </select>
+            <input type="text" id="search-input" class="search-box" placeholder="Tìm theo phòng, khách..."
+                style="flex: 1; max-width: 350px;">
+            <button class="btn btn-primary" onclick="ModalManager.open('create-request-modal')"
+                style="margin-left: auto;">
+                <i class="fas fa-plus-circle"></i> Tạo Yêu Cầu Mới
+            </button>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Thời Gian</th>
+                        <th style="width: 80px;">Phòng</th>
+                        <th style="width: 150px;">Khách</th>
+                        <th style="width: 120px;">Loại Dịch Vụ</th>
+                        <th>Nội Dung</th>
+                        <th style="width: 120px;">Trạng Thái</th>
+                        <th style="width: 150px;">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody id="requests-tbody">
+                    <tr>
+                        <td colspan="7" class="spinner">Đang tải...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create Request Modal -->
+    <div class="modal-backdrop" id="create-request-modal-backdrop">
+        <div class="modal" id="create-request-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> Tạo Yêu Cầu Dịch Vụ</h2>
+                <button class="modal-close" onclick="ModalManager.close('create-request-modal')">&times;</button>
+            </div>
+            <form id="create-request-form" onsubmit="handleCreateRequest(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Số Phòng *</label>
+                        <input type="number" name="roomNumber" required placeholder="Ví dụ: 101">
+                    </div>
+                    <div class="form-group">
+                        <label>Loại Dịch Vụ *</label>
+                        <select name="serviceType" required>
+                            <option value="">-- Chọn loại dịch vụ --</option>
+                            <option value="F&B">🍽️ F&B (Đồ ăn & Thức uống)</option>
+                            <option value="Housekeeping">🧹 Housekeeping (Dọn phòng)</option>
+                            <option value="Laundry">👔 Laundry (Giặt là)</option>
+                            <option value="Maintenance">🔧 Maintenance (Bảo trì)</option>
+                            <option value="Other">📋 Khác</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nội Dung Yêu Cầu *</label>
+                        <textarea name="content" rows="4" required placeholder="Mô tả chi tiết yêu cầu..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('create-request-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Tạo Yêu Cầu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/common/modal.js"></script>
+    <script src="../../js/receptionist/service_requests.js"></script>
+</body>
+
+</html>

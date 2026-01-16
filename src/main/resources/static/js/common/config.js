@@ -129,11 +129,11 @@ function saveCurrentUser(user) {
 // 7. Hàm lấy tên hiển thị cho role (Dùng chung)
 function getRoleDisplayName(role) {
     const roleMap = {
-        'REGIONAL_MANAGER': 'Quản Lý Khu Vực', // Regional Manager
-        'BRANCH_MANAGER': 'Quản Lý Chi Nhánh', // Branch Manager
-        'ADMIN': 'IT Admin',
-        'RECEPTIONIST': 'Lễ Tân',
-        'HOUSEKEEPER': 'Buồng Phòng'
+        'REGIONAL_MANAGER': 'Quản lý khu vực',
+        'BRANCH_MANAGER': 'Quản lý chi nhánh',
+        'ADMIN': 'Quản trị viên',
+        'RECEPTIONIST': 'Lễ tân',
+        'HOUSEKEEPER': 'Buồng phòng'
     };
     return roleMap[role] || role;
 }

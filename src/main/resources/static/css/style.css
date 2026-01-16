@@ -516,7 +516,12 @@ select {
 }
 
 .data-table th {
-    background: rgba(59, 130, 246, 0.1);
+    position: sticky;
+    top: 72px;
+    /* Adjusted to sit below the sticky search header (approx 70px height) */
+    z-index: 20;
+    background-color: var(--card);
+    background-image: linear-gradient(rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.1));
     color: var(--primary);
     padding: 16px 20px;
     text-align: left;
@@ -881,6 +886,12 @@ select {
     gap: 20px;
 }
 
+.table-title-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
 .table-title-section h3 {
     font-size: 16px;
     font-weight: 600;
@@ -903,7 +914,7 @@ select {
     background: rgba(15, 23, 42, 0.5);
     color: var(--text-primary);
     font-size: 13px;
-    width: 200px;
+    width: 140px;
     transition: var(--transition-fast);
 }
 
@@ -927,7 +938,7 @@ select {
     color: var(--text-primary);
     font-size: 13px;
     cursor: pointer;
-    min-width: 120px;
+    min-width: 100px;
     transition: var(--transition-fast);
 }
 
@@ -1089,4 +1100,60 @@ select {
 /* Hide class for filtered items */
 .hidden-row {
     display: none !important;
+}
+
+/* --- Pagination Styles --- */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-light);
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.pagination-info {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.pagination-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.5);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.pagination-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(15, 23, 42, 0.3);
 }

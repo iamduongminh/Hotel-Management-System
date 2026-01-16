@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Lưu Trú - Lễ Tân</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/modal.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .billing-section {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+        }
+
+        .billing-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .billing-row:last-child {
+            border-bottom: none;
+        }
+
+        .billing-row.total {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            border-top: 2px solid var(--border);
+            padding-top: 16px;
+        }
+
+        .service-item {
+            padding: 8px 12px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-hotel"></i> Lễ Tân</h3>
+        <a href="room_grid.html"><i class="fas fa-bed"></i> Quản Lý Phòng</a>
+        <a href="stay_management.html" class="active"><i class="fas fa-key"></i> Quản Lý Lưu Trú</a>
+        <a href="service_requests.html"><i class="fas fa-concierge-bell"></i> Yêu Cầu Dịch Vụ</a>
+        <a href="stay_history.html"><i class="fas fa-history"></i> Lịch Sử Lưu Trú</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1 style="margin: 0;"><i class="fas fa-key"></i> Quản Lý Lưu Trú</h1>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;">Check-in, check-out và quản lý khách lưu trú</p>
+            </div>
+            <div class="user-info">
+                <i class="fas fa-clock"></i>
+                <span id="current-time">--:--</span>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+            <div class="stat-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3>Chờ check-in</h3>
+                        <div class="value" id="stat-booked">0</div>
+                    </div>
+                    <i class="fas fa-calendar-check" style="font-size: 32px; color: var(--warning); opacity: 0.2;"></i>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3>Đang lưu trú</h3>
+                        <div class="value" id="stat-occupied">0</div>
+                    </div>
+                    <i class="fas fa-user-check" style="font-size: 32px; color: var(--success); opacity: 0.2;"></i>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3>Check-out hôm nay</h3>
+                        <div class="value" id="stat-checkout-today">0</div>
+                    </div>
+                    <i class="fas fa-sign-out-alt" style="font-size: 32px; color: var(--info); opacity: 0.2;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="booked" onclick="switchTab('booked')">
+                <i class="fas fa-calendar-check"></i> Đã Đặt Trước (Chờ Check-in)
+            </button>
+            <button class="tab" data-tab="occupied" onclick="switchTab('occupied')">
+                <i class="fas fa-user-check"></i> Đang Lưu Trú (Chờ Check-out)
+            </button>
+        </div>
+
+        <!-- BOOKED Tab -->
+        <div class="tab-content active" id="booked-tab">
+            <div class="filter-bar">
+                <input type="text" class="search-box" placeholder="Tìm theo số phòng, tên khách..." id="search-booked"
+                    style="flex: 1; max-width: 400px;">
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Số Phòng</th>
+                            <th>Tên Khách</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Số Ngày</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="booked-tbody">
+                        <tr>
+                            <td colspan="7" class="spinner">Đang tải...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- OCCUPIED Tab -->
+        <div class="tab-content" id="occupied-tab">
+            <div class="filter-bar">
+                <input type="text" class="search-box" placeholder="Tìm theo số phòng, tên khách..." id="search-occupied"
+                    style="flex: 1; max-width: 400px;">
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Số Phòng</th>
+                            <th>Tên Khách</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Số Ngày</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="occupied-tbody">
+                        <tr>
+                            <td colspan="7" class="spinner">Đang tải...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check-in Modal -->
+    <div class="modal-backdrop" id="checkin-modal-backdrop">
+        <div class="modal" id="checkin-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-door-open"></i> Xác Nhận Check-in</h2>
+                <button class="modal-close" onclick="ModalManager.close('checkin-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="checkin-content">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                    onclick="ModalManager.close('checkin-modal')">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="confirmCheckIn()">
+                    <i class="fas fa-check"></i> Xác Nhận Check-in
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Check-out Modal -->
+    <div class="modal-backdrop" id="checkout-modal-backdrop">
+        <div class="modal large" id="checkout-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-cash-register"></i> Check-out & Thanh Toán</h2>
+                <button class="modal-close" onclick="ModalManager.close('checkout-modal')">&times;</button>
+            </div>
+            <form id="checkout-form" onsubmit="confirmCheckOut(event)">
+                <div class="modal-body" id="checkout-content">
+                    <!-- Dynamic content -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('checkout-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check-circle"></i> Hoàn Tất Check-out
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/common/modal.js"></script>
+    <script src="../../js/receptionist/stay_management.js"></script>
+</body>
+
+</html>

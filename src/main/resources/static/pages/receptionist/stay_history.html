@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Sử Lưu Trú - Lễ Tân</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/modal.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-hotel"></i> Lễ Tân</h3>
+        <a href="room_grid.html"><i class="fas fa-bed"></i> Quản Lý Phòng</a>
+        <a href="stay_management.html"><i class="fas fa-key"></i> Quản Lý Lưu Trú</a>
+        <a href="service_requests.html"><i class="fas fa-concierge-bell"></i> Yêu Cầu Dịch Vụ</a>
+        <a href="stay_history.html" class="active"><i class="fas fa-history"></i> Lịch Sử Lưu Trú</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1 style="margin: 0;"><i class="fas fa-history"></i> Lịch Sử Lưu Trú</h1>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;">Tra cứu các booking đã hoàn thành hoặc đã hủy</p>
+            </div>
+            <div class="user-info">
+                <i class="fas fa-clock"></i>
+                <span id="current-time">--:--</span>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+            <div class="stat-card" style="border-left-color: var(--success);">
+                <h3>Đã check-out</h3>
+                <div class="value" id="stat-checked-out">0</div>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--error);">
+                <h3>Đã hủy</h3>
+                <div class="value" id="stat-cancelled">0</div>
+            </div>
+            <div class="stat-card" style="border-left-color: var(--info);">
+                <h3>Tổng hóa đơn</h3>
+                <div class="value" id="stat-total-revenue">0</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+            <input type="date" id="date-from" class="search-box" style="width: 180px;">
+            <span style="display: flex; align-items: center; color: var(--text-muted);">đến</span>
+            <input type="date" id="date-to" class="search-box" style="width: 180px;">
+            <select id="status-filter" class="search-box" style="width: 180px;" onchange="applyFilters()">
+                <option value="">Tất cả</option>
+                <option value="CHECKED_OUT">Đã check-out</option>
+                <option value="CANCELLED">Đã hủy</option>
+            </select>
+            <input type="text" id="search-input" class="search-box" placeholder="Tìm theo tên, phòng..."
+                style="flex: 1; max-width: 300px;">
+            <button class="btn btn-primary" onclick="applyFilters()">
+                <i class="fas fa-search"></i> Tìm Kiếm
+            </button>
+        </div>
+
+        <!-- History Table -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Tên Khách</th>
+                        <th>Số Phòng</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Số Ngày</th>
+                        <th>Tổng Tiền</th>
+                        <th>Trạng Thái</th>
+                        <th>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody id="history-tbody">
+                    <tr>
+                        <td colspan="9" class="spinner">Đang tải...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div class="modal-backdrop" id="booking-details-modal-backdrop">
+        <div class="modal large" id="booking-details-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-invoice"></i> Chi Tiết Booking</h2>
+                <button class="modal-close" onclick="ModalManager.close('booking-details-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="booking-details-content">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                    onclick="ModalManager.close('booking-details-modal')">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/common/modal.js"></script>
+    <script src="../../js/receptionist/stay_history.js"></script>
+</body>
+
+</html>

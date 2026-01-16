@@ -16,13 +16,15 @@ public class Room {
     private Long id;
 
     private String roomNumber;
-    
-    @Column(precision = 19, scale = 2) 
+
+    @Column(precision = 19, scale = 2)
     private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
-    private RoomType type; 
+    private RoomType type;
 
-    @Enumerated(EnumType.STRING) 
+    @Column(length = 50)
     private RoomStatus status;
+
+    private String branchName; // Link to branch
 }

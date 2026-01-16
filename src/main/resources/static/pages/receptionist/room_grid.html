@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Phòng - Lễ Tân</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/modal.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Room Grid Specific Styles */
+        .room-grid-container {
+            margin-bottom: 30px;
+        }
+
+        .floor-section {
+            display: flex;
+            /* Cinema style: Row label on left */
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-light);
+            position: relative;
+        }
+
+        .floor-header {
+            width: 120px;
+            /* Fixed width for the "Row Label" */
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            padding-right: 20px;
+            border-bottom: none;
+            border-right: 2px solid var(--border);
+            /* Vertical separator */
+            height: 100%;
+            /* Full height attempt */
+            min-height: 100px;
+            /* Minimum height */
+        }
+
+        .floor-header i {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .rooms-grid {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            /* Explicitly 10 columns */
+            gap: 12px;
+        }
+
+        .room-box {
+            aspect-ratio: 1;
+            /* Square "seats" */
+            border-radius: 8px;
+            /* Softer corners like seats */
+            padding: 4px;
+            /* Minimal padding */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Cinema seat armrest/depth effect (subtle) */
+        .room-box::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px 4px 0 0;
+        }
+
+        .room-box:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        /* ... existing color classes ... */
+        .room-box.available {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .room-box.occupied {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .room-box.booked {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .room-box.dirty {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .room-box.maintenance {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        }
+
+        .room-number {
+            font-size: 16px;
+            /* Compact size */
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+
+        .room-status-text {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: none;
+            /* Hide status text for cleaner "seat" look */
+        }
+
+        .room-box:hover .room-status-text {
+            display: block;
+            /* Show on hover */
+            position: absolute;
+            bottom: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .room-guest-name {
+            display: none;
+            /* Hide guest name by default for cleanest look, show in tooltip */
+        }
+
+        /* Responsive: Scroll if screen too small, or reduce columns */
+        @media (max-width: 1400px) {
+            .rooms-grid {
+                /* Still try to keep layout, maybe shrink gap */
+                gap: 8px;
+            }
+
+            .room-number {
+                font-size: 14px;
+            }
+        }
+
+        .room-guest-name {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 4px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            border: 1px solid var(--border-light);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .legend-label {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            background: rgba(30, 41, 59, 0.7);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-box.available {
+            border-left-color: #10b981;
+        }
+
+        .stat-box.occupied {
+            border-left-color: #3b82f6;
+        }
+
+        .stat-box.booked {
+            border-left-color: #f59e0b;
+        }
+
+        .stat-box.dirty {
+            border-left-color: #ef4444;
+        }
+
+        .stat-box.maintenance {
+            border-left-color: #6b7280;
+        }
+
+        .stat-info h4 {
+            margin: 0 0 4px 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .stat-info .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .room-detail-content {
+            padding: 0;
+        }
+
+        .detail-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-section:last-child {
+            border-bottom: none;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Status Update Buttons */
+        .status-options {
+            margin-top: 20px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .status-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .status-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: white;
+        }
+
+        .status-btn i {
+            font-size: 20px;
+        }
+
+        .status-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .status-btn:active {
+            transform: translateY(0);
+        }
+
+        .status-btn.available {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+        }
+
+        .status-btn.dirty {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+        }
+
+        .status-btn.maintenance {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            box-shadow: 0 4px 6px rgba(107, 114, 128, 0.2);
+        }
+
+        /* Room Type Label */
+        .room-type {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-hotel"></i> Lễ Tân</h3>
+        <a href="room_grid.html" class="active"><i class="fas fa-bed"></i> Quản Lý Phòng</a>
+        <a href="stay_management.html"><i class="fas fa-key"></i> Quản Lý Lưu Trú</a>
+        <a href="service_requests.html"><i class="fas fa-concierge-bell"></i> Yêu Cầu Dịch Vụ</a>
+        <a href="stay_history.html"><i class="fas fa-history"></i> Lịch Sử Lưu Trú</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1 style="margin: 0;"><i class="fas fa-bed"></i> Quản Lý Phòng</h1>
+                <p style="margin: 8px 0 0 0; opacity: 0.9;">Xem và cập nhật trạng thái phòng theo thời gian thực</p>
+            </div>
+            <div class="user-info">
+                <i class="fas fa-clock"></i>
+                <span id="current-time">--:--</span>
+            </div>
+        </div>
+
+        <!-- Statistics Summary -->
+        <div class="stats-summary">
+            <div class="stat-box available">
+                <div class="stat-info">
+                    <h4>Phòng trống</h4>
+                    <div class="value" id="stat-available">0</div>
+                </div>
+                <i class="fas fa-check-circle" style="font-size: 32px; color: #10b981; opacity: 0.3;"></i>
+            </div>
+            <div class="stat-box occupied">
+                <div class="stat-info">
+                    <h4>Đang có khách</h4>
+                    <div class="value" id="stat-occupied">0</div>
+                </div>
+                <i class="fas fa-user" style="font-size: 32px; color: #3b82f6; opacity: 0.3;"></i>
+            </div>
+            <div class="stat-box booked">
+                <div class="stat-info">
+                    <h4>Đã đặt trước</h4>
+                    <div class="value" id="stat-booked">0</div>
+                </div>
+                <i class="fas fa-calendar-check" style="font-size: 32px; color: #f59e0b; opacity: 0.3;"></i>
+            </div>
+            <div class="stat-box dirty">
+                <div class="stat-info">
+                    <h4>Cần dọn dẹp</h4>
+                    <div class="value" id="stat-dirty">0</div>
+                </div>
+                <i class="fas fa-broom" style="font-size: 32px; color: #ef4444; opacity: 0.3;"></i>
+            </div>
+            <div class="stat-box maintenance">
+                <div class="stat-info">
+                    <h4>Bảo trì</h4>
+                    <div class="value" id="stat-maintenance">0</div>
+                </div>
+                <i class="fas fa-tools" style="font-size: 32px; color: #6b7280; opacity: 0.3;"></i>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"></div>
+                <span class="legend-label">Trống (AVAILABLE)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);"></div>
+                <span class="legend-label">Có khách (OCCUPIED)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);"></div>
+                <span class="legend-label">Đã đặt (BOOKED)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);"></div>
+                <span class="legend-label">Cần dọn (DIRTY)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);"></div>
+                <span class="legend-label">Bảo trì (MAINTENANCE)</span>
+            </div>
+        </div>
+
+        <!-- Room Grid by Floor -->
+        <div class="room-grid-container" id="room-grid-container">
+            <div class="spinner" style="text-align: center; padding: 60px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: var(--primary);"></i>
+                <p style="margin-top: 20px; color: var(--text-muted);">Đang tải danh sách phòng...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Details Modal -->
+    <div class="modal-backdrop" id="room-details-modal-backdrop">
+        <div class="modal" id="room-details-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-door-open"></i> Thông Tin Phòng <span id="modal-room-number"></span></h2>
+                <button class="modal-close" onclick="ModalManager.close('room-details-modal')">&times;</button>
+            </div>
+            <div class="modal-body room-detail-content" id="room-details-content">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="showEditRoomForm()">
+                    <i class="fas fa-edit"></i> Chỉnh sửa thông tin
+                </button>
+                <button type="button" class="btn btn-primary" onclick="showUpdateStatusForm()">
+                    <i class="fas fa-sync-alt"></i> Cập Nhật Trạng Thái
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Room Modal -->
+    <div class="modal-backdrop" id="edit-room-modal-backdrop">
+        <div class="modal small" id="edit-room-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Chỉnh Sửa Thông Tin Phòng</h2>
+                <button class="modal-close" onclick="ModalManager.close('edit-room-modal')">&times;</button>
+            </div>
+            <form id="edit-room-form" onsubmit="handleUpdateRoomInfo(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="edit-room-id" name="roomId">
+
+                    <div class="form-group">
+                        <label>Số phòng *</label>
+                        <input type="text" id="edit-room-number" name="roomNumber" required placeholder="VD: 101">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Loại phòng *</label>
+                        <select name="type" id="edit-room-type" required>
+                            <option value="STANDARD">Standard</option>
+                            <option value="DELUXE">Deluxe</option>
+                            <option value="SUITE">Suite</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Giá phòng (VNĐ) *</label>
+                        <input type="number" id="edit-room-price" name="price" required min="0" step="1000"
+                            placeholder="VD: 500000">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Chi nhánh</label>
+                        <input type="text" id="edit-room-branch" disabled style="background: rgba(100, 116, 139, 0.2);">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('edit-room-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div class="modal-backdrop" id="update-status-modal-backdrop">
+        <div class="modal small" id="update-status-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Cập Nhật Trạng Thái Phòng</h2>
+                <button class="modal-close" onclick="ModalManager.close('update-status-modal')">&times;</button>
+            </div>
+            <form id="update-status-form" onsubmit="handleUpdateStatus(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="update-room-id" name="roomId">
+                    <div class="form-group">
+                        <label>Phòng số</label>
+                        <input type="text" id="update-room-display" disabled
+                            style="background: rgba(100, 116, 139, 0.2);">
+                    </div>
+                    <div class="form-group">
+                        <label>Loại phòng</label>
+                        <input type="text" id="update-room-type-display" disabled
+                            style="background: rgba(100, 116, 139, 0.2);">
+                    </div>
+                    <div class="form-group">
+                        <label>Trạng thái mới *</label>
+                        <select name="status" id="update-status-select" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="AVAILABLE">Trống (AVAILABLE)</option>
+                            <option value="OCCUPIED">Có khách (OCCUPIED)</option>
+                            <option value="BOOKED">Đã đặt (BOOKED)</option>
+                            <option value="DIRTY">Cần dọn (DIRTY)</option>
+                            <option value="MAINTENANCE">Bảo trì (MAINTENANCE)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ModalManager.close('update-status-modal')">Hủy</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Cập Nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/common/modal.js"></script>
+    <script src="../../js/receptionist/room_grid.js"></script>
+</body>
+
+</html>

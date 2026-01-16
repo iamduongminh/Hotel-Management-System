@@ -12,19 +12,19 @@
 
 <body>
     <div class="sidebar">
-        <h3><i class="fas fa-user-tie"></i> Quản Lý Chi Nhánh</h3>
-        <a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
-        <a href="../common/room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-        <a href="branch_report.html"><i class="fas fa-file-alt"></i> Báo Cáo</a>
-        <a href="../common/shift.html"><i class="fas fa-clock"></i> Ca Làm Việc</a>
-        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        <h3>Quản lý chi nhánh</h3>
+        <a href="dashboard.html" class="active">Tổng quan</a>
+        <a href="../common/room_management.html">Quản lý phòng</a>
+        <a href="branch_report.html">Báo cáo</a>
+        <a href="../common/shift.html">Ca làm việc</a>
+        <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
     </div>
 
     <div class="main-content">
-        <h1>🏢 Dashboard Chi Nhánh</h1>
+        <h1>Tổng quan</h1>
 
         <div class="welcome-card">
-            <h2>Chào mừng, <span id="manager-name">Manager</span></h2>
+            <h2>Xin chào, <span id="manager-name">Manager</span></h2>
             <p><strong>Vai trò:</strong> <span id="manager-role">QUẢN LÝ CHI NHÁNH</span></p>
             <p><strong>Khu vực/Chi nhánh:</strong> <span id="manager-location">Đang cập nhật...</span></p>
         </div>
@@ -33,17 +33,17 @@
         <div
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0;">
             <div class="card">
-                <h3>📈 Doanh Thu Ngày</h3>
+                <h3>Doanh thu ngày</h3>
                 <p style="font-size: 2em; color: #4CAF50; margin: 10px 0;" id="daily-revenue">0 VNĐ</p>
             </div>
 
             <div class="card">
-                <h3>🏨 Phòng Đang Có Khách</h3>
+                <h3>Phòng có khách</h3>
                 <p style="font-size: 2em; color: #2196F3; margin: 10px 0;" id="occupied-rooms">0</p>
             </div>
 
             <div class="card">
-                <h3>👥 Nhân Viên Đang Làm</h3>
+                <h3>Nhân viên online</h3>
                 <p style="font-size: 2em; color: #FF9800; margin: 10px 0;" id="staff-online">0</p>
             </div>
         </div>

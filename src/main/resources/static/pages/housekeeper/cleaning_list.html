@@ -12,20 +12,21 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <h3><i class="fas fa-broom"></i> Buồng Phòng</h3>
-        <a href="dashboard.html"><i class="fas fa-chart-line"></i> Tổng Quan</a>
-        <a href="room_management.html"><i class="fas fa-door-open"></i> Quản Lý Phòng</a>
-        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng Xuất</a>
+        <h3>Buồng phòng</h3>
+        <a href="dashboard.html">Tổng quan</a>
+        <a href="../common/room_management.html">Trạng thái phòng</a>
+        <a href="../common/shift.html">Ca làm việc</a>
+        <a href="#" onclick="handleLogout(); return false;">Đăng xuất</a>
     </div>
 
     <div class="main-content">
-        <h1>🧹 Danh Sách Cần Dọn Dẹp</h1>
+        <h1>Danh sách cần dọn dẹp</h1>
         <table class="data-table">
             <thead>
                 <tr>
                     <th>Phòng</th>
-                    <th>Trạng Thái Hiện Tại</th>
-                    <th>Hành Động</th>
+                    <th>Trạng thái hiện tại</th>
+                    <th>Hành động</th>
                 </tr>
             </thead>
             <tbody id="room-list">
@@ -34,9 +35,9 @@
                     <td><span class="status DIRTY">DIRTY</span></td>
                     <td>
                         <button onclick="markClean(101)" class="btn-primary" style="width:auto; background:green;">Báo
-                            Đã Dọn</button>
+                            đã dọn</button>
                         <button onclick="markMaintenance(101)" class="btn-primary"
-                            style="width:auto; background:orange;">Bảo Trì</button>
+                            style="width:auto; background:orange;">Bảo trì</button>
                     </td>
                 </tr>
                 <tr>
