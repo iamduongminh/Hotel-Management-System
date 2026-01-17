@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Báo cáo tài chính</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/toast.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h3><i class="fas fa-hotel"></i> Quản lý khách sạn</h3>
+        <a href="operational_report.html"><i class="fas fa-chart-line"></i> Báo cáo vận hành</a>
+        <a href="financial_report.html" class="active"><i class="fas fa-file-invoice-dollar"></i> Báo cáo tài chính</a>
+        <a href="#" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+    </div>
+
+    <div class="main-content">
+        <h1>💰 Báo Cáo Tài Chính</h1>
+
+        <!-- Date Range Filters -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h3>🔍 Bộ lọc thời gian</h3>
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <label for="startDate">Từ ngày:</label>
+                    <input type="date" id="startDate" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+                </div>
+                <div>
+                    <label for="endDate">Đến ngày:</label>
+                    <input type="date" id="endDate" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+                </div>
+                <button onclick="applyFilters()" class="btn-primary" style="padding: 10px 20px;">
+                    <i class="fas fa-search"></i> Áp dụng
+                </button>
+                <div style="margin-left: auto; display: flex; gap: 10px;">
+                    <button onclick="setQuickFilter('today')" class="btn-secondary">Hôm nay</button>
+                    <button onclick="setQuickFilter('week')" class="btn-secondary">7 ngày</button>
+                    <button onclick="setQuickFilter('month')" class="btn-secondary">30 ngày</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Revenue (Bar Chart) -->
+        <div class="card" style="margin-bottom: 30px;">
+            <h3>💵 Doanh Thu Theo Ngày</h3>
+            <div style="padding: 20px;">
+                <canvas id="dailyRevenueChart" style="max-height: 400px;"></canvas>
+            </div>
+            <div id="revenueStats" style="margin-top: 20px; text-align: center; font-size: 1.1em;">
+                <p><strong>Tổng doanh thu:</strong> <span id="totalRevenue">0 VNĐ</span></p>
+            </div>
+        </div>
+
+        <!-- Services List -->
+        <div class="card">
+            <h3>🛎️ Danh Sách Dịch Vụ</h3>
+            <div style="overflow-x: auto;">
+                <table class="data-table" id="servicesTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên dịch vụ</th>
+                            <th>Loại</th>
+                            <th>Mô tả</th>
+                            <th>Giá</th>
+                        </tr>
+                    </thead>
+                    <tbody id="servicesTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">Đang tải...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../../js/common/toast.js"></script>
+    <script src="../../js/common/config.js"></script>
+    <script src="../../js/common/auth.js"></script>
+    <script src="../../js/manager/financial_report.js"></script>
+</body>
+
+</html>

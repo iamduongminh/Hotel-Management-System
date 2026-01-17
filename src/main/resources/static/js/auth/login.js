@@ -48,7 +48,7 @@ async function handleLogin(e) {
                 window.location.href = "/pages/admin/dashboard.html";
                 break;
             case 'MANAGER':
-                window.location.href = "/pages/manager/dashboard.html";
+                window.location.href = "/pages/manager/operational_report.html";
                 break;
             case 'RECEPTIONIST':
                 window.location.href = "/pages/receptionist/room_grid.html";

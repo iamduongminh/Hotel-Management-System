@@ -65,4 +65,31 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         "AND b.checkOutDate < :currentDate " +
                         "AND b.isOverdue = false")
         java.util.List<Booking> findOverdueCheckOuts(@Param("currentDate") LocalDateTime currentDate);
+
+        // Report queries - Room type distribution
+        @Query("SELECT b.room.type, COUNT(b) FROM Booking b " +
+                        "WHERE b.checkInDate >= :start AND b.checkInDate < :end " +
+                        "AND b.status != 'CANCELLED' " +
+                        "GROUP BY b.room.type")
+        java.util.List<Object[]> countBookingsByRoomType(
+                        @Param("start") LocalDateTime start,
+                        @Param("end") LocalDateTime end);
+
+        // Report queries - Daily guest count
+        @Query("SELECT CAST(b.checkInDate AS LocalDate), COUNT(b) FROM Booking b " +
+                        "WHERE b.checkInDate >= :start AND b.checkInDate < :end " +
+                        "AND b.status != 'CANCELLED' " +
+                        "GROUP BY CAST(b.checkInDate AS LocalDate) " +
+                        "ORDER BY CAST(b.checkInDate AS LocalDate)")
+        java.util.List<Object[]> countDailyGuestCheckIns(
+                        @Param("start") LocalDateTime start,
+                        @Param("end") LocalDateTime end);
+
+        // Count total bookings in date range (for reports)
+        @Query("SELECT COUNT(b) FROM Booking b " +
+                        "WHERE b.checkInDate >= :start AND b.checkInDate < :end " +
+                        "AND b.status != 'CANCELLED'")
+        Long countBookingsInRange(
+                        @Param("start") LocalDateTime start,
+                        @Param("end") LocalDateTime end);
 }
