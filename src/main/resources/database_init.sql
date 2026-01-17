@@ -66,6 +66,8 @@ CREATE TABLE customers (
 CREATE TABLE bookings (
     id BIGINT NOT NULL AUTO_INCREMENT,
     customer_name VARCHAR(255),
+    customer_phone VARCHAR(20),
+    identity_card VARCHAR(20),
     room_id BIGINT,
     check_in_date DATETIME(6),
     check_out_date DATETIME(6),
@@ -788,6 +790,8 @@ VALUES (
 INSERT INTO bookings (
         id,
         customer_name,
+        customer_phone,
+        identity_card,
         room_id,
         check_in_date,
         check_out_date,
@@ -801,6 +805,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         1,
         'Trần Minh Tuấn',
+        '0901234567',
+        '001089012345',
         102,
         '2026-01-15 14:00:00',
         '2026-01-18 12:00:00',
@@ -813,6 +819,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         2,
         'Lê Thị Hương',
+        '0902345678',
+        '001190123456',
         201,
         '2026-01-14 14:00:00',
         '2026-01-17 12:00:00',
@@ -825,6 +833,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         3,
         'Phạm Văn Hùng',
+        '0903456789',
+        '001291234567',
         302,
         '2026-01-16 14:00:00',
         '2026-01-20 12:00:00',
@@ -837,6 +847,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         4,
         'Nguyễn Thị Lan',
+        '0904567890',
+        '001392345678',
         403,
         '2026-01-15 14:00:00',
         '2026-01-19 12:00:00',
@@ -849,6 +861,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         5,
         'Hoàng Quốc Anh',
+        '0905678901',
+        '001493456789',
         502,
         '2026-01-14 14:00:00',
         '2026-01-21 12:00:00',
@@ -861,6 +875,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         6,
         'Vũ Thị Mai',
+        '0906789012',
+        '001594567890',
         603,
         '2026-01-16 14:00:00',
         '2026-01-18 12:00:00',
@@ -873,6 +889,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         7,
         'Đặng Văn Nam',
+        '0907890123',
+        '001695678901',
         702,
         '2026-01-13 14:00:00',
         '2026-01-20 12:00:00',
@@ -885,6 +903,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         8,
         'Bùi Thị Phương',
+        '0908901234',
+        '001796789012',
         106,
         '2026-01-17 14:00:00',
         '2026-01-19 12:00:00',
@@ -897,6 +917,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         9,
         'Lương Văn Sơn',
+        '0909012345',
+        '001897890123',
         304,
         '2026-01-18 14:00:00',
         '2026-01-22 12:00:00',
@@ -909,6 +931,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         10,
         'Trịnh Thị Thu',
+        '0910123456',
+        '001998901234',
         601,
         '2026-01-19 14:00:00',
         '2026-01-23 12:00:00',
@@ -921,6 +945,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         11,
         'Ngô Văn Tài',
+        '0911234567',
+        '002089012345',
         704,
         '2026-01-20 14:00:00',
         '2026-01-25 12:00:00',
@@ -934,6 +960,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         12,
         'Phan Thị Uyên',
+        '0912345670',
+        '002190123456',
         101,
         '2026-01-08 14:00:00',
         '2026-01-11 12:00:00',
@@ -946,6 +974,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         13,
         'Đỗ Văn Vinh',
+        '0913456781',
+        '002291234567',
         203,
         '2026-01-09 14:00:00',
         '2026-01-12 12:00:00',
@@ -958,6 +988,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         14,
         'Mai Thị Xuân',
+        '0914567892',
+        '002392345678',
         301,
         '2026-01-10 14:00:00',
         '2026-01-13 12:00:00',
@@ -970,6 +1002,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         15,
         'Dương Văn Yên',
+        '0915678903',
+        '002493456789',
         402,
         '2026-01-05 14:00:00',
         '2026-01-10 12:00:00',
@@ -982,6 +1016,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         16,
         'Tạ Thị Thanh',
+        '0916789014',
+        '002594567890',
         501,
         '2026-01-07 14:00:00',
         '2026-01-09 12:00:00',
@@ -994,6 +1030,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         17,
         'Lý Văn Thắng',
+        '0917890125',
+        '002695678901',
         602,
         '2026-01-06 14:00:00',
         '2026-01-11 12:00:00',
@@ -1006,6 +1044,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         18,
         'Cao Thị Ngọc',
+        '0918901236',
+        '002796789012',
         701,
         '2026-01-03 14:00:00',
         '2026-01-08 12:00:00',
@@ -1018,6 +1058,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         19,
         'Võ Văn Minh',
+        '0919012347',
+        '002897890123',
         102,
         '2026-01-01 14:00:00',
         '2026-01-04 12:00:00',
@@ -1030,6 +1072,8 @@ VALUES -- Current occupancy (BOOKED & CHECKED_IN)
     (
         20,
         'Hồ Thị Kim',
+        '0920123458',
+        '002998901234',
         202,
         '2025-12-28 14:00:00',
         '2026-01-02 12:00:00',
