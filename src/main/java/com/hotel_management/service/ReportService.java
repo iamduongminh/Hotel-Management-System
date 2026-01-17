@@ -1,36 +1,29 @@
 package com.hotel_management.service;
 
-import com.hotel_management.api.core.domain.entity.HotelService;
 import com.hotel_management.api.core.domain.enums.RoomType;
 import com.hotel_management.dto.ReportDTO;
 import com.hotel_management.repository.BookingRepository;
-import com.hotel_management.repository.HotelServiceRepository;
 import com.hotel_management.repository.InvoiceRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
 
     private final BookingRepository bookingRepository;
     private final InvoiceRepository invoiceRepository;
-    private final HotelServiceRepository hotelServiceRepository;
 
     public ReportService(BookingRepository bookingRepository,
-            InvoiceRepository invoiceRepository,
-            HotelServiceRepository hotelServiceRepository) {
+            InvoiceRepository invoiceRepository) {
         this.bookingRepository = bookingRepository;
         this.invoiceRepository = invoiceRepository;
-        this.hotelServiceRepository = hotelServiceRepository;
     }
 
     /**

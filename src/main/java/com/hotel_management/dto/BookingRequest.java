@@ -11,5 +11,6 @@ public class BookingRequest {
     private String identityCard;
     private LocalDateTime checkInDate;
     private LocalDateTime checkOutDate;
+    private Double totalAmount;
     private String status;
 }

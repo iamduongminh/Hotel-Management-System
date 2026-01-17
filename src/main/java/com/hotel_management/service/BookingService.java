@@ -1,20 +1,22 @@
 package com.hotel_management.service;
 
 import com.hotel_management.api.core.domain.entity.Booking;
-import com.hotel_management.api.core.domain.entity.Room;
 import com.hotel_management.api.core.domain.enums.BookingStatus;
-import com.hotel_management.api.core.domain.enums.RoomStatus;
 import com.hotel_management.dto.BookingRequest;
 import com.hotel_management.repository.BookingRepository;
 import com.hotel_management.repository.RoomRepository;
 import org.springframework.stereotype.Service;
-import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects; // Import thêm cái này để check null xịn hơn
+import java.util.Objects;
 
 @Service
+@Transactional
 public class BookingService {
+
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
 
@@ -27,133 +29,88 @@ public class BookingService {
         return bookingRepository.findAll();
     }
 
-    public Booking createBooking(BookingRequest request) {
-        Long roomId = request.getRoomId();
+    public Booking createBooking(BookingRequest req) {
+        Booking booking = new Booking();
+        booking.setCustomerName(req.getCustomerName());
+        booking.setCustomerPhone(req.getCustomerPhone());
+        booking.setIdentityCard(req.getIdentityCard());
 
-        if (roomId == null) {
+        if (req.getRoomId() == null) {
             throw new IllegalArgumentException("Room ID cannot be null");
         }
+        booking.setRoom(roomRepository.findById(req.getRoomId())
+                .orElseThrow(() -> new RuntimeException("Room not found")));
+        booking.setCheckInDate(req.getCheckInDate());
+        booking.setCheckOutDate(req.getCheckOutDate());
 
-        // Lúc này 'roomId' được coi là @NonNull an toàn
-        Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new EntityNotFoundException("Room not found with ID: " + roomId));
+        // Use totalAmount from request or calculate it (fallback to 0 if null)
+        booking.setTotalAmount(req.getTotalAmount() != null ? req.getTotalAmount() : 0.0);
 
-        Booking booking = new Booking();
-        booking.setCustomerName(request.getCustomerName());
-        booking.setCustomerPhone(request.getCustomerPhone());
-        booking.setIdentityCard(request.getIdentityCard());
-        booking.setRoom(room);
-        booking.setCheckInDate(request.getCheckInDate());
-        booking.setCheckOutDate(request.getCheckOutDate());
-
-        // Set status from request or default to BOOKED
-        String status = request.getStatus();
-        if (status != null && !status.isEmpty()) {
-            booking.setStatus(status);
-        } else {
-            booking.setStatus(BookingStatus.BOOKED.name());
-        }
-
-        booking.setTotalAmount(0.0);
-
-        // Update room status based on booking status
-        if (BookingStatus.CHECKED_IN.name().equals(booking.getStatus())) {
-            room.setStatus(RoomStatus.OCCUPIED);
-        } else {
-            room.setStatus(RoomStatus.BOOKED);
-        }
-        roomRepository.save(room);
+        // Status is String in Entity, pass Enum.name()
+        booking.setStatus(BookingStatus.BOOKED.name());
+        booking.setIsOverdue(false);
+        booking.setExtraCharges(BigDecimal.ZERO);
         return bookingRepository.save(booking);
     }
 
-    public Booking checkIn(Long bookingId) {
-
-        Long safeId = Objects.requireNonNull(bookingId, "Booking ID cannot be null");
-
-        // 1. Tìm booking với safeId
-        Booking booking = bookingRepository.findById(safeId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found with ID: " + safeId));
-
-        // 2. Cập nhật trạng thái
-        booking.setStatus(BookingStatus.CHECKED_IN.name());
-        booking.setCheckInDate(LocalDateTime.now());
-
-        // 3. Lưu lại
-        return bookingRepository.save(booking);
-    }
-
-    /**
-     * Get bookings scheduled to check in today
-     */
     public List<Booking> getTodayCheckIns() {
         return bookingRepository.findTodayCheckIns();
     }
 
-    /**
-     * Get bookings scheduled to check out today
-     */
     public List<Booking> getTodayCheckOuts() {
         return bookingRepository.findTodayCheckOuts();
     }
 
-    /**
-     * Get current stays ordered by check-out date (overdue first, then nearest)
-     */
     public List<Booking> getCurrentStays() {
         return bookingRepository.findCurrentStaysOrderedByCheckOut();
     }
 
-    /**
-     * Get booking history (checked out and cancelled)
-     */
     public List<Booking> getBookingHistory() {
         return bookingRepository.findBookingHistory();
     }
 
-    /**
-     * Check out a booking with overdue charge handling
-     */
-    public Booking checkOut(Long bookingId) {
-        Long safeId = Objects.requireNonNull(bookingId, "Booking ID cannot be null");
-
-        Booking booking = bookingRepository.findById(safeId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found with ID: " + safeId));
-
-        // Update status
-        booking.setStatus(BookingStatus.CHECKED_OUT.name());
-        booking.setCheckOutDate(LocalDateTime.now());
-
-        // If overdue, add extra charges to total amount
-        if (booking.getIsOverdue() && booking.getExtraCharges() != null) {
-            double currentTotal = booking.getTotalAmount() != null ? booking.getTotalAmount() : 0.0;
-            double extraCharges = booking.getExtraCharges().doubleValue();
-            booking.setTotalAmount(currentTotal + extraCharges);
-        }
-
-        // Update room status to available
-        Room room = booking.getRoom();
-        if (room != null) {
-            room.setStatus(RoomStatus.AVAILABLE);
-            roomRepository.save(room);
-        }
-
+    public Booking checkIn(Long id) {
+        Objects.requireNonNull(id, "Booking ID cannot be null");
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        // Status is String
+        booking.setStatus(BookingStatus.CHECKED_IN.name());
         return bookingRepository.save(booking);
     }
 
-    public Booking updateBooking(Long id, BookingRequest request) {
-        Long safeId = Objects.requireNonNull(id, "Booking ID cannot be null");
-        Booking booking = bookingRepository.findById(safeId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking not found with ID: " + safeId));
+    public Booking checkOut(Long id) {
+        Objects.requireNonNull(id, "Booking ID cannot be null");
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        if (request.getCustomerName() != null) {
-            booking.setCustomerName(request.getCustomerName());
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isAfter(booking.getCheckOutDate())) {
+            booking.setIsOverdue(true);
         }
-        if (request.getCheckInDate() != null) {
-            booking.setCheckInDate(request.getCheckInDate());
+
+        booking.setStatus(BookingStatus.CHECKED_OUT.name());
+        return bookingRepository.save(booking);
+    }
+
+    public Booking updateBooking(Long id, BookingRequest req) {
+        Objects.requireNonNull(id, "Booking ID cannot be null");
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        booking.setCustomerName(req.getCustomerName());
+        booking.setCustomerPhone(req.getCustomerPhone());
+        booking.setIdentityCard(req.getIdentityCard());
+        if (req.getRoomId() != null) {
+            Long roomId = req.getRoomId();
+            booking.setRoom(roomRepository.findById(roomId)
+                    .orElseThrow(() -> new RuntimeException("Room not found")));
         }
-        if (request.getCheckOutDate() != null) {
-            booking.setCheckOutDate(request.getCheckOutDate());
+        booking.setCheckInDate(req.getCheckInDate());
+        booking.setCheckOutDate(req.getCheckOutDate());
+        if (req.getTotalAmount() != null) {
+            booking.setTotalAmount(req.getTotalAmount());
         }
+
         return bookingRepository.save(booking);
     }
 }
