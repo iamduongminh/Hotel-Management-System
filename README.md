@@ -25,8 +25,11 @@ cd hotel_management_sytem_web
 
 ### Bước 2: Cài đặt cơ sở dữ liệu
 1.  Mở MySQL Workbench hoặc công cụ quản lý DB bất kỳ.
-2.  Chạy script khởi tạo: `src/main/resources/hotel_db_init.sql`
-    *(Script này sẽ tự động xóa DB cũ (nếu có), tạo DB `hotel_db` mới, tạo bảng và insert dữ liệu)*
+2.  **Chạy lần lượt các script sau theo thứ tự:**
+    - **Bước 2.1**: Chạy `src/main/resources/database_init.sql`  
+      *(Script này sẽ tự động xóa DB cũ (nếu có), tạo DB `hotel_db` mới, tạo bảng và insert dữ liệu cơ bản)*
+    - **Bước 2.2**: Chạy `src/main/resources/manager_test_data.sql`  
+      *(Script này sẽ thêm dữ liệu test cho Manager Reports - bookings, invoices, services)*
 
 ### Bước 3: Cấu hình kết nối
 Mở file `src/main/resources/application.properties` và cập nhật thông tin MySQL của bạn:
@@ -50,8 +53,8 @@ mvn spring-boot:run
 Sau khi chạy thành công, truy cập trình duyệt tại:  
 **http://localhost:8080**
 
-### Tài khoản mẫu (Test Accounts)
-Dữ liệu người dùng được khởi tạo trong `hotel_db_init.sql`.
+### Tài khoản mẫu
+Dữ liệu người dùng được khởi tạo trong `database_init.sql`.
 
 | Vai trò (Role) | Username | Password | Ghi chú |
 | :--- | :--- | :--- | :--- |
