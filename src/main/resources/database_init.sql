@@ -1159,6 +1159,21 @@ VALUES (
         '2026-01-02 12:10:00'
     );
 -- =====================================================
+-- 8. BOOKING SERVICES TABLE
+-- =====================================================
+-- Link between Bookings and Services (Many-to-Many)
+CREATE TABLE booking_services (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    booking_id BIGINT,
+    service_id BIGINT,
+    quantity INT DEFAULT 1,
+    price DECIMAL(10, 2),
+    -- Snapshot of price at time of booking
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id),
+    FOREIGN KEY (service_id) REFERENCES services(id)
+);
+-- =====================================================
 -- VERIFICATION QUERIES
 -- =====================================================
 -- SELECT COUNT(*) as total_users FROM users;

@@ -58,6 +58,8 @@ public class ReportDTO {
         private String type;
         private String description;
         private BigDecimal price;
+        private Long usageCount;
+        private BigDecimal totalRevenue;
     }
 
     /**

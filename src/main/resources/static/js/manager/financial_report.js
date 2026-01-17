@@ -4,9 +4,10 @@ let dailyRevenueChart = null;
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function () {
     // Set default date range to last 7 days
+    // Set default date range to last 7 days (this triggers applyFilters -> fetchServices)
     setQuickFilter('week');
-    // Load services list
-    fetchServices();
+    // Initialize resizable panels
+    initializeResizer();
 });
 
 /**
@@ -15,6 +16,12 @@ document.addEventListener('DOMContentLoaded', function () {
 function setQuickFilter(period) {
     const endDate = new Date();
     const startDate = new Date();
+
+    // Update active button state
+    document.querySelectorAll('.btn-pill').forEach(btn => btn.classList.remove('active'));
+    if (period === 'today') document.getElementById('btnToday')?.classList.add('active');
+    if (period === 'week') document.getElementById('btnWeek')?.classList.add('active');
+    if (period === 'month') document.getElementById('btnMonth')?.classList.add('active');
 
     switch (period) {
         case 'today':
@@ -51,26 +58,22 @@ async function applyFilters() {
         return;
     }
 
-    await fetchDailyRevenue(startDate, endDate);
+    await Promise.all([
+        fetchDailyRevenue(startDate, endDate),
+        fetchServices(startDate, endDate)
+    ]);
 }
 
 /**
  * Fetch daily revenue data
  */
+/**
+ * Fetch daily revenue data
+ */
 async function fetchDailyRevenue(startDate, endDate) {
     try {
-        const response = await fetch(
-            `${CONFIG.API_BASE_URL}/manager/reports/financial/daily-revenue?start=${startDate}&end=${endDate}`,
-            {
-                credentials: 'include'
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error('Lỗi khi tải dữ liệu doanh thu');
-        }
-
-        const data = await response.json();
+        // Use callAPI to handle 401/Auth errors automatically
+        const data = await callAPI(`/manager/reports/financial/daily-revenue?start=${startDate}&end=${endDate}`);
         renderDailyRevenueChart(data);
     } catch (error) {
         console.error('Error fetching daily revenue:', error);
@@ -81,20 +84,18 @@ async function fetchDailyRevenue(startDate, endDate) {
 /**
  * Fetch services list
  */
-async function fetchServices() {
+/**
+ * Fetch services list
+ */
+async function fetchServices(startDate, endDate) {
     try {
-        const response = await fetch(
-            `${CONFIG.API_BASE_URL}/manager/reports/financial/services`,
-            {
-                credentials: 'include'
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error('Lỗi khi tải danh sách dịch vụ');
+        // Use callAPI to handle 401/Auth errors automatically
+        // If dates are null, backend defaults to last 30 days, but we should pass them if available
+        let url = '/manager/reports/financial/services';
+        if (startDate && endDate) {
+            url += `?start=${startDate}&end=${endDate}`;
         }
-
-        const data = await response.json();
+        const data = await callAPI(url);
         renderServicesTable(data);
     } catch (error) {
         console.error('Error fetching services:', error);
@@ -134,7 +135,7 @@ function renderDailyRevenueChart(data) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false, // Allow chart to fill container
             plugins: {
                 legend: {
                     display: false
@@ -168,17 +169,25 @@ function renderServicesTable(data) {
     const tbody = document.getElementById('servicesTableBody');
 
     if (!data.services || data.services.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Không có dịch vụ nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Không có dịch vụ nào</td></tr>';
         return;
     }
 
-    tbody.innerHTML = data.services.map(service => `
+    tbody.innerHTML = data.services.map((service, index) => `
         <tr>
-            <td>${service.id}</td>
-            <td><strong>${service.name}</strong></td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="background: rgba(255,255,255,0.1); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 12px; color: var(--text-muted);">${index + 1}</span>
+                    <strong>${service.name}</strong>
+                </div>
+            </td>
             <td>${getServiceTypeLabel(service.type)}</td>
-            <td>${service.description || '-'}</td>
-            <td><strong>${formatCurrency(service.price)}</strong></td>
+            <td style="text-align: center;">
+                <span style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 2px 8px; border-radius: 4px; font-weight: bold;">
+                    ${service.usageCount || 0}
+                </span>
+            </td>
+            <td><strong>${formatCurrency(service.totalRevenue || 0)}</strong></td>
         </tr>
     `).join('');
 }
@@ -239,4 +248,55 @@ function formatDateForInput(date) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+/**
+ * Initialize resizable panels
+ */
+function initializeResizer() {
+    const resizer = document.getElementById('resizer');
+    const leftPanel = document.getElementById('leftPanel');
+    const rightPanel = document.getElementById('rightPanel');
+    const container = resizer.parentElement;
+
+    let isResizing = false;
+    let startX = 0;
+    let startLeftWidth = 0;
+
+    resizer.addEventListener('mousedown', function (e) {
+        isResizing = true;
+        startX = e.clientX;
+        startLeftWidth = leftPanel.offsetWidth;
+        resizer.classList.add('resizing');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        if (!isResizing) return;
+
+        const deltaX = e.clientX - startX;
+        const containerWidth = container.offsetWidth;
+        const newLeftWidth = startLeftWidth + deltaX;
+        const minWidth = 300;
+        const maxWidth = containerWidth - minWidth - 8; // 8px for resizer
+
+        if (newLeftWidth >= minWidth && newLeftWidth <= maxWidth) {
+            const leftPercentage = (newLeftWidth / containerWidth) * 100;
+            leftPanel.style.flex = `0 0 ${leftPercentage}%`;
+
+            // Trigger chart resize
+            if (dailyRevenueChart) dailyRevenueChart.resize();
+        }
+    });
+
+    document.addEventListener('mouseup', function () {
+        if (isResizing) {
+            isResizing = false;
+            resizer.classList.remove('resizing');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
 }

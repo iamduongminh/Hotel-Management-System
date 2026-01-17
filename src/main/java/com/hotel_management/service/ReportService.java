@@ -125,19 +125,34 @@ public class ReportService {
     /**
      * Get all available services
      */
-    public ReportDTO.ServicesResponse getAvailableServices() {
-        List<HotelService> services = hotelServiceRepository.findAll();
+    /**
+     * Get top used services (Real data from booking_services)
+     */
+    public ReportDTO.ServicesResponse getTopUsedServices(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime start = startDate.atStartOfDay();
+        LocalDateTime end = endDate.plusDays(1).atStartOfDay();
 
-        List<ReportDTO.ServiceInfoDTO> serviceInfoList = services.stream()
-                .filter(HotelService::getActive)
-                .map(service -> new ReportDTO.ServiceInfoDTO(
-                        service.getId(),
-                        service.getName(),
-                        service.getType() != null ? service.getType().name() : "OTHER",
-                        service.getDescription(),
-                        service.getPrice()))
-                .collect(Collectors.toList());
+        List<Object[]> rawData = bookingRepository.countTopUsedServices(start, end);
+        List<ReportDTO.ServiceInfoDTO> serviceUsageList = new ArrayList<>();
 
-        return new ReportDTO.ServicesResponse(serviceInfoList, serviceInfoList.size());
+        for (Object[] row : rawData) {
+            // [Service ID, Service Name, Service Type, Usage Count, Total Revenue]
+            Number id = (Number) row[0];
+            String name = (String) row[1];
+            String type = (String) row[2];
+            Number usageCount = (Number) row[3];
+            BigDecimal totalRevenue = (BigDecimal) row[4];
+
+            serviceUsageList.add(new ReportDTO.ServiceInfoDTO(
+                    id.longValue(),
+                    name,
+                    type,
+                    "",
+                    BigDecimal.ZERO,
+                    usageCount.longValue(),
+                    totalRevenue));
+        }
+
+        return new ReportDTO.ServicesResponse(serviceUsageList, serviceUsageList.size());
     }
 }

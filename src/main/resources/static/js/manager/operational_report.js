@@ -6,6 +6,9 @@ let dailyGuestChart = null;
 document.addEventListener('DOMContentLoaded', function () {
     // Set default date range to last 7 days
     setQuickFilter('week');
+
+    // Initialize resizable panels
+    initializeResizer();
 });
 
 /**
@@ -14,6 +17,12 @@ document.addEventListener('DOMContentLoaded', function () {
 function setQuickFilter(period) {
     const endDate = new Date();
     const startDate = new Date();
+
+    // Update active button state
+    document.querySelectorAll('.btn-pill').forEach(btn => btn.classList.remove('active'));
+    if (period === 'today') document.getElementById('btnToday')?.classList.add('active');
+    if (period === 'week') document.getElementById('btnWeek')?.classList.add('active');
+    if (period === 'month') document.getElementById('btnMonth')?.classList.add('active');
 
     switch (period) {
         case 'today':
@@ -59,20 +68,13 @@ async function applyFilters() {
 /**
  * Fetch room type distribution data
  */
+/**
+ * Fetch room type distribution data
+ */
 async function fetchRoomDistribution(startDate, endDate) {
     try {
-        const response = await fetch(
-            `${CONFIG.API_BASE_URL}/manager/reports/operational/room-distribution?start=${startDate}&end=${endDate}`,
-            {
-                credentials: 'include'
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error('Lỗi khi tải dữ liệu phân bổ phòng');
-        }
-
-        const data = await response.json();
+        // Use callAPI to handle 401/Auth errors automatically
+        const data = await callAPI(`/manager/reports/operational/room-distribution?start=${startDate}&end=${endDate}`);
         renderRoomDistributionChart(data);
     } catch (error) {
         console.error('Error fetching room distribution:', error);
@@ -83,20 +85,13 @@ async function fetchRoomDistribution(startDate, endDate) {
 /**
  * Fetch daily guest count data
  */
+/**
+ * Fetch daily guest count data
+ */
 async function fetchDailyGuestCount(startDate, endDate) {
     try {
-        const response = await fetch(
-            `${CONFIG.API_BASE_URL}/manager/reports/operational/daily-guests?start=${startDate}&end=${endDate}`,
-            {
-                credentials: 'include'
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error('Lỗi khi tải dữ liệu khách theo ngày');
-        }
-
-        const data = await response.json();
+        // Use callAPI to handle 401/Auth errors automatically
+        const data = await callAPI(`/manager/reports/operational/daily-guests?start=${startDate}&end=${endDate}`);
         renderDailyGuestChart(data);
     } catch (error) {
         console.error('Error fetching daily guests:', error);
@@ -143,14 +138,16 @@ function renderRoomDistributionChart(data) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false, // Allow chart to fill container height
             plugins: {
                 legend: {
-                    position: 'right',
+                    position: 'bottom', // Move legend to bottom to avoid cutting off
                     labels: {
                         font: {
-                            size: 14
-                        }
+                            size: 12
+                        },
+                        padding: 20,
+                        usePointStyle: true
                     }
                 },
                 tooltip: {
@@ -197,7 +194,7 @@ function renderDailyGuestChart(data) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false, // Allow chart to fill container height
             plugins: {
                 legend: {
                     display: false
@@ -252,4 +249,56 @@ function formatDateForInput(date) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+/**
+ * Initialize resizable panels
+ */
+function initializeResizer() {
+    const resizer = document.getElementById('resizer');
+    const leftPanel = document.getElementById('leftPanel');
+    const rightPanel = document.getElementById('rightPanel');
+    const container = resizer.parentElement;
+
+    let isResizing = false;
+    let startX = 0;
+    let startLeftWidth = 0;
+
+    resizer.addEventListener('mousedown', function (e) {
+        isResizing = true;
+        startX = e.clientX;
+        startLeftWidth = leftPanel.offsetWidth;
+        resizer.classList.add('resizing');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        if (!isResizing) return;
+
+        const deltaX = e.clientX - startX;
+        const containerWidth = container.offsetWidth;
+        const newLeftWidth = startLeftWidth + deltaX;
+        const minWidth = 300;
+        const maxWidth = containerWidth - minWidth - 8; // 8px for resizer
+
+        if (newLeftWidth >= minWidth && newLeftWidth <= maxWidth) {
+            const leftPercentage = (newLeftWidth / containerWidth) * 100;
+            leftPanel.style.flex = `0 0 ${leftPercentage}%`;
+
+            // Trigger chart resize
+            if (roomDistributionChart) roomDistributionChart.resize();
+            if (dailyGuestChart) dailyGuestChart.resize();
+        }
+    });
+
+    document.addEventListener('mouseup', function () {
+        if (isResizing) {
+            isResizing = false;
+            resizer.classList.remove('resizing');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
 }

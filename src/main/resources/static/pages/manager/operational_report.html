@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Báo cáo vận hành</title>
+    <title>Manager</title>
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="../../css/toast.css">
     <!-- FontAwesome -->
@@ -24,53 +24,195 @@
         <h1>📊 Báo Cáo Vận Hành</h1>
 
         <!-- Date Range Filters -->
-        <div class="card" style="margin-bottom: 20px;">
-            <h3>🔍 Bộ lọc thời gian</h3>
-            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                <div>
-                    <label for="startDate">Từ ngày:</label>
-                    <input type="date" id="startDate" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
-                </div>
-                <div>
-                    <label for="endDate">Đến ngày:</label>
-                    <input type="date" id="endDate" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
-                </div>
-                <button onclick="applyFilters()" class="btn-primary" style="padding: 10px 20px;">
-                    <i class="fas fa-search"></i> Áp dụng
-                </button>
-                <div style="margin-left: auto; display: flex; gap: 10px;">
-                    <button onclick="setQuickFilter('today')" class="btn-secondary">Hôm nay</button>
-                    <button onclick="setQuickFilter('week')" class="btn-secondary">7 ngày</button>
-                    <button onclick="setQuickFilter('month')" class="btn-secondary">30 ngày</button>
+        <!-- Date Range Filters -->
+        <div class="card" style="margin-bottom: 24px; padding: 24px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                <!-- Title & Inputs -->
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <h3 style="margin: 0; font-size: 18px; color: var(--text-secondary);"><i class="fas fa-filter"></i>
+                        Bộ lọc</h3>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <input type="date" id="startDate">
+                        <span style="color: var(--text-muted); font-weight: bold;">➜</span>
+                        <input type="date" id="endDate">
+                        <button onclick="applyFilters()" class="btn-primary"
+                            style="padding: 10px 20px; border-radius: 8px;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        </input>
+                    </div>
+
+                    <!-- Quick Actions (Pills) -->
+                    <div class="btn-group-pill">
+                        <button onclick="setQuickFilter('today')" class="btn-pill" id="btnToday">Hôm nay</button>
+                        <button onclick="setQuickFilter('week')" class="btn-pill active" id="btnWeek">7 ngày</button>
+                        <button onclick="setQuickFilter('month')" class="btn-pill" id="btnMonth">30 ngày</button>
+                    </div>
                 </div>
             </div>
+
+            <!-- Resizable Charts Container -->
+            <div class="resizable-container">
+                <!-- Left Panel: Room Type Distribution Chart -->
+                <div class="resizable-panel" id="leftPanel">
+                    <div class="card" style="height: 100%; margin: 0;">
+                        <h3 style="margin-bottom: 16px;">📊 Cơ Cấu Khách Theo Loại Phòng</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 16px;">
+                            Tổng số khách: <strong id="totalGuests" style="color: var(--primary);">0</strong>
+                        </p>
+                        <div style="height: calc(100% - 80px); position: relative;">
+                            <canvas id="roomDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resizer/Divider -->
+                <div class="resizer" id="resizer"></div>
+
+                <!-- Right Panel: Daily Guest Count Chart -->
+                <div class="resizable-panel" id="rightPanel">
+                    <div class="card" style="height: 100%; margin: 0;">
+                        <h3 style="margin-bottom: 16px;">📈 Số Lượng Khách Theo Ngày</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 16px;">
+                            Biểu đồ khách check-in theo ngày
+                        </p>
+                        <div style="height: calc(100% - 80px); position: relative;">
+                            <canvas id="dailyGuestChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Room Type Distribution (Pie Chart) -->
-        <div class="card" style="margin-bottom: 30px;">
-            <h3>🏨 Cơ Cấu Khách Theo Loại Phòng</h3>
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <canvas id="roomDistributionChart"></canvas>
-            </div>
-            <div id="roomDistributionStats" style="margin-top: 20px; text-align: center; font-size: 1.1em;">
-                <p><strong>Tổng số khách:</strong> <span id="totalGuests">0</span></p>
-            </div>
-        </div>
+        <style>
+            /* Modern Card Styling */
+            .card {
+                background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(10px);
+                border-radius: 16px;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
 
-        <!-- Daily Guest Count (Bar Chart) -->
-        <div class="card">
-            <h3>📅 Số Lượng Khách Theo Ngày</h3>
-            <div style="padding: 20px;">
-                <canvas id="dailyGuestChart" style="max-height: 400px;"></canvas>
-            </div>
-        </div>
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+                border-color: rgba(59, 130, 246, 0.4);
+            }
 
-    </div>
+            /* Modern Input Styling */
+            input[type="date"] {
+                background: rgba(15, 23, 42, 0.6) !important;
+                border: 1px solid rgba(59, 130, 246, 0.3) !important;
+                color: #e2e8f0 !important;
+                border-radius: 8px !important;
+                padding: 10px 16px !important;
+                font-family: inherit;
+                transition: all 0.3s ease;
+            }
 
-    <script src="../../js/common/toast.js"></script>
-    <script src="../../js/common/config.js"></script>
-    <script src="../../js/common/auth.js"></script>
-    <script src="../../js/manager/operational_report.js"></script>
+            input[type="date"]:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+                outline: none;
+            }
+
+            /* Modern Pill Buttons */
+            .btn-group-pill {
+                display: inline-flex;
+                background: rgba(15, 23, 42, 0.6);
+                padding: 4px;
+                border-radius: 12px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .btn-pill {
+                background: transparent;
+                border: none;
+                color: #94a3b8;
+                padding: 8px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+
+            .btn-pill:hover {
+                color: #fff;
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .btn-pill.active {
+                background: #3b82f6;
+                color: white;
+                box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+            }
+
+            /* Resizable Container Styles */
+            .resizable-container {
+                display: flex;
+                gap: 0;
+                height: 500px;
+                /* Increased height for better visibility */
+                margin-bottom: 24px;
+                position: relative;
+            }
+
+            .resizable-panel {
+                height: 100%;
+                overflow: hidden;
+            }
+
+            #leftPanel {
+                flex: 0 0 50%;
+                min-width: 300px;
+            }
+
+            #rightPanel {
+                flex: 1;
+                min-width: 300px;
+            }
+
+            .resizer {
+                width: 12px;
+                /* Slightly wider for easier grabbing */
+                cursor: col-resize;
+                background: transparent;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                z-index: 10;
+                margin: 0 -4px;
+                /* Negative margin to overlay slightly */
+            }
+
+            .resizer::before {
+                content: '';
+                width: 4px;
+                height: 40px;
+                background: rgba(59, 130, 246, 0.3);
+                border-radius: 4px;
+                transition: all 0.2s ease;
+            }
+
+            .resizer:hover::before,
+            .resizer.resizing::before {
+                background: #3b82f6;
+                height: 60px;
+                width: 6px;
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+            }
+        </style>
+
+        <script src="../../js/common/config.js"></script>
+        <script src="../../js/common/toast.js"></script>
+        <script src="../../js/common/auth.js"></script>
+        <script src="../../js/manager/operational_report.js"></script>
 </body>
 
 </html>

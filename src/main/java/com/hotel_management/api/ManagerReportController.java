@@ -62,7 +62,14 @@ public class ManagerReportController {
      * GET /api/manager/reports/financial/services
      */
     @GetMapping("/financial/services")
-    public ResponseEntity<ReportDTO.ServicesResponse> getServices() {
-        return ResponseEntity.ok(reportService.getAvailableServices());
+    public ResponseEntity<ReportDTO.ServicesResponse> getServices(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+        // Default to last 30 days if no date provided
+        if (start == null)
+            start = LocalDate.now().minusDays(30);
+        if (end == null)
+            end = LocalDate.now();
+        return ResponseEntity.ok(reportService.getTopUsedServices(start, end));
     }
 }

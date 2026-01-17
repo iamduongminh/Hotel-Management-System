@@ -85,6 +85,22 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                         @Param("start") LocalDateTime start,
                         @Param("end") LocalDateTime end);
 
+        // Report queries - Top Used Services
+        // Returns: [Service ID, Service Name, Service Type, Usage Count, Total Revenue]
+        @Query(value = "SELECT s.id, s.name, s.type, " +
+                        "COUNT(bs.id) as usage_count, " +
+                        "SUM(bs.quantity * bs.price) as total_revenue " +
+                        "FROM booking_services bs " +
+                        "JOIN services s ON bs.service_id = s.id " +
+                        "JOIN bookings b ON bs.booking_id = b.id " +
+                        "WHERE b.check_in_date >= :start AND b.check_in_date < :end " +
+                        "AND b.status != 'CANCELLED' " +
+                        "GROUP BY s.id, s.name, s.type " +
+                        "ORDER BY usage_count DESC", nativeQuery = true)
+        java.util.List<Object[]> countTopUsedServices(
+                        @Param("start") LocalDateTime start,
+                        @Param("end") LocalDateTime end);
+
         // Count total bookings in date range (for reports)
         @Query("SELECT COUNT(b) FROM Booking b " +
                         "WHERE b.checkInDate >= :start AND b.checkInDate < :end " +
